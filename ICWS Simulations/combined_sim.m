@@ -1,0 +1,131 @@
+rng(2012);
+fc = 24.005e9;                                 
+c = physconst('LightSpeed');               
+lambda = freq2wavelen(fc,c);                             
+
+rangeMax = 100;                 
+
+%for FMCW, sweep time atleast 5 - 6 times the round trip time
+tm = 6*range2time(rangeMax,c);   
+
+% Note: BW = 240 Hz, ideal delta R is smaller! good
+rangeRes = 1.5;
+bw = rangeres2bw(rangeRes,c);  
+%bw = 240e6;
+sweepSlope = bw/tm;                     
+
+%FMCW: sample rate 2x fbeat
+fbeatMax = range2beat(rangeMax,sweepSlope,c); 
+
+vMax = 75;                   
+fdopMax = speed2dop(2*vMax,lambda);    
+% see equations for fifmax
+fifMax = fbeatMax+fdopMax;
+% sample rate is the larger of 2fif or bw
+%fs = round(max(2*fifMax,bw), 0);      
+fs = max(2*fifMax,bw);
+
+waveform = phased.FMCWWaveform('SweepTime',tm, ...
+    'SweepBandwidth',bw, ...
+    'SampleRate',fs, ...
+    'SweepDirection','Triangle', ...
+    'NumSweeps',1);
+
+
+sig = waveform();
+plot(sig)
+hold on
+%Note effects of other cmpnts e.g. coupler and mixer left out
+antElmnt = phased.IsotropicAntennaElement('BackBaffled',true);
+Ne = 4; % uRAD has 4 x4 elements
+rxArray = phased.ULA('Element',antElmnt, ...
+    'NumElements',Ne, ...
+    'ElementSpacing',lambda/2);
+
+hpbw = beamwidth(rxArray,fc,'PropagationSpeed',c);
+
+% antAperture = 6.06e-4;                        % Antenna aperture (m^2)
+% phased array aperture unknown, but gain is known
+
+%antGain = aperture2gain(antAperture,lambda);  % Antenna gain (dB)
+antGain = 16.6; % (dB)
+
+txPkPower = 0.1; % (W) from 20 dBm
+%txPkPower = db2pow(5)*1e-3;                   % Tx peak power (W)
+
+% Why tx gain 2 x ant gain?
+txGain = antGain;                             % Tx antenna gain (dB)
+
+rxGain = antGain;                             % Rx antenna gain (dB)
+rxNF = 4.5;                                   % Receiver noise figure (dB)
+
+transmitter = phased.Transmitter('PeakPower',txPkPower,'Gain',txGain);
+radiator = phased.Radiator('Sensor',antElmnt,'OperatingFrequency',fc);
+collector = phased.Collector('Sensor',rxArray,'OperatingFrequency',fc);
+
+receiver = phased.ReceiverPreamp('Gain',rxGain,'NoiseFigure',rxNF,'SampleRate',fs);
+
+radar = radarTransceiver('Waveform',waveform,'Transmitter',transmitter,...
+    'TransmitAntenna',radiator,'ReceiveAntenna',collector,'Receiver',receiver);
+
+
+car_dist = 50; % distance in meters
+car_speed = -50; % speed in m/s
+
+car_rcs = db2pow(min(10*log10(car_dist)+5,20)); % check calculation
+cartarget = phased.RadarTarget('MeanRCS',car_rcs,...
+    'PropagationSpeed',c,...
+    'OperatingFrequency',fc);
+carmotion = phased.Platform('InitialPosition',[car_dist;0;0.5],...
+    'Velocity',[car_speed;0;0]);
+
+channel = phased.FreeSpace('PropagationSpeed',c,...
+    'OperatingFrequency',fc,...
+    'SampleRate',fs,'TwoWayPropagation',true);
+
+% Radar parameters defined in uRAD_sim.m
+radar_speed = 0; % Stationary
+% radar height = 0.5m above ground level
+radarmotion = phased.Platform('InitialPosition',[0;0;0.5], 'Velocity',[radar_speed;0;0]);
+
+% Simulate
+Nsweep = 200;
+
+xr = helperFMCWSimulate(Nsweep,waveform,radarmotion,carmotion,...
+     transmitter,channel,cartarget,receiver);
+
+% Separate processing for up and down sweeps
+fbu_rng = rootmusic(pulsint(xr(:,1:2:end),'coherent'),1,fs);
+fbd_rng = rootmusic(pulsint(xr(:,2:2:end),'coherent'),1,fs);
+
+% Range and Doppler estimation
+rng_est = beat2range([fbu_rng fbd_rng],sweepSlope,c)
+
+fd = -(fbu_rng+fbd_rng)/2;
+v_est = dop2speed(fd,lambda)/2
+
+rngdopresp = phased.RangeDopplerResponse('PropagationSpeed',c,...
+    'DopplerOutput','Speed','OperatingFrequency',fc,'SampleRate',fs,...
+    'RangeMethod','FFT','SweepSlope',sweepSlope,...
+    'RangeFFTLengthSource','Property','RangeFFTLength',2048,...
+    'DopplerFFTLengthSource','Property','DopplerFFTLength',256);
+
+clf;
+plotResponse(rngdopresp,xr);                     % Plot range Doppler map
+axis([-v_max v_max 0 range_max])
+clim = caxis;
+
+Dn = fix(fs/(2*fb_max));
+for m = size(xr,2):-1:1
+    xr_d(:,m) = decimate(xr(:,m),Dn,'FIR');
+end
+fs_d = fs/Dn;
+
+fb_rng = rootmusic(pulsint(xr_d,'coherent'),1,fs_d);
+rng_est = beat2range(fb_rng,sweep_slope,c)
+
+peak_loc = val2ind(rng_est,c/(fs_d*2));
+fd = -rootmusic(xr_d(peak_loc,:),1,1/tm);
+v_est = dop2speed(fd,lambda)/2
+
+
