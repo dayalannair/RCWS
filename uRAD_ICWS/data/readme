@@ -1,0 +1,6 @@
+Data follows the following format:
+Target number	Distance (m)	Velocity (m/s)	SNR (dB)
+
+The file names correspond to the uRAD USB v1.2 and uRAD RPi v1.1 device measurements. Note that uRAD USB runs SDK 1.1 whereas uRAD RPi runs SDK v1.0.
+Facing the device from the RPi power port, the uRAD USB is the left-hand side radar and the uRAD RPi is the right-hand side radar.
+The program currently overwrites the last record session. If you would like to permanently save data, rename the file and/or copy to a different directory.
