@@ -9,7 +9,7 @@ def data_received(data):
     print("recv - {}".format(data))
 
 print("Connecting")
-c = BluetoothClient("pi4", data_received)
+c = BluetoothClient("raspberrypi", data_received)
 
 print("Sending")
 try:
