@@ -119,11 +119,12 @@ print("Beginning loop")
 t  = time()
 
 while True:
+	print("while loop entered \n")
 	try:
 		# Extract results from uRAD USB running SDK1.1
 		return_code_usb, results_usb, raw_results_usb = uRAD_USB_SDK11.detection(ser)
 		if return_code_usb != 0:
-			print("USB detection error")
+			print("USB detection error \n")
 			closeProgram()
 
 		# Extract results from outputs
@@ -137,7 +138,7 @@ while True:
 
 		# reset turn safety. Processing quick enough to revert this to False if turn is still unsafe
 		turn_safe = True
-
+		print("iterating through targets \n")
 		for i in range(Ntar):
 			# If SNR is big enough
 			if SNR_usb[i] > 0:
