@@ -177,7 +177,7 @@ while True:
 		uRAD_USB_SDK11.turnOFF(ser)
 		c.disconnect()
 		exit()
-	finally:
-		print("finally - executing discon")
-		c.disconnect()
+	# finally:
+	# 	print("finally - executing discon")
+	# 	c.disconnect()
 
