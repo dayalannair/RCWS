@@ -36,13 +36,13 @@ turn_safe = True			# Indicates turn safety based on D and V of all targets detec
 # configure bluetooth
 def data_received(data):
 
-	if (data == "0"):
-		print("Master program terminated. Closing...")
-		sleep(1)
-		c.disconnect()
-		sleep(1)
-		# not working
-		quit()
+	# if (data == "0"):
+	# 	print("Master program terminated. Closing...")
+	# 	sleep(1)
+	# 	c.disconnect()
+	# 	sleep(1)
+	# 	# not working
+	# 	quit()
 	
 	print("recv - {}".format(data))
 
@@ -178,5 +178,6 @@ while True:
 		c.disconnect()
 		exit()
 	finally:
+		print("finally - executing discon")
 		c.disconnect()
 
