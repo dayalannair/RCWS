@@ -12,7 +12,7 @@ def data_received(data):
         sleep(1)
         c.disconnect()
         sleep(1)
-        exit()
+        quit()
     
     print("recv - {}".format(data))
 
