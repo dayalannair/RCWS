@@ -6,6 +6,10 @@ from time import sleep
 from signal import pause
 
 def data_received(data):
+    if (data == "0"):
+        print("Master program terminated. Closing...")
+        c.disconnect()
+        exit()
     print("recv - {}".format(data))
 
 print("Connecting")
