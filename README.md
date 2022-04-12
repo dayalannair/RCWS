@@ -24,3 +24,29 @@ Two Pis are needed so that the Acconeer radar system can be added. This is conne
 # Combined system
 
 Since the Acconeer SDK is written in C and the uRAD SDK is written in Python, a Python program will be designed to execute the Acconeer C code within it.
+
+# To do:
+1. Complete MATLAB simulation
+2. (Optional) FERS simulation
+3. (Optional) compare MATLAB and FERS
+4. Gather data
+  1. Test pi Zero with 2x uRAD
+  2. Test pi 4 with 2x uRAD
+  3. Test bluetooth with pi 4 and pi Zero with 2x uRAD
+  4. Test acconeer
+  5. Test 3. with Acconeer
+5. If bluetooth not performing well (packet loss/too slow etc.) try TCP/IP
+6. compare results of each test to simulation/s
+
+## Note on tests:
+start small scale
+1. Test with trolley + corner reflector and office chair
+2. test with cars
+3. test with camera - uRAD USB with android
+
+# Additions
+1. Pi Camera
+2. Circuit with LED, Buzzer, switch for toggling system on/off (would link to car indicator)
+3. GPS?
+4. road mapping?
+5. data collection?
