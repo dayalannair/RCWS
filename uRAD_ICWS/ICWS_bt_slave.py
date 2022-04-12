@@ -35,15 +35,6 @@ turn_safe = True			# Indicates turn safety based on D and V of all targets detec
 
 # configure bluetooth
 def data_received(data):
-
-	# if (data == "0"):
-	# 	print("Master program terminated. Closing...")
-	# 	sleep(1)
-	# 	c.disconnect()
-	# 	sleep(1)
-	# 	# not working
-	# 	quit()
-	
 	print("recv - {}".format(data))
 
 print("Connecting")
@@ -142,8 +133,8 @@ while True:
 		for i in range(Ntar):
 			# If SNR is big enough
 			if SNR_usb[i] > 0:
-				print("USB Target: %d, Distance: %1.2f m, Velocity: %1.1f m/s, SNR: %1.1f dB" % (i+1, distance_usb[i], velocity_usb[i], SNR_usb[i]))
-				c.send("%d %1.2f %1.1f %1.1f %1.3f\n" % (i+1, distance_usb[i], velocity_usb[i], SNR_usb[i], t))
+				#print("USB Target: %d, Distance: %1.2f m, Velocity: %1.1f m/s, SNR: %1.1f dB" % (i+1, distance_usb[i], velocity_usb[i], SNR_usb[i]))
+				c.send("usb %d %1.2f %1.1f %1.1f %1.3f\n" % (i+1, distance_usb[i], velocity_usb[i], SNR_usb[i], t))
 				# could put calc in if statement 
 				if velocity_usb[i] != 0:
 					t_arrival = distance_usb[i]/velocity_usb[i]
@@ -154,8 +145,8 @@ while True:
 						turn_safe = False
 			
 			if SNR_pi[i] > 0:
-				print("Pi Target: %d, Distance: %1.2f m, Velocity: %1.1f m/s, SNR: %1.1f dB" % (i+1, distance_pi[i], velocity_pi[i], SNR_pi[i]))
-				c.send("%d %1.2f %1.1f %1.1f %1.3f\n" % (i+1, distance_pi[i], velocity_pi[i], SNR_pi[i], t))
+				#print("Pi Target: %d, Distance: %1.2f m, Velocity: %1.1f m/s, SNR: %1.1f dB" % (i+1, distance_pi[i], velocity_pi[i], SNR_pi[i]))
+				c.send("pi %d %1.2f %1.1f %1.1f %1.3f\n" % (i+1, distance_pi[i], velocity_pi[i], SNR_pi[i], t))
 				if velocity_pi[i] != 0:
 					t_arrival = distance_pi[i]/velocity_pi[i]
 					# this needs to be nested as velocity of 0 will keep t_arrival < t_accel

@@ -3,9 +3,13 @@ from time import sleep
 from signal import pause
 
 def data_received(data):
-    print("recv - {}".format(data))
-    results.write(data)
-    #server.send(data)
+    # separate USB and Pi uRAD data
+    if data[0] == 'u':
+        print("USB - {}".format(data))
+        usb_results.write(data)
+    else:
+        print("Pi - {}".format(data))
+        pi_results.write(data)
 
 def client_connected():
     print("client connected")
@@ -20,19 +24,12 @@ server = BluetoothServer(
     when_client_connects = client_connected,
     when_client_disconnects = client_disconnected)
 
-results = open('bt_results', 'w')
+pi_results = open('bluetooth_data/pi_bt_results', 'w')
+usb_results = open('bluetooth_data/usb_bt_results', 'w')
 print("starting")
 server.start()
 print(server.server_address)
 print("waiting for connection")
-
-# resultsUSBFileName = 'bluetooth_data/uRAD_USB_results.txt'
-# fileResultsUSB = open(resultsUSBFileName, 'w')
-
-# resultsPiFileName = 'bluetooth_data/uRAD_Pi_results.txt'
-# fileResultsPi = open(resultsPiFileName, 'w')
-
-
 
 try:
     pause() # sleep process until signal received
@@ -42,6 +39,7 @@ except KeyboardInterrupt as e:
 finally:
     print("stopping")
     server.stop()
-    results.close()
+    pi_results.close()
+    usb_results.close()
     
 print("stopped")
