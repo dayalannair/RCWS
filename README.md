@@ -58,3 +58,12 @@ The corner reflector ensures a large amount of transmitted signal is reflected b
 
 ![alt text](https://github.com/dayalannair/RCWS/blob/master/test_rig_photos/trolley_front.jpg?raw=true)
 ![alt text](https://github.com/dayalannair/RCWS/blob/master/test_rig_photos/trolley_side.jpg?raw=true)
+
+## Test 1: uRAD USB v1.2 on Pi Zero W
+Trolley pushed straight towards radar. The road calculation was not added as the target's radial distance and velocity relative to the radar is the same as its actual d and v.
+
+## Test 2: uRAD USB v1.2 on Android (with video)
+
+
+
+
