@@ -84,7 +84,7 @@ if (not usb_communication):
 
 # infinite detection loop
 print("Beginning loop")
-resultsUSBFileName = 'data/uRAD_USB_results.txt'
+resultsUSBFileName = 'uRAD_USB_test1/uRAD_USB_results.txt'
 fileResultsUSB = open(resultsUSBFileName, 'w')
 t  = time()
 while True:
