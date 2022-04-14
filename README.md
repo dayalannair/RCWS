@@ -50,3 +50,11 @@ start small scale
 3. GPS?
 4. road mapping?
 5. data collection?
+
+# Test rigs
+
+## Trolley with corner reflector
+The corner reflector ensures a large amount of transmitted signal is reflected back towards the radar. The trolley will be tested with and without it to determine the increase in SNR. Since this is relatively close range, the radar should have no problem detecting the trolley without the corner reflector.
+
+![alt text](https://github.com/dayalannair/RCWS/blob/master/test_rig_photos/trolley_front.jpg?raw=true)
+![alt text](https://github.com/dayalannair/RCWS/blob/master/test_rig_photos/trolley_side.jpg?raw=true)
