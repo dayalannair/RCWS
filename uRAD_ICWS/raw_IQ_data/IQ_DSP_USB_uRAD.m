@@ -16,55 +16,93 @@ waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
 ref_sig = waveform();
 %%
 % I and Q is interleaved in raw data
-IQ_up = readtable('..\URAD_IQ_data\test_3hand_waves\I_up_FMCW_triangle.txt','Delimiter' ,' ');
-IQ_down = readtable('..\URAD_IQ_data\test_3hand_waves\I_down_FMCW_triangle.txt','Delimiter' ,' ');
+I = readtable('I.txt','Delimiter' ,' ');
+Q = readtable('Q.txt','Delimiter' ,' ');
+
+total_time = I.Var401(end) - I.Var401(1);
+fs = 1/(I.Var401(2)-I.Var401(1));
+delta_t = 1/fs;
+t = 1:delta_t:total_time;
+%%
+
+I_up = table2array(I(:, 1:(end-1)/2));
+I_down = table2array(I(:, (end-1)/2 + 1:end-1));
+
+Q_up = table2array(Q(:, 1:(end-1)/2));
+Q_down = table2array(Q(:, (end-1)/2 + 1:end-1));
 
 %%
-Iup = table2array(I_up(:, 1:2:end-2));
-Idown = table2array(I_down(:, 1:end-2));
-Qup = table2array(Q_up(:, 1:end-2));
-Qdown = table2array(Q_down(:, 1:end-2));
+sz = size(I_up,1);
+% figure
+% for i = 1: sz
+%     pause(0.05)
+%     tiledlayout(4,1)
+%     nexttile
+%     plot(I_up(i, :))
+%     title("I up chirp")
+%     nexttile
+%     plot(I_down(i, :))
+%     title("I down chirp")
+%     nexttile
+%     plot(Q_up(i, :))
+%     title("Q up chirp")
+%     nexttile
+%     plot(Q_down(i, :))
+%     title("Q down chirp")
+% end
 
-% tiledlayout(4,1)
-% nexttile
-% plot(Iup)
-% nexttile
-% plot(Idown)
-% nexttile
-% plot(Qup)
-% nexttile
-% plot(Qdown)
+%%
+close all
+IQ_up = sqrt(I_up.^2 + Q_up.^2);
+IQ_down = sqrt(I_down.^2 + Q_down.^2);
+IQ = IQ_up + IQ_down; %NB CHECK THIS> NOT VIABLE PROBABLY
+figure
+for i = 1:sz
+    pause(0.05)
+    tiledlayout(2,1)
+    nexttile
+    plot(IQ_up(i, :))
+    hold on
+    plot(IQ_down(i, :))
+    nexttile
+    plot(IQ(i, :))
+    axis([0 200 4000 11000])
+end
 
-IQ_up = Iup + Qup;
-IQ_down = Qup + Qdown;
+%%
+IQ_up_whole = reshape(IQ_up.',1,[]);
+figure 
 
-% tiledlayout(2,1)
+plot(IQ_up_whole)
+
+
+
+
+
+
+
+%%
+% tiledlayout(3,3)
+%  nexttile
+%  plot(Iup(1, :))
+%  nexttile
+%  plot(Qup(1, :))
+%  nexttile
+%  plot(IQ_up(1, :))
+% 
+%  nexttile
+%  plot(Idown(1, :))
+%  nexttile
+%  plot(Qdown(1, :))
+%  nexttile
+%  plot(IQ_down(1, :))
+% 
 % nexttile
-% plot(IQ_up)
-% nexttile
-% plot(IQ_down)
-
-tiledlayout(3,3)
- nexttile
- plot(Iup(1, :))
- nexttile
- plot(Qup(1, :))
- nexttile
- plot(IQ_up(1, :))
-
- nexttile
- plot(Idown(1, :))
- nexttile
- plot(Qdown(1, :))
- nexttile
- plot(IQ_down(1, :))
-
-nexttile
- plot(Iup(end, :))
- nexttile
- plot(Qup(end, :))
- nexttile
- plot(IQ_up(end, :))
+%  plot(Iup(end, :))
+%  nexttile
+%  plot(Qup(end, :))
+%  nexttile
+%  plot(IQ_up(end, :))
 
 % nexttile
 % plot(Qdown)
