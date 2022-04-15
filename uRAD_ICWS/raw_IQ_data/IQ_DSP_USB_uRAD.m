@@ -19,10 +19,13 @@ ref_sig = waveform();
 I = readtable('I.txt','Delimiter' ,' ');
 Q = readtable('Q.txt','Delimiter' ,' ');
 
-total_time = I.Var401(end) - I.Var401(1);
-fs = 1/(I.Var401(2)-I.Var401(1));
-delta_t = 1/fs;
-t = 1:delta_t:total_time;
+ramp_time = I.Var401(200) - I.Var401(1);
+
+update_t = I.Var401(2)-I.Var401(1)
+update_f = 1/update_t
+delta_t = update_t/200
+fs = 1/delta_t
+t = 1:delta_t:ramp_time;
 %%
 
 I_up = table2array(I(:, 1:(end-1)/2));
@@ -53,32 +56,87 @@ sz = size(I_up,1);
 
 %%
 close all
-IQ_up = sqrt(I_up.^2 + Q_up.^2);
-IQ_down = sqrt(I_down.^2 + Q_down.^2);
+IQ_up = I_up + 1i*Q_up;
+IQ_down = I_down + 1i*Q_down;
+
 IQ = IQ_up + IQ_down; %NB CHECK THIS> NOT VIABLE PROBABLY
 figure
-for i = 1:sz
-    pause(0.05)
-    tiledlayout(2,1)
-    nexttile
-    plot(IQ_up(i, :))
-    hold on
-    plot(IQ_down(i, :))
-    nexttile
-    plot(IQ(i, :))
-    axis([0 200 4000 11000])
-end
+% for i = 1:sz
+%     pause(0.01)
+%     tiledlayout(2,1)
+%     nexttile
+%     plot(abs(IQ_up(i, :)))
+%     hold on
+%     plot(abs(IQ_down(i, :)))
+%     nexttile
+%     plot(IQ(i, :))
+%     axis([0 200 4000 11000])
+% end
 
 %%
+I_up_whole = reshape(I_up.',1,[]);
 IQ_up_whole = reshape(IQ_up.',1,[]);
+IQ_down_whole = reshape(IQ_down.',1,[]);
 figure 
 
-plot(IQ_up_whole)
+tiledlayout(3,1)
+nexttile
+plot(abs(IQ_up_whole))
+nexttile
+plot(abs(IQ_down_whole))
+nexttile
+plot(real(ref_sig))
+%%
+figure
+% IQ_UP = fft(IQ_up_whole)
+% plot(abs(IQ_UP) )
+
+% L=length(I_up(150,:));                      
+% f = fs/2*linspace(0,1,NFFT/2+1);  % single-sided positive frequency
+% X = fft(I_up(150,:))/L;                     % normalized fft
+% PSD=2*abs(X(1:L/2+1))
+% plot(f, PSD)
+% psd = pwelch(I_up(150,:))
+% plot(psd)
+
+
+f_test = 24e9;
+fs = 4*f_test;
+t = 0:1/fs:0.000000001;
+test = sin(2*pi*f_test*t);
+plot(t, test)
+%axis([0 0.1 -1 1])
+%%
+TEST = fft(test)
+f = f_ax(TEST, 1/fs);
+plot(f, abs(TEST))
+
+%%
+close all
+tiledlayout(2,1)
+IQ_UP = fft(IQ_up_whole);
+REF = fft(ref_sig);
+
+% plot(abs(fftshift(I_UP)))
+%f = f_ax(IQ_UP, delta_t);
+
+nexttile
+plot(fftshift(abs(IQ_UP)))
+
+nexttile
+plot(fftshift(abs(REF)))
+
+% scope = spectrumAnalyzer(SampleRate=fs)
+% scope(I_up_whole')
 
 
 
+% fbu_rng = rootmusic(pulsint(xr(:,1:2:end),'coherent'),1,fs);
+% fbd_rng = rootmusic(pulsint(xr(:,2:2:end),'coherent'),1,fs);
 
-
+%%
+figure
+periodogram(IQ_up_whole,hamming(length(IQ_up_whole)),[],fs,"centered")
 
 
 %%
