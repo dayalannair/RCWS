@@ -12,8 +12,8 @@ BW = 240					# using all the BW available = 240 MHz
 Ns = 200					# 200 samples
 Ntar = 1					# Don't apply as only raw data is desired
 Rmax = 100					# Don't apply as only raw data is desired
-MTI = 1						# MTI mode disable because we want information of static and moving targets
-Mth = 2						# Don't apply as only raw data is desired
+MTI = 2						# MTI mode disable because we want information of static and moving targets
+Mth = 1						# Don't apply as only raw data is desired
 Alpha = 10					# Don't apply to raw signals
 distance_true = False 		# Don't request distance information
 velocity_true = False		# Don't request velocity information

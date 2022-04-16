@@ -6,7 +6,7 @@ from time import time, sleep
 mode = 3					# triangular. Try dual rate mode as well
 f0 = 5						# start frequency 24.005 GHz
 BW = 240					# sweep 240 MHz
-Ns = 200					# 200 samples
+Ns = 100					# 200 samples
 Ntar = 1					# 2 target of interest
 Rmax = 100					# searching along the full distance range
 MTI = 0						# MTI mode enabled: only want information on moving targets
@@ -19,12 +19,6 @@ I_true = True 				# In-Phase Component (RAW data) not requested
 Q_true = True 				# Quadrature Component (RAW data) not requested
 movement_true = False 		# not interested in boolean movement detection
 
-# ICWS parameters
-t_accel = 5					# time taken for host to match speed. Depends on car, chosen realistically (slow/normal turn)
-t_arrival = 0				# time at which target vehicle is directly in front of host
-turn_safe = True			# Indicates turn safety based on D and V of all targets detected
-#safeDistance
-
 #Switch on Pi uRAD
 uRAD_RP_SDK10.turnON()
 
@@ -36,28 +30,22 @@ uRAD_RP_SDK10.loadConfiguration(mode, f0, BW, Ns, Ntar, Rmax, MTI, Mth)
 I_file = open('I.txt', 'w')
 Q_file = open('Q.txt', 'w')
 
-t_start = time()
-prev_velocity = 0
-iterations = 0
+print("Detecting\n")
 while True:
 	try:
-		t_sweep = time()
+		t = time()
 		uRAD_RP_SDK10.detection(0, 0, 0, I, Q, 0)
 
 		I_string = ''
 		Q_string = ''
+
 		for index in range(len(I)):
 			I_string += '%d ' % I[index]
 		for index in range(len(Q)):
 			Q_string += '%d ' % Q[index]
 
-		I_file.write(I_string + '%1.3f\n' % t_sweep)
-		Q_file.write(Q_string + '%1.3f\n' % t_sweep)
-		iterations += 1
-		#print("DAT %d %d %1.3f\n" % (I[0], Q[0], t_sweep)
-		
-		if (iterations > 100):
-			print('Fs %1.2f Hz' % (iterations/(t_sweep-t_start)))
+		I_file.write(I_string + '%1.3f\n' % t)
+		Q_file.write(Q_string + '%1.3f\n' % t)
 
 	except KeyboardInterrupt:
 		print("Exiting gracefully\n")
