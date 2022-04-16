@@ -13,21 +13,20 @@ v_max = 75;
 fd_max = speed2dop(2*v_max,lambda);
 fb_max = fr_max+fd_max;
 fs = max(2*fb_max,bw);
-fs = 2*24.245e9
+fs = 5e3
 waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
     'SampleRate',fs, 'SweepDirection','Triangle');
 ref_sig = waveform();
 
 %%
-% figure
-% tiledlayout(2,1)
-% nexttile
-% plot(0:1/fs:tm-1/fs,real(ref_sig))
-% axis tight
-% REF = fft(ref_sig);
-% f = f_ax(REF, 1/fs);
-% nexttile
-% plot(f, fftshift(abs(REF)))
+figure
+tiledlayout(2,1)
+nexttile
+plot(0:1/fs:tm-1/fs,real(ref_sig))
+axis tight
+REF = fft(ref_sig);
+nexttile
+plot(fftshift(abs(REF)))
 %% Extract IQ data from text files
 % I and Q is interleaved in raw data
 I = readtable('I.txt','Delimiter' ,' ');
@@ -75,6 +74,7 @@ IQ_up = I_up + 1i*Q_up;
 IQ_down = I_down + 1i*Q_down;
 
 IQ = IQ_up + IQ_down; %NB CHECK THIS> NOT VIABLE PROBABLY
+figure
 % for i = 1:sz
 %     pause(0.01)
 %     tiledlayout(2,1)
@@ -91,15 +91,15 @@ IQ = IQ_up + IQ_down; %NB CHECK THIS> NOT VIABLE PROBABLY
 I_up_whole = reshape(I_up.',1,[]);
 IQ_up_whole = reshape(IQ_up.',1,[]);
 IQ_down_whole = reshape(IQ_down.',1,[]);
-% figure 
-% 
-% tiledlayout(3,1)
-% nexttile
-% plot(abs(IQ_up_whole))
-% nexttile
-% plot(abs(IQ_down_whole))
-% nexttile
-% plot(real(ref_sig(end-10000:end - 1000)))
+figure 
+
+tiledlayout(3,1)
+nexttile
+plot(abs(IQ_up_whole))
+nexttile
+plot(abs(IQ_down_whole))
+nexttile
+plot(real(ref_sig(end-10000:end - 1000)))
 %% Frequency domain - FFT
 figure
 % IQ_UP = fft(IQ_up_whole)
@@ -118,8 +118,8 @@ plot(abs(UP_WHOLE))
             
 REF_SIG = fft(ref_sig(1:end-100));  % as length increases, tails shorten
 f = f_ax(REF_SIG, 1/fs);
-% plot(f, abs(REF_SIG))
-% axis([-10e10 10e10 0 500])
+plot(f, abs(REF_SIG))
+axis([-10e10 10e10 0 500])
 
 
 % TEST = fft(test)
@@ -133,12 +133,12 @@ f_test = 24e9;
 fs = 4*f_test;
 t = 0:1/fs:0.000000001;
 test = sin(2*pi*f_test*t);
-% plot(t, test)
+plot(t, test)
 %axis([0 0.1 -1 1])
 %%
 TEST = fft(test)
 f = f_ax(TEST, 1/fs);
-% plot(f, abs(TEST))
+plot(f, abs(TEST))
 
 %%
 close all
@@ -148,12 +148,12 @@ REF = fft(ref_sig);
 
 % plot(abs(fftshift(I_UP)))
 %f = f_ax(IQ_UP, delta_t);
-% 
-% nexttile
-% plot(fftshift(abs(IQ_UP)))
-% 
-% nexttile
-% plot(fftshift(abs(REF)))
+
+nexttile
+plot(fftshift(abs(IQ_UP)))
+
+nexttile
+plot(fftshift(abs(REF)))
 
 % scope = spectrumAnalyzer(SampleRate=fs)
 % scope(I_up_whole')
