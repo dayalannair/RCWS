@@ -3,10 +3,11 @@ fc = 24.005e9;
 c = 3e8;
 lambda = c/fc;
 range_max = 100;
-tm = 5.5*range2time(range_max,c);
-%tm = 1e-3; % uRAD ramp time is 1ms
+%tm = 5.5*range2time(range_max,c);
+tm = 1e-3; % uRAD ramp time is 1ms
 range_res = 1;
-bw = rangeres2bw(range_res,c);
+%bw = rangeres2bw(range_res,c);
+bw = 240e6;
 sweep_slope = bw/tm;
 fr_max = range2beat(range_max,sweep_slope,c);
 v_max = 75;
@@ -14,8 +15,13 @@ fd_max = speed2dop(2*v_max,lambda);
 fb_max = fr_max+fd_max;
 fs = max(2*fb_max,bw);
 %fs = 2*24.245e9
-waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
-    'SampleRate',fs, 'SweepDirection','Triangle');
+waveform = phased.FMCWWaveform('SweepTime',tm, ...
+    'SweepBandwidth',bw, ...
+    'SampleRate',fs, ...
+    'SweepDirection','Triangle', ...
+    'OutputFormat', 'Samples', ...
+    'NumSamples', 200);
+
 ref_sig = waveform();
 
 %% Extract IQ data from text files
@@ -46,11 +52,46 @@ IQ_up_whole = reshape(IQ_up.',1,[]);
 IQ_down_whole = reshape(IQ_down.',1,[]);
 %% Spectrogram - returns short-time Fourier transform
 close all
+IQ_triangle = cat(2, IQ_up(100,:), IQ_down(100,:));
 figure
 tiledlayout(2,1)
 nexttile
-spectrogram(IQ_up_whole, kaiser(256,5), 220, 512, fs_real, 'yaxis');
+spectrogram(IQ_up(100,:),32,16,32,fs,'yaxis');
+%spectrogram(IQ_up(100,:))
 nexttile
+%spectrogram(ref_sig)
 spectrogram(ref_sig,32,16,32,fs,'yaxis');
 
+%% Periodogram
+figure
+tiledlayout(2,1)
+nexttile
+periodogram(IQ_up(100,:))
+nexttile
+periodogram(ref_sig)
+%% Visualisation
 
+sz = size(I_up,1);
+figure
+% for i = 1: sz
+%     pause(0.05)
+%     tiledlayout(4,1)
+%     nexttile
+%     plot(I_up(i, :))
+%     title("I up chirp")
+%     nexttile
+%     plot(I_down(i, :))
+%     title("I down chirp")
+%     nexttile
+%     plot(Q_up(i, :))
+%     title("Q up chirp")
+%     nexttile
+%     plot(Q_down(i, :))
+%     title("Q down chirp")
+% end
+
+% tiledlayout(2,1)
+% nexttile
+% plot(abs(IQ_up_whole))
+% nexttile
+% plot(abs(IQ_down_whole))

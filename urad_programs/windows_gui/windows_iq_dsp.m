@@ -109,9 +109,99 @@ plotResponse(rngdopresp,IQ_u');
 % fbu_rng = rootmusic(pulsint(IQ_u(:,1:2:end)','coherent'),1,fs);
 % fbd_rng = rootmusic(pulsint(IQ_d(:,2:2:end)','coherent'),1,fs);
 
-fbu_rng = rootmusic(IQ_u,size(IQ_u,1),fs); % size in dim 2 since matrix transposed
-fbd_rng = rootmusic(IQ_d,size(IQ_u,1),fs);
+% Dechirp having no effect!
+IQ_up_dechirp = dechirp(IQ_u', ref_sig);
+IQ_down_dechirp = dechirp(IQ_d', ref_sig); % need to get down ramp of triangle
 
-rng_ests = beat2range([fbu_rng fbd_rng],sweep_slope,c);
+fbu_rng = rootmusic(IQ_up_dechirp,1,fs); % size in dim 2 since matrix transposed
+fbd_rng = rootmusic(IQ_down_dechirp,1,fs);
+
+% fbu_rng = rootmusic(IQ_u',1,fs); % size in dim 2 since matrix transposed
+% fbd_rng = rootmusic(IQ_d',1,fs);
+
+rng_ests = beat2range([fbu_rng fbd_rng],sweep_slope,c)
 fds = -(fbu_rng+fbd_rng)/2;
-v_ests = dop2speed(fds,lambda)/2;
+v_ests = dop2speed(fds,lambda)/2
+
+%% Learnt method
+% note: for a matrix, fft operates on columns by default
+
+%% Range-FFT
+
+% Method 1
+% range_fft_up = fft(IQ_u');
+% range_fft_up = range_fft_up';
+
+% Method 2
+range_fft_up = fft(IQ_u,[],2);
+range_fft_down = fft(IQ_d,[],2);
+% ref_range_fft = fft(ref_sig);
+% Only first col the same in both methods. Find out why. Try both out.
+% Method 2 explained in matlab and is correct
+Fs = 200e3;
+f = f_ax(range_fft_up,1/Fs);
+close all
+figure
+tiledlayout(2,2)
+nexttile
+plot(abs(range_fft_up'));
+nexttile
+plot(angle(range_fft_down'));
+nexttile
+plot(abs(range_fft_up'));
+nexttile
+plot(angle(range_fft_down'));
+%sz = size(range_fft_up,1);
+% for i = 1:sz
+%     plot(abs(range_fft_up(i,:)))
+%     pause(0.1)
+%     disp(i)
+% 
+% end
+
+%% Doppler-FFT
+
+doppler_fft_up = fft(IQ_u);
+doppler_fft_down = fft(IQ_d);
+close all
+
+figure
+tiledlayout(2,2)
+nexttile
+plot(abs(doppler_fft_up)) % plots columns
+nexttile
+plot(angle(doppler_fft_down))
+nexttile
+plot(abs(doppler_fft_up)) % plots columns
+nexttile
+plot(angle(doppler_fft_down))
+
+%%
+figure
+sz = size(range_fft_up,2);
+for i = 1:sz
+    plot(abs(doppler_fft_up(:,i)))
+    pause(0.1)
+    disp(i)
+end
+
+%% Plots of each frame IQ up
+figure
+tiledlayout(2,1)
+nexttile
+plot(abs(IQ_u'))
+nexttile
+plot(angle(IQ_u'))
+%%
+figure
+tiledlayout(2,1)
+nexttile
+plot(abs(range_fft_up'))
+nexttile
+plot(ref_sig)
+
+
+
+
+
+
