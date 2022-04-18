@@ -200,8 +200,32 @@ plot(abs(range_fft_up'))
 nexttile
 plot(ref_sig)
 
+%% Periodogram
+close all
+figure
+tiledlayout(3,2)
+nexttile
+periodogram(IQ_u',[],[], Fs, 'centered');
+title("Periodogram of IQ\_up range (rows) rect window");
 
+nexttile
+periodogram(IQ_u,[],[], Fs, 'centered');
+title("Periodogram of IQ\_up doppler (cols) rect window");
 
+nexttile
+periodogram(IQ_u',kaiser(size(IQ_u',1),38),[], Fs, 'centered');
+title("Periodogram of IQ\_up range (rows) kaiser window, \Beta = 38");
 
+nexttile
+periodogram(IQ_u,kaiser(size(IQ_u,1),38),[], Fs, 'centered');
+title("Periodogram of IQ\_up doppler (cols) kaiser window, \Beta = 38");
+
+nexttile
+periodogram(IQ_u',kaiser(size(IQ_u',1),19),[], Fs, 'centered');
+title("Periodogram of IQ\_up range (rows) kaiser window, \Beta = 19");
+
+nexttile
+periodogram(IQ_u,kaiser(size(IQ_u,1),19),[], Fs, 'centered');
+title("Periodogram of IQ\_up doppler (cols) kaiser window, \Beta = 19");
 
 

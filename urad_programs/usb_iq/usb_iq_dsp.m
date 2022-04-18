@@ -26,8 +26,8 @@ ref_sig = waveform();
 
 %% Extract IQ data from text files
 % I and Q is interleaved in raw data
-I = readtable('I.txt','Delimiter' ,' ');
-Q = readtable('Q.txt','Delimiter' ,' ');
+I = readtable('I_trolley_test.txt','Delimiter' ,' ');
+Q = readtable('Q_trolley_test.txt','Delimiter' ,' ');
 
 % Calculate times and sampling frequencies
 total_time = I.Var401(200) - I.Var401(1)     % Total time of data recording
@@ -45,32 +45,52 @@ I_down = table2array(I(:, (end-1)/2 + 1:end-1));
 Q_up = table2array(Q(:, 1:(end-1)/2));
 Q_down = table2array(Q(:, (end-1)/2 + 1:end-1));
 
-IQ_up = I_up + 1i*Q_up;
-IQ_down = I_down + 1i*Q_down;
+IQ_u = I_up + 1i*Q_up;
+IQ_d = I_down + 1i*Q_down;
 
-IQ_up_whole = reshape(IQ_up.',1,[]);
-IQ_down_whole = reshape(IQ_down.',1,[]);
+% IQ_up_whole = reshape(IQ_up.',1,[]);
+% IQ_down_whole = reshape(IQ_down.',1,[]);
 %% Spectrogram - returns short-time Fourier transform
-close all
-IQ_triangle = cat(2, IQ_up(100,:), IQ_down(100,:));
-figure
-tiledlayout(2,1)
-nexttile
-spectrogram(IQ_up(100,:),32,16,32,fs,'yaxis');
-%spectrogram(IQ_up(100,:))
-nexttile
-%spectrogram(ref_sig)
-spectrogram(ref_sig,32,16,32,fs,'yaxis');
+% close all
+% IQ_triangle = cat(2, IQ_up(100,:), IQ_down(100,:));
+% figure
+% tiledlayout(2,1)
+% nexttile
+% spectrogram(IQ_up(100,:),32,16,32,fs,'yaxis');
+% %spectrogram(IQ_up(100,:))
+% nexttile
+% %spectrogram(ref_sig)
+% spectrogram(ref_sig,32,16,32,fs,'yaxis');
 
 %% Periodogram
+close all
 figure
-tiledlayout(2,1)
+Fs = 200e6
+tiledlayout(3,2)
 nexttile
-periodogram(IQ_up(100,:))
-nexttile
-periodogram(ref_sig)
-%% Visualisation
+periodogram(IQ_u',[],[], Fs, 'centered');
+title(sprintf("Periodogram of IQ\\_up range (rows) rect window"));
 
+nexttile
+periodogram(IQ_u,[],[], Fs, 'centered');
+%title("Periodogram of IQ\_up doppler (cols) rect window");
+
+nexttile
+periodogram(IQ_u',kaiser(size(IQ_u',1),38),[], Fs, 'centered');
+%title("Periodogram of IQ\_up range (rows) kaiser window, \Beta = 38");
+
+nexttile
+periodogram(IQ_u,kaiser(size(IQ_u,1),38),[], Fs, 'centered');
+%title("Periodogram of IQ\_up doppler (cols) kaiser window, \Beta = 38");
+
+nexttile
+periodogram(IQ_u',kaiser(size(IQ_u',1),19),[], Fs, 'centered');
+%title("Periodogram of IQ\_up range (rows) kaiser window, \Beta = 19");
+
+nexttile
+periodogram(IQ_u,kaiser(size(IQ_u,1),19),[], Fs, 'centered');
+%title("Periodogram of IQ\_up doppler (cols) kaiser window, \Beta = 19");
+%% Visualisation
 sz = size(I_up,1);
 figure
 % for i = 1: sz
