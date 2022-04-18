@@ -2,7 +2,7 @@
 fc = 24.005e9;
 c = 3e8;
 lambda = c/fc;
-range_max = 100;
+range_max = 62.5;
 %tm = 5.5*range2time(range_max,c);
 tm = 1e-3; % uRAD ramp time is 1ms
 range_res = 1;
@@ -93,6 +93,31 @@ plot(angle(range_fft_down'));
 %     nexttile
 %     plot(angle(range_fft_down(i,:)));
 % end
+%% Dechirp
+
+du = dechirp(IQ_u', ref_sig);
+
+[duu,F] = periodogram(du,kaiser(size(IQ_u',1),38),[],Fs,'centered');
+plot(F/1000,10*log10(duu));
+xlabel('Frequency (kHz)');
+ylabel('Power/Frequency (dB/Hz)');
+grid
+title('Periodogram Power Spectral Density Estimate After Dechirping');
+r = beat2range(90e3,sweep_slope)
+%% ref dechirp
+ref_dcp = dechirp(ref_sig,ref_sig)
+close all
+plot(abs(ref_dcp))
+
+%% moving plot
+close all
+figure
+sz = size(range_fft_up,2);
+for i = 1:sz
+    plot(abs(ref_dcp(:,i)))
+    pause(0.1)
+    disp(i)
+end
 
 %% Doppler FFT
 doppler_fft_up = fft(IQ_u,[],1);

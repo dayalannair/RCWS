@@ -177,13 +177,13 @@ nexttile
 plot(angle(doppler_fft_down))
 
 %%
-figure
-sz = size(range_fft_up,2);
-for i = 1:sz
-    plot(abs(doppler_fft_up(:,i)))
-    pause(0.1)
-    disp(i)
-end
+% figure
+% sz = size(range_fft_up,2);
+% for i = 1:sz
+%     plot(abs(doppler_fft_up(:,i)))
+%     pause(0.1)
+%     disp(i)
+% end
 
 %% Plots of each frame IQ up
 figure
@@ -228,4 +228,32 @@ nexttile
 periodogram(IQ_u,kaiser(size(IQ_u,1),19),[], Fs, 'centered');
 title("Periodogram of IQ\_up doppler (cols) kaiser window, \Beta = 19");
 
+%% Ambiguity function
+Fs = 200e3;
+PRF = 1/(1e-3);
+[afmag_u,delay,doppler] = ambgfun(IQ_u(1,:), Fs, PRF);
+[afmag_d,delay_d,doppler_d] = ambgfun(IQ_d(1,:), Fs, PRF);
+figure(1)
+% contour3(delay,doppler,afmag_u)
+% xlabel('Delay (seconds)')
+% ylabel('Doppler Shift (hertz)')
+
+surf(delay*1e6,doppler/1e3,afmag_u,'LineStyle','none'); 
+axis tight; grid on; view([140,35]); colorbar;
+xlabel('Delay \tau (us)');ylabel('Doppler f_d (kHz)');
+title('Linear FM Pulse Waveform Ambiguity Function');
+
+figure(2)
+surf(delay_d*1e6,doppler_d/1e3,afmag_d,'LineStyle','none'); 
+axis tight; grid on; view([140,35]); colorbar;
+xlabel('Delay \tau (us)');ylabel('Doppler f_d (kHz)');
+title('Linear FM Pulse Waveform Ambiguity Function');
+
+
+[afmag_ref,delay_ref,doppler_ref] = ambgfun(ref_sig, Fs, PRF);
+figure(3)
+surf(delay_ref*1e6,doppler_ref/1e3,afmag_ref,'LineStyle','none'); 
+axis tight; grid on; view([140,35]); colorbar;
+xlabel('Delay \tau (us)');ylabel('Doppler f_d (kHz)');
+title('Linear FM Pulse Waveform Ambiguity Function');
 
