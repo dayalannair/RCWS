@@ -1,3 +1,6 @@
+# Current Focus: DSP
+Need to consider filtering, range and dopp fft, ambiguity function, range doppler de coupling using triangle FMCW, dual rate for eliminating ghost targets, optimising for car RCS and road scenario
+
 
 # Note: compare Fs from raw_results_save for Pi0 and Pi4 to determine performance w.r.t sampling!
 
