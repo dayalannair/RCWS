@@ -61,6 +61,65 @@ IQ_d = I_down + 1i*Q_down;
 % nexttile
 % %spectrogram(ref_sig)
 % spectrogram(ref_sig,32,16,32,fs,'yaxis');
+%% Range FFT
+range_fft_up = fft(IQ_u,[],2);
+range_fft_down = fft(IQ_d,[],2);
+
+Fs = 200e3;
+f = f_ax(range_fft_up,1/Fs);
+close all
+figure
+tiledlayout(2,2)
+nexttile
+plot(abs(range_fft_up'));
+nexttile
+plot(angle(range_fft_down'));
+nexttile
+plot(abs(range_fft_up'));
+nexttile
+plot(angle(range_fft_down'));
+
+%%
+% sz = size(IQ_u, 2);
+% for i = 1:sz
+%     pause(0.1)
+%     tiledlayout(2,2)
+%     nexttile
+%     plot(abs(range_fft_up(i,:)));
+%     nexttile
+%     plot(angle(range_fft_down(i,:)));
+%     nexttile
+%     plot(abs(range_fft_up(i,:)));
+%     nexttile
+%     plot(angle(range_fft_down(i,:)));
+% end
+
+%% Doppler FFT
+doppler_fft_up = fft(IQ_u,[],1);
+doppler_fft_down = fft(IQ_d,[],1);
+close all
+figure
+tiledlayout(2,2)
+nexttile
+plot(abs(doppler_fft_up)) % plots columns
+nexttile
+plot(angle(doppler_fft_down))
+nexttile
+plot(abs(doppler_fft_up)) % plots columns
+nexttile
+plot(angle(doppler_fft_down))
+
+%%
+figure
+sz = size(range_fft_up,2);
+for i = 1:sz
+    plot(abs(doppler_fft_up(10:end,i)))
+    pause(0.1)
+    disp(i)
+end
+
+
+
 
 %% Periodogram
 close all
@@ -90,6 +149,39 @@ periodogram(IQ_u',kaiser(size(IQ_u',1),19),[], Fs, 'centered');
 nexttile
 periodogram(IQ_u,kaiser(size(IQ_u,1),19),[], Fs, 'centered');
 %title("Periodogram of IQ\_up doppler (cols) kaiser window, \Beta = 19");
+%% Estimate results
+
+sz = size(IQ_u, 2);
+fbu_rngs = zeros(1,size(IQ_u, 2));
+fbd_rngs = zeros(1,size(IQ_u, 2));
+rng_ests = zeros(1,size(IQ_u, 2));
+v_ests = zeros(1,size(IQ_u, 2));
+for i = 1:sz
+
+   % transposing just reflects over x axis
+    fbu_rngs(i) = rootmusic(IQ_u(i,:),1,fs);
+    fbd_rngs(i) = rootmusic(IQ_d(i,:),1,fs);
+    rng_ests(i) = beat2range([fbu_rngs(i) fbd_rngs(i)],sweep_slope,c);
+
+    fd = -(fbu_rngs(i)+fbd_rngs(i))/2;
+    v_ests(i) = dop2speed(fd,lambda)/2;
+end
+figure
+tiledlayout(2,1)
+nexttile
+plot(rng_ests)
+nexttile
+plot(v_ests)
+% fbu_rng = rootmusic(IQ_u(:,1),1,fs); % size in dim 2 since matrix transposed
+% fbd_rng = rootmusic(IQ_d(:,1),1,fs);
+
+% fbu_rng = rootmusic(IQ_u',1,fs); % size in dim 2 since matrix transposed
+% fbd_rng = rootmusic(IQ_d',1,fs);
+
+% rng_ests = beat2range([fbu_rng fbd_rng],sweep_slope,c)
+% fds = -(fbu_rng+fbd_rng)/2;
+%v_ests = dop2speed(fds,lambda)/2
+
 %% Visualisation
 sz = size(I_up,1);
 figure

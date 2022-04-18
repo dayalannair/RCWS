@@ -43,18 +43,19 @@ ylabel("velocity")
 title("USB Target 1 data");
 colorbar
 
-% figure
-% tiledlayout(2,1)
-% 
-% nexttile
-% plot(usb_targ1(:,1))
-% ylabel("Distance (m)");
-% xlabel("Time");
-% 
-% nexttile
-% plot(usb_targ1(:,2))
-% ylabel("Velocity (m/s)");
-% xlabel("Time");
+%%
+figure
+tiledlayout(2,1)
+
+nexttile
+plot(usb_targ1(:,1))
+ylabel("Distance (m)");
+xlabel("Time");
+
+nexttile
+plot(usb_targ1(:,2))
+ylabel("Velocity (m/s)");
+xlabel("Time");
 
 % nexttile
 % plot(usb_targ1(:,3))
