@@ -64,35 +64,97 @@ IQ_d = I_down + 1i*Q_down;
 %% Range FFT
 range_fft_up = fft(IQ_u,[],2);
 range_fft_down = fft(IQ_d,[],2);
-
-Fs = 200e3;
-f = f_ax(range_fft_up,1/Fs);
+sz = size(IQ_u, 2);
+Fs = 200e3; % twice f_beat_max
+f = f_ax(sz,1/Fs);
 close all
 figure
 tiledlayout(2,2)
 nexttile
-plot(abs(range_fft_up'));
+plot(f/1000, 10*log10(fftshift(abs(range_fft_up'))));
+xlabel("Frequency (kHz)");
+ylabel("Magnitude (dB)");
+%axis([-30 30 0 ])
 nexttile
 plot(angle(range_fft_down'));
 nexttile
-plot(abs(range_fft_up'));
+plot(f/1000, 10*log10(fftshift(abs(range_fft_up'))));
+xlabel("Frequency (kHz)");
+ylabel("Magnitude (dB)");
 nexttile
 plot(angle(range_fft_down'));
 
+%% Beat frequency extraction
+% each row is a frame
+% the time and frequency domain matrices have same dims
+frames = size(IQ_u, 1);
+% array of indices/sample numbers where target detected
+detections = zeros(size(IQ_u));
+% sample numbers of detections
+indices = zeros(size(IQ_u));
+%% Threshold Detection
+threshold = 1.6e4;
+for frame = 1:frames
+    %detections(frame, :) = range_fft_up(range_fft_up(frame, :)>threshold, :);
+    for sample = 1:sz
+        % need to use fftshift to correspond to defined f_ax
+        if (fftshift(abs(range_fft_up(frame, sample))) > threshold)
+            detections(frame, sample) = fftshift(abs(range_fft_up(frame, sample)));
+        else
+            detections(frame, sample) = 0;
+        end
+    end
+end
+
+figure
+plot(detections')
+
+%% Extract beat frequencies
+f_beats = zeros(frames, 1);
+for frame = 1:frames
+   peak_detection = max(detections(frame, :));
+   index = find(detections(frame,:)==peak_detection)
+   f_beats(frame) = f(index); % get frequency from specified frequency axis
+end
+
+
+
 %%
-% sz = size(IQ_u, 2);
-% for i = 1:sz
-%     pause(0.1)
-%     tiledlayout(2,2)
-%     nexttile
-%     plot(abs(range_fft_up(i,:)));
-%     nexttile
-%     plot(angle(range_fft_down(i,:)));
-%     nexttile
-%     plot(abs(range_fft_up(i,:)));
-%     nexttile
-%     plot(angle(range_fft_down(i,:)));
-% end
+close all
+for i = 1:sz
+    pause(0.05)
+    tiledlayout(2,3)
+    nexttile
+    plot(f/1000, 10*log10(fftshift(abs(range_fft_up(i,:)))));
+    xlabel("Frequency (kHz)");
+    ylabel("Magnitude (dB)");
+    yline(45)
+    nexttile
+    plot(f/1000, fftshift(abs(range_fft_up(i,:))));
+    xlabel("Frequency (kHz)");
+    ylabel("Magnitude (dB)");
+    yline(45)
+     nexttile
+    plot(f/1000, fftshift(abs(range_fft_up(i,:))));
+    xlabel("Frequency (kHz)");
+    ylabel("Magnitude (dB)");
+    yline(1.6e4)
+    axis([-30 30 0 4e4])
+    nexttile
+    plot(f/1000, 10*log(fftshift(abs(range_fft_down(i,:)))));
+    xlabel("Frequency (kHz)");
+    ylabel("Magnitude (dB)");
+    nexttile
+    plot(f/1000, fftshift(abs(range_fft_down(i,:))));
+    xlabel("Frequency (kHz)");
+    ylabel("Magnitude (dB)");
+    nexttile
+    plot(f/1000, fftshift(abs(range_fft_down(i,:))));
+    xlabel("Frequency (kHz)");
+    ylabel("Magnitude (dB)");
+    yline(1.6e4)
+    axis([-30 30 0 4e4])
+end
 %% Dechirp
 
 du = dechirp(IQ_u', ref_sig);
