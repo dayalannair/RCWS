@@ -253,6 +253,64 @@ plot(abs(doppler_fft_up)) % plots columns
 nexttile
 plot(angle(doppler_fft_down))
 
+%% Doppler frequency extraction
+% each row is a frame
+% the time and frequency domain matrices have same dims
+frames = size(IQ_u, 1);
+% array of indices/sample numbers where target detected
+detections = zeros(size(IQ_u));
+% sample numbers of detections
+indices = zeros(size(IQ_u));
+% array of fftshifted magnitudes
+v_fftshift_mag_u = fftshift(abs(doppler_fft_up));
+%% Threshold Detection - velocity
+threshold = 1.6e4;
+for frame = 1:frames
+    %detections(frame, :) = range_fft_up(range_fft_up(frame, :)>threshold, :);
+    for sample = 1:sz
+        % need to use fftshift to correspond to defined f_ax
+        if (v_fftshift_mag_u(frame, sample) > threshold)
+            detections(frame, sample) = v_fftshift_mag_u(frame, sample);
+        else
+            detections(frame, sample) = 0;
+        end
+    end
+end
+close all
+figure
+plot(abs(detections'))
+
+%% Extract Doppler frequencies
+f_ds = zeros(frames, 1);
+for frame = 1:frames
+   % get the two largest values/magnitudes
+   peaks = maxk(detections(frame, :), 2);
+   if peaks(2)>0
+    index = find(detections(frame,:)==peaks(2));
+    f_ds(frame) = f(index); % get frequency from specified frequency axis
+   else
+       f_ds(frame) = 0;
+   end
+end
+
+Ns = 200;
+t = 0:total_time/frames:total_time;
+% figure
+% plot(f_beats)
+close all
+figure
+tiledlayout(2,1)
+vs = dop2speed(f_ds, lambda);
+nexttile
+plot(t(1:end-1),fftshift(vs))
+xticks(1:1:15)
+title("Velocity of target 1");
+xlabel("Time (s)");
+ylabel("Target velocity (m/s)");
+nexttile
+plot(usb_targ1(:,2))
+ylabel("Velocity (m/s)");
+xlabel("Time");
 %%
 figure
 sz = size(range_fft_up,2);
@@ -268,7 +326,7 @@ end
 %% Periodogram
 close all
 figure
-Fs = 200e6
+Fs = 200e3
 tiledlayout(3,2)
 nexttile
 periodogram(IQ_u',[],[], Fs, 'centered');
