@@ -30,7 +30,7 @@ I = readtable('I_trolley_test.txt','Delimiter' ,' ');
 Q = readtable('Q_trolley_test.txt','Delimiter' ,' ');
 
 % Calculate times and sampling frequencies
-total_time = I.Var401(200) - I.Var401(1)     % Total time of data recording
+total_time = I.Var401(344) - I.Var401(1)     % Total time of data recording
 t_sweep = I.Var401(2)-I.Var401(1)            % Sweep time
 update_f = 1/t_sweep                         % Sweep frequency   
 delta_t = t_sweep/200                        % sampling period: estimation   
@@ -92,69 +92,126 @@ frames = size(IQ_u, 1);
 detections = zeros(size(IQ_u));
 % sample numbers of detections
 indices = zeros(size(IQ_u));
+% array of fftshifted magnitudes
+rng_fftshift_mag_u = fftshift(abs(range_fft_up));
 %% Threshold Detection
 threshold = 1.6e4;
 for frame = 1:frames
     %detections(frame, :) = range_fft_up(range_fft_up(frame, :)>threshold, :);
     for sample = 1:sz
         % need to use fftshift to correspond to defined f_ax
-        if (fftshift(abs(range_fft_up(frame, sample))) > threshold)
-            detections(frame, sample) = fftshift(abs(range_fft_up(frame, sample)));
+        if (rng_fftshift_mag_u(frame, sample) > threshold)
+            detections(frame, sample) = rng_fftshift_mag_u(frame, sample);
         else
             detections(frame, sample) = 0;
         end
     end
 end
-
+close all
 figure
-plot(detections')
+plot(abs(detections'))
 
 %% Extract beat frequencies
 f_beats = zeros(frames, 1);
 for frame = 1:frames
-   peak_detection = max(detections(frame, :));
-   index = find(detections(frame,:)==peak_detection)
-   f_beats(frame) = f(index); % get frequency from specified frequency axis
+   % get the two largest values/magnitudes
+   peaks = maxk(detections(frame, :), 2);
+   if peaks(2)>0
+    index = find(detections(frame,:)==peaks(2));
+    f_beats(frame) = f(index); % get frequency from specified frequency axis
+   else
+       f_beats(frame) = 0;
+   end
 end
 
-
-
-%%
+Ns = 200;
+t = 0:total_time/frames:total_time;
+% figure
+% plot(f_beats)
 close all
-for i = 1:sz
-    pause(0.05)
-    tiledlayout(2,3)
-    nexttile
-    plot(f/1000, 10*log10(fftshift(abs(range_fft_up(i,:)))));
-    xlabel("Frequency (kHz)");
-    ylabel("Magnitude (dB)");
-    yline(45)
-    nexttile
-    plot(f/1000, fftshift(abs(range_fft_up(i,:))));
-    xlabel("Frequency (kHz)");
-    ylabel("Magnitude (dB)");
-    yline(45)
-     nexttile
-    plot(f/1000, fftshift(abs(range_fft_up(i,:))));
-    xlabel("Frequency (kHz)");
-    ylabel("Magnitude (dB)");
-    yline(1.6e4)
-    axis([-30 30 0 4e4])
-    nexttile
-    plot(f/1000, 10*log(fftshift(abs(range_fft_down(i,:)))));
-    xlabel("Frequency (kHz)");
-    ylabel("Magnitude (dB)");
-    nexttile
-    plot(f/1000, fftshift(abs(range_fft_down(i,:))));
-    xlabel("Frequency (kHz)");
-    ylabel("Magnitude (dB)");
-    nexttile
-    plot(f/1000, fftshift(abs(range_fft_down(i,:))));
-    xlabel("Frequency (kHz)");
-    ylabel("Magnitude (dB)");
-    yline(1.6e4)
-    axis([-30 30 0 4e4])
-end
+figure
+ranges = beat2range(f_beats, sweep_slope, c);
+plot(t(1:end-1),fftshift(ranges))
+xticks(1:1:15)
+title("Distance of target 1");
+xlabel("Time (s)");
+ylabel("Target distance (m)");
+
+%% Import uRAD processed results for comparison
+% Note that the results for the IQ and uRAD processed tests are not from
+% the same test, for the same scenario
+
+% urad_usb = readtable('USB_results_test1_2','Delimiter' ,' ');
+% 
+% usb_targ1 = zeros(height(urad_usb), 3);
+% 
+% % Needed as gaps will occur in targ 1 array when targ 2 is next in table
+% array_index1 = 0;
+% array_index2 = 0;
+% 
+% for i = 1:height(urad_usb)
+%     if (urad_usb.Var1(i) == 1)
+%         array_index1 = array_index1 + 1;
+%         usb_targ1(array_index1,:) = table2array(urad_usb(i, 2:end-2));       
+%     end
+% end
+% 
+% size_usbtarg_1 = array_index1;
+% % resize array
+% usb_targ1 = usb_targ1(1:size_usbtarg_1, :);
+% 
+% close all
+% figure
+% tiledlayout(2,1)
+% 
+% nexttile
+% plot(usb_targ1(:,1))
+% ylabel("Distance (m)");
+% xlabel("Time");
+% title("uRAD processed results");
+% 
+% nexttile
+% plot(t(1:end-1),fftshift(ranges))
+% xticks(1:1:15)
+% title("Distance of target 1");
+% xlabel("Time (s)");
+% ylabel("Target distance (m)");
+%%
+% close all
+% for i = 1:sz
+%     pause(0.05)
+%     tiledlayout(2,3)
+%     nexttile
+%     plot(f/1000, 10*log10(fftshift(abs(range_fft_up(i,:)))));
+%     xlabel("Frequency (kHz)");
+%     ylabel("Magnitude (dB)");
+%     yline(45)
+%     nexttile
+%     plot(f/1000, fftshift(abs(range_fft_up(i,:))));
+%     xlabel("Frequency (kHz)");
+%     ylabel("Magnitude (dB)");
+%     yline(45)
+%      nexttile
+%     plot(f/1000, fftshift(abs(range_fft_up(i,:))));
+%     xlabel("Frequency (kHz)");
+%     ylabel("Magnitude (dB)");
+%     yline(1.6e4)
+%     axis([-30 30 0 4e4])
+%     nexttile
+%     plot(f/1000, 10*log(fftshift(abs(range_fft_down(i,:)))));
+%     xlabel("Frequency (kHz)");
+%     ylabel("Magnitude (dB)");
+%     nexttile
+%     plot(f/1000, fftshift(abs(range_fft_down(i,:))));
+%     xlabel("Frequency (kHz)");
+%     ylabel("Magnitude (dB)");
+%     nexttile
+%     plot(f/1000, fftshift(abs(range_fft_down(i,:))));
+%     xlabel("Frequency (kHz)");
+%     ylabel("Magnitude (dB)");
+%     yline(1.6e4)
+%     axis([-30 30 0 4e4])
+% end
 %% Dechirp
 
 du = dechirp(IQ_u', ref_sig);
@@ -172,18 +229,18 @@ close all
 plot(abs(ref_dcp))
 
 %% moving plot
-close all
-figure
-sz = size(range_fft_up,2);
-for i = 1:sz
-    plot(abs(ref_dcp(:,i)))
-    pause(0.1)
-    disp(i)
-end
+% close all
+% figure
+% sz = size(range_fft_up,2);
+% for i = 1:sz
+%     plot(abs(ref_dcp(:,i)))
+%     pause(0.1)
+%     disp(i)
+% end
 
 %% Doppler FFT
-doppler_fft_up = fft(IQ_u,[],1);
-doppler_fft_down = fft(IQ_d,[],1);
+doppler_fft_up = fft(range_fft_up);%fft(IQ_u,[],1);
+doppler_fft_down = fft(range_fft_down);%fft(IQ_d,[],1);
 close all
 figure
 tiledlayout(2,2)
