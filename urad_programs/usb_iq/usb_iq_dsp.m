@@ -176,6 +176,16 @@ xticks(1:1:15)
 title("Distance of target 1");
 xlabel("Time (s)");
 ylabel("Target distance (m)");
+%% MATLAB velocity estimation
+%fds = -(fbs_u+fbs_d)/2;
+fds = abs(fbs_u - fbs_d)/2;
+v_ests = dop2speed(fds,lambda)/100;
+close all
+figure
+plot(t(1:end-1), v_ests*3.6)
+xlabel("Time (s)")
+ylabel("Instantaneous velocity (km/h)")
+
 
 %% Import uRAD processed results for comparison
 % Note that the results for the IQ and uRAD processed tests are not from
@@ -252,21 +262,21 @@ ylabel("Target distance (m)");
 %     yline(1.6e4)
 %     axis([-30 30 0 4e4])
 % end
-%% Dechirp
-
-du = dechirp(IQ_u', ref_sig);
-
-[duu,F] = periodogram(du,kaiser(size(IQ_u',1),38),[],Fs,'centered');
-plot(F/1000,10*log10(duu));
-xlabel('Frequency (kHz)');
-ylabel('Power/Frequency (dB/Hz)');
-grid
-title('Periodogram Power Spectral Density Estimate After Dechirping');
-r = beat2range(90e3,sweep_slope)
-%% ref dechirp
-ref_dcp = dechirp(ref_sig,ref_sig)
-close all
-plot(abs(ref_dcp))
+%% Dechirp - most likely done on uRAD
+% 
+% du = dechirp(IQ_u', ref_sig);
+% 
+% [duu,F] = periodogram(du,kaiser(size(IQ_u',1),38),[],Fs,'centered');
+% plot(F/1000,10*log10(duu));
+% xlabel('Frequency (kHz)');
+% ylabel('Power/Frequency (dB/Hz)');
+% grid
+% title('Periodogram Power Spectral Density Estimate After Dechirping');
+% r = beat2range(90e3,sweep_slope)
+% % ref dechirp
+% ref_dcp = dechirp(ref_sig,ref_sig)
+% close all
+% plot(abs(ref_dcp))
 
 %% moving plot
 % close all
@@ -281,8 +291,8 @@ plot(abs(ref_dcp))
 %% Doppler FFT
 dop_fft_u = fft(rng_fft_u);%fft(IQ_u,[],1);
 dop_fft_d = fft(rng_fft_d);%fft(IQ_d,[],1);
-dop_fft_u_alt = fft(IQ_u);
-dop_fft_d_alt = fft(IQ_d);
+% dop_fft_u_alt = fft(IQ_u);
+% dop_fft_d_alt = fft(IQ_d);
 close all
 figure
 tiledlayout(2,2)
@@ -355,7 +365,21 @@ nexttile
 plot(usb_targ1(:,2))
 ylabel("Velocity (m/s)");
 xlabel("Time");
-%%
+%% Range-Doppler Map
+close all
+figure
+tiledlayout(2,1)
+nexttile
+plot(rng_fft_u, dop_fft_u);
+xlabel("range")
+ylabel("Doppler")
+nexttile
+plot(rng_fft_d, dop_fft_d);
+xlabel("range")
+ylabel("Doppler")
+
+
+close all                       
 figure
 sz = size(rng_fft_u,2);
 for i = 1:sz
@@ -363,9 +387,6 @@ for i = 1:sz
     pause(0.1)
     disp(i)
 end
-
-
-
 
 %% Periodogram
 close all
