@@ -68,8 +68,8 @@ rng_fft_d = fft(IQ_d,[],2);
 kw = kaiser(200, 38);
 kwmat = repmat(kw', [344 1]);
 % array of fftshifted magnitudes
-rng_fftsft_mag_u = fftshift(abs(rng_fft_u));
-rng_fftsft_mag_d = fftshift(abs(rng_fft_d));
+rng_fftsft_mag_u = fftshift(abs(rng_fft_u),2);
+rng_fftsft_mag_d = fftshift(abs(rng_fft_d),2);
 
 % windowed
 % rng_fftsft_mag_u = fftshift(abs(rng_fft_d.*kwmat));
@@ -129,12 +129,48 @@ close all
 figure
 tiledlayout(2,1)
 nexttile
-plot(abs(det_u'))
+plot(f/1000, 10*log(abs(det_u')))
 nexttile
-plot(abs(det_d'))
+plot(f/1000, 10*log(abs(det_d')))
+%% 3D surface - Range
+
+close all
+figure
+% tiledlayout(2,1)
+% nexttile
+rng_fftsft_mag_u(:,200/2) = rng_fftsft_mag_u(:,200/2 - 1);
+rng_fftsft_mag_u(:,200/2 + 1) = rng_fftsft_mag_u(:,200/2 + 2);
+surf(f/1000, 1:344,10*log(rng_fftsft_mag_u))
+xlabel("Frequency (kHz)")
+ylabel("Frames/sweeps")
+zlabel("Magnitude")
+% nexttile
+% surf(f/1000, 1:344,10*log(rng_fftsft_mag_d))
+% xlabel("Frequency (kHz)")
+% ylabel("Frames/sweeps")
+% zlabel("Magnitude")
+
+%% Visualisation
+sz1 = size(I_up,1);
+figure
+for i = 1: sz1
+    pause(0.1)
+    tiledlayout(2,1)
+    nexttile
+    plot(f/1000, 10*log(abs(det_u(i,:)')))
+    hold on
+    axis([-20 20 50 130])
+    nexttile
+    plot(f, 10*log(abs(det_d(i,:)')))
+    axis([-20 20 50 130])
+end
+
+
+
 %% Extract beat frequencies
 fbs_u = zeros(frms_u, 1);
 fbs_d = zeros(frms_d, 1);
+
 for frame = 1:frms_u
    % get the two largest values/magnitudes
    peaks = maxk(det_u(frame, :), 2);
@@ -179,7 +215,8 @@ ylabel("Target distance (m)");
 %% MATLAB velocity estimation
 %fds = -(fbs_u+fbs_d)/2;
 fds = abs(fbs_u - fbs_d)/2;
-v_ests = dop2speed(fds,lambda)/100;
+%v_ests = dop2speed(fds,lambda)/100;
+v_ests = fds*lambda/2;
 close all
 figure
 plot(t(1:end-1), v_ests*3.6)
@@ -291,6 +328,8 @@ ylabel("Instantaneous velocity (km/h)")
 %% Doppler FFT
 dop_fft_u = fft(rng_fft_u);%fft(IQ_u,[],1);
 dop_fft_d = fft(rng_fft_d);%fft(IQ_d,[],1);
+dop_ffts_mag_u = abs(fftshift(rng_fft_u,2));%fft(IQ_u,[],1);
+dop_ffts_mag_d = abs(fftshift(rng_fft_d,2));%fft(IQ_d,[],1);
 % dop_fft_u_alt = fft(IQ_u);
 % dop_fft_d_alt = fft(IQ_d);
 close all
@@ -306,6 +345,31 @@ plot(abs(dop_fft_u)) % plots columns
 nexttile
 plot(abs(dop_fft_d_alt))
 %plot(angle(dop_fft_d))
+
+%% 3D surface - Doppler
+
+close all
+figure(1)
+% tiledlayout(2,1)
+% nexttile
+%rng_fftsft_mag_u(:,200/2) = rng_fftsft_mag_u(:,200/2 - 1);
+%rng_fftsft_mag_u(:,200/2 + 1) = rng_fftsft_mag_u(:,200/2 + 2);
+surf(f/1000, 1:344,10*log(dop_ffts_mag_u))
+xlabel("Frequency (kHz)")
+ylabel("Frames/sweeps")
+zlabel("Magnitude")
+figure(2)
+surf(f/1000, 1:344,10*log(rng_fftsft_mag_u))
+xlabel("Frequency (kHz)")
+ylabel("Frames/sweeps")
+zlabel("Magnitude")
+
+
+% nexttile
+% surf(f/1000, 1:344,10*log(rng_fftsft_mag_d))
+% xlabel("Frequency (kHz)")
+% ylabel("Frames/sweeps")
+% zlabel("Magnitude")
 
 %% Doppler frequency extraction
 % each row is a frame
@@ -513,3 +577,17 @@ figure
 % plot(abs(IQ_up_whole))
 % nexttile
 % plot(abs(IQ_down_whole))
+
+%% 2D FFT
+Y = fft2(IQ_u);
+close all
+figure
+imagesc(abs(fftshift(Y)))
+
+% close all
+% figure
+% imagesc(ranges_ud, v_ests, rng_fftsft_mag_u)
+
+
+
+
