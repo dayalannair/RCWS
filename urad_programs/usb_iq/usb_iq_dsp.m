@@ -62,8 +62,19 @@ IQ_d = I_down + 1i*Q_down;
 % %spectrogram(ref_sig)
 % spectrogram(ref_sig,32,16,32,fs,'yaxis');
 %% Range FFT
-range_fft_up = fft(IQ_u,[],2);
-range_fft_down = fft(IQ_d,[],2);
+rng_fft_u = fft(IQ_u,[],2);
+rng_fft_d = fft(IQ_d,[],2);
+% Kaiser window
+kw = kaiser(200, 38);
+kwmat = repmat(kw', [344 1]);
+% array of fftshifted magnitudes
+rng_fftsft_mag_u = fftshift(abs(rng_fft_u));
+rng_fftsft_mag_d = fftshift(abs(rng_fft_d));
+
+% windowed
+% rng_fftsft_mag_u = fftshift(abs(rng_fft_d.*kwmat));
+% rng_fftsft_mag_d = fftshift(abs(rng_fft_d.*kwmat));
+
 sz = size(IQ_u, 2);
 Fs = 200e3; % twice f_beat_max
 f = f_ax(sz,1/Fs);
@@ -71,67 +82,96 @@ close all
 figure
 tiledlayout(2,2)
 nexttile
-plot(f/1000, 10*log10(fftshift(abs(range_fft_up'))));
+%plot(f/1000, 10*log10(rng_fftsft_mag_u));
+plot(f/1000, rng_fftsft_mag_u);
 xlabel("Frequency (kHz)");
 ylabel("Magnitude (dB)");
 %axis([-30 30 0 ])
 nexttile
-plot(angle(range_fft_down'));
+plot(angle(rng_fft_d'));
 nexttile
-plot(f/1000, 10*log10(fftshift(abs(range_fft_up'))));
+%plot(f/1000, 10*log10(rng_fftsft_mag_d));
+plot(f/1000, rng_fftsft_mag_d);
 xlabel("Frequency (kHz)");
 ylabel("Magnitude (dB)");
 nexttile
-plot(angle(range_fft_down'));
+plot(angle(rng_fft_d'));
 
 %% Beat frequency extraction
 % each row is a frame
 % the time and frequency domain matrices have same dims
-frames = size(IQ_u, 1);
+frms_u = size(IQ_u, 1);
+frms_d = size(IQ_d, 1);
 % array of indices/sample numbers where target detected
-detections = zeros(size(IQ_u));
-% sample numbers of detections
-indices = zeros(size(IQ_u));
-% array of fftshifted magnitudes
-rng_fftshift_mag_u = fftshift(abs(range_fft_up));
+det_u = zeros(size(IQ_u));
+det_d = zeros(size(IQ_d));
 %% Threshold Detection
 threshold = 1.6e4;
-for frame = 1:frames
-    %detections(frame, :) = range_fft_up(range_fft_up(frame, :)>threshold, :);
+for frame = 1:frms_u
+    %det_u(frame, :) = rng_fft_u(rng_fft_u(frame, :)>threshold, :);
     for sample = 1:sz
         % need to use fftshift to correspond to defined f_ax
-        if (rng_fftshift_mag_u(frame, sample) > threshold)
-            detections(frame, sample) = rng_fftshift_mag_u(frame, sample);
+        % up chirp detections
+        if (rng_fftsft_mag_u(frame, sample) > threshold)
+            det_u(frame, sample) = rng_fftsft_mag_u(frame, sample);
         else
-            detections(frame, sample) = 0;
+            det_u(frame, sample) = 0;
+        end
+        % down chirp detections
+        if (rng_fftsft_mag_d(frame, sample) > threshold)
+            det_d(frame, sample) = rng_fftsft_mag_d(frame, sample);
+        else
+            det_d(frame, sample) = 0;
         end
     end
 end
 close all
 figure
-plot(abs(detections'))
-
+tiledlayout(2,1)
+nexttile
+plot(abs(det_u'))
+nexttile
+plot(abs(det_d'))
 %% Extract beat frequencies
-f_beats = zeros(frames, 1);
-for frame = 1:frames
+fbs_u = zeros(frms_u, 1);
+fbs_d = zeros(frms_d, 1);
+for frame = 1:frms_u
    % get the two largest values/magnitudes
-   peaks = maxk(detections(frame, :), 2);
+   peaks = maxk(det_u(frame, :), 2);
    if peaks(2)>0
-    index = find(detections(frame,:)==peaks(2));
-    f_beats(frame) = f(index); % get frequency from specified frequency axis
+    index = find(det_u(frame,:)==peaks(2));
+    fbs_u(frame) = f(index); % get frequency from specified frequency axis
    else
-       f_beats(frame) = 0;
+       fbs_u(frame) = 0;
+   end
+   % Down chirp
+   peaks = maxk(det_d(frame, :), 2);
+   if peaks(2)>0
+    index = find(det_d(frame,:)==peaks(2));
+    fbs_d(frame) = f(index); % get frequency from specified frequency axis
+   else
+       fbs_d(frame) = 0;
    end
 end
 
 Ns = 200;
-t = 0:total_time/frames:total_time;
+t = 0:total_time/frms_u:total_time;
 % figure
-% plot(f_beats)
+% plot(fbs_u)
 close all
 figure
-ranges = beat2range(f_beats, sweep_slope, c);
-plot(t(1:end-1),fftshift(ranges))
+%tiledlayout(2,1)
+ranges_u = beat2range(fbs_u, sweep_slope, c);
+ranges_ud = beat2range([fbs_u fbs_d], sweep_slope, c);
+%nexttile
+plot(t(1:end-1),fftshift(ranges_ud))
+xticks(1:1:15)
+title("Distance of target 1");
+xlabel("Time (s)");
+ylabel("Target distance (m)");
+%nexttile
+hold on
+plot(t(1:end-1),fftshift(ranges_u))
 xticks(1:1:15)
 title("Distance of target 1");
 xlabel("Time (s)");
@@ -182,31 +222,31 @@ ylabel("Target distance (m)");
 %     pause(0.05)
 %     tiledlayout(2,3)
 %     nexttile
-%     plot(f/1000, 10*log10(fftshift(abs(range_fft_up(i,:)))));
+%     plot(f/1000, 10*log10(fftshift(abs(rng_fft_u(i,:)))));
 %     xlabel("Frequency (kHz)");
 %     ylabel("Magnitude (dB)");
 %     yline(45)
 %     nexttile
-%     plot(f/1000, fftshift(abs(range_fft_up(i,:))));
+%     plot(f/1000, fftshift(abs(rng_fft_u(i,:))));
 %     xlabel("Frequency (kHz)");
 %     ylabel("Magnitude (dB)");
 %     yline(45)
 %      nexttile
-%     plot(f/1000, fftshift(abs(range_fft_up(i,:))));
+%     plot(f/1000, fftshift(abs(rng_fft_u(i,:))));
 %     xlabel("Frequency (kHz)");
 %     ylabel("Magnitude (dB)");
 %     yline(1.6e4)
 %     axis([-30 30 0 4e4])
 %     nexttile
-%     plot(f/1000, 10*log(fftshift(abs(range_fft_down(i,:)))));
+%     plot(f/1000, 10*log(fftshift(abs(rng_fft_d(i,:)))));
 %     xlabel("Frequency (kHz)");
 %     ylabel("Magnitude (dB)");
 %     nexttile
-%     plot(f/1000, fftshift(abs(range_fft_down(i,:))));
+%     plot(f/1000, fftshift(abs(rng_fft_d(i,:))));
 %     xlabel("Frequency (kHz)");
 %     ylabel("Magnitude (dB)");
 %     nexttile
-%     plot(f/1000, fftshift(abs(range_fft_down(i,:))));
+%     plot(f/1000, fftshift(abs(rng_fft_d(i,:))));
 %     xlabel("Frequency (kHz)");
 %     ylabel("Magnitude (dB)");
 %     yline(1.6e4)
@@ -231,7 +271,7 @@ plot(abs(ref_dcp))
 %% moving plot
 % close all
 % figure
-% sz = size(range_fft_up,2);
+% sz = size(rng_fft_u,2);
 % for i = 1:sz
 %     plot(abs(ref_dcp(:,i)))
 %     pause(0.1)
@@ -239,54 +279,58 @@ plot(abs(ref_dcp))
 % end
 
 %% Doppler FFT
-doppler_fft_up = fft(range_fft_up);%fft(IQ_u,[],1);
-doppler_fft_down = fft(range_fft_down);%fft(IQ_d,[],1);
+dop_fft_u = fft(rng_fft_u);%fft(IQ_u,[],1);
+dop_fft_d = fft(rng_fft_d);%fft(IQ_d,[],1);
+dop_fft_u_alt = fft(IQ_u);
+dop_fft_d_alt = fft(IQ_d);
 close all
 figure
 tiledlayout(2,2)
 nexttile
-plot(abs(doppler_fft_up)) % plots columns
+plot(abs(dop_fft_u)) % plots columns
 nexttile
-plot(angle(doppler_fft_down))
+%plot(angle(dop_fft_d))
+plot(abs(dop_fft_u_alt))
 nexttile
-plot(abs(doppler_fft_up)) % plots columns
+plot(abs(dop_fft_u)) % plots columns
 nexttile
-plot(angle(doppler_fft_down))
+plot(abs(dop_fft_d_alt))
+%plot(angle(dop_fft_d))
 
 %% Doppler frequency extraction
 % each row is a frame
 % the time and frequency domain matrices have same dims
-frames = size(IQ_u, 1);
+frms_u = size(IQ_u, 1);
 % array of indices/sample numbers where target detected
-detections = zeros(size(IQ_u));
-% sample numbers of detections
+det_u = zeros(size(IQ_u));
+% sample numbers of det_u
 indices = zeros(size(IQ_u));
 % array of fftshifted magnitudes
-v_fftshift_mag_u = fftshift(abs(doppler_fft_up));
+v_fftshift_mag_u = fftshift(abs(dop_fft_u));
 %% Threshold Detection - velocity
 threshold = 1.6e4;
-for frame = 1:frames
-    %detections(frame, :) = range_fft_up(range_fft_up(frame, :)>threshold, :);
+for frame = 1:frms_u
+    %det_u(frame, :) = rng_fft_u(rng_fft_u(frame, :)>threshold, :);
     for sample = 1:sz
         % need to use fftshift to correspond to defined f_ax
         if (v_fftshift_mag_u(frame, sample) > threshold)
-            detections(frame, sample) = v_fftshift_mag_u(frame, sample);
+            det_u(frame, sample) = v_fftshift_mag_u(frame, sample);
         else
-            detections(frame, sample) = 0;
+            det_u(frame, sample) = 0;
         end
     end
 end
 close all
 figure
-plot(abs(detections'))
+plot(abs(det_u'))
 
 %% Extract Doppler frequencies
-f_ds = zeros(frames, 1);
-for frame = 1:frames
+f_ds = zeros(frms_u, 1);
+for frame = 1:frms_u
    % get the two largest values/magnitudes
-   peaks = maxk(detections(frame, :), 2);
+   peaks = maxk(det_u(frame, :), 2);
    if peaks(2)>0
-    index = find(detections(frame,:)==peaks(2));
+    index = find(det_u(frame,:)==peaks(2));
     f_ds(frame) = f(index); % get frequency from specified frequency axis
    else
        f_ds(frame) = 0;
@@ -294,9 +338,9 @@ for frame = 1:frames
 end
 
 Ns = 200;
-t = 0:total_time/frames:total_time;
+t = 0:total_time/frms_u:total_time;
 % figure
-% plot(f_beats)
+% plot(fbs_u)
 close all
 figure
 tiledlayout(2,1)
@@ -313,7 +357,7 @@ ylabel("Velocity (m/s)");
 xlabel("Time");
 %%
 figure
-sz = size(range_fft_up,2);
+sz = size(rng_fft_u,2);
 for i = 1:sz
     plot(abs(doppler_fft_up(10:end,i)))
     pause(0.1)
