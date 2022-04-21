@@ -1,12 +1,10 @@
-%% Reference Waveform
+%% Parameters - uRAD
 fc = 24.005e9;
 c = 3e8;
 lambda = c/fc;
 range_max = 62.5;
-%tm = 5.5*range2time(range_max,c);
-tm = 1e-3; % uRAD ramp time is 1ms
+tm = 1e-3;
 range_res = 1;
-%bw = rangeres2bw(range_res,c);
 bw = 240e6;
 sweep_slope = bw/tm;
 fr_max = range2beat(range_max,sweep_slope,c);
@@ -14,16 +12,6 @@ v_max = 75;
 fd_max = speed2dop(2*v_max,lambda);
 fb_max = fr_max+fd_max;
 fs = max(2*fb_max,bw);
-%fs = 2*24.245e9
-waveform = phased.FMCWWaveform('SweepTime',tm, ...
-    'SweepBandwidth',bw, ...
-    'SampleRate',fs, ...
-    'SweepDirection','Triangle', ...
-    'OutputFormat', 'Samples', ...
-    'NumSamples', 200);
-
-ref_sig = waveform();
-
 %% Extract IQ data from text files
 % I and Q is interleaved in raw data
 I = readtable('I_trolley_test.txt','Delimiter' ,' ');
@@ -52,8 +40,109 @@ IQ_d = I_down + 1i*Q_down;
 % Important note:
 % ' ----> conjugate and transpose
 % .' ---> transpose - used for complex numbers
-close all
-IQ_U = fft2(IQ_u);
-figure
+frame_length = 100;
+sz = size(IQ_u, 2);
+Fs = 200e3;
+f = f_ax(sz,1/Fs);
+Tc = 2e-3;
+
+IQ_U = fft2(IQ_u(205:210,:), 2048, 2048);
+figure(1)
 %plot(abs(IQ_U));
-imagesc(abs(fftshift(IQ_U)))
+close all
+imagesc(f/1000, linspace(0, 100), 10*log(abs(fftshift(IQ_U, 2))))
+xlabel("Range (m)")
+ylabel("Velocity (m/s)")
+%%
+% frame_length = 5;
+% close all
+% figure
+% for i =1:5:2048
+%     temp = fft2(IQ_u(i:sz+frame_length, :), 2048, 2048);
+%     imagesc(f/1000, linspace(0, 100), 10*log(abs(fftshift(temp, 2))))
+%     pause(0.1)
+% end
+
+%% Range FFT
+close all
+figure(2)
+clims = [3000 5000];
+rng_u = fft(IQ_u, [], 2);
+rng_d = fft(IQ_d, [], 2);
+rng_u_magsft = fftshift(abs(rng_u),2);
+rng_d_magsft = fftshift(abs(rng_d),2);
+rngs = beat2range(f.', sweep_slope, c);
+tiledlayout(2,2)
+nexttile
+plot(rngs, 10*log(rng_u_magsft));
+title("Up chirp range-FFT magnitude");
+xlabel("Range (m)")
+ylabel("Magnitude (dB)")
+nexttile
+imagesc(rngs,linspace(0, 344), 10*log(rng_u_magsft));
+title("Up chirp range map")
+xlabel("Range (m)")
+ylabel("Sweep number")
+nexttile
+plot(rngs, 10*log(rng_d_magsft));
+title("Down chirp range-FFT magnitude");
+xlabel("Range (m)")
+ylabel("Magnitude (dB)")
+nexttile
+imagesc(rngs,linspace(0, 344), 10*log(rng_d_magsft));
+title("Down chirp range map")
+xlabel("Range (m)")
+ylabel("Sweep number")
+%% Doppler FFT
+% need to consider frame length
+
+dop_u = fft(rng_u, [], 1);
+dop_d = fft(rng_d, [], 1);
+dop_u_magsft = fftshift(abs(dop_u),2);
+dop_d_magsft = fftshift(abs(dop_d),2);
+vels = dop2speed(f.', lambda);
+close all
+tiledlayout(2,2)
+nexttile
+plot(rngs, 10*log(dop_u_magsft));
+title("Up chirp range-FFT magnitude");
+xlabel("Range (m)")
+ylabel("Magnitude (dB)")
+nexttile
+imagesc(rngs,linspace(0, 344), 10*log(dop_u_magsft));
+title("Up chirp range map")
+xlabel("Range (m)")
+ylabel("Sweep number")
+nexttile
+plot(rngs, 10*log(dop_d_magsft));
+title("Down chirp range-FFT magnitude");
+xlabel("Range (m)")
+ylabel("Magnitude (dB)")
+nexttile
+imagesc(rngs,linspace(0, 344), 10*log(dop_d_magsft));
+title("Down chirp range map")
+xlabel("Range (m)")
+ylabel("Sweep number")
+
+%% Range-Doppler response
+Fs = 200e3;
+u_pad = padarray(IQ_u, [2048 - size(IQ_u, 1) 2048 - size(IQ_u, 2)], 'post');
+rdresp = phased.RangeDopplerResponse(...
+   'RangeMethod','FFT',...
+   'PropagationSpeed',physconst('LightSpeed'),...
+   'SampleRate',Fs,...
+   'SweepSlope',sweep_slope, ...
+   'DopplerFFTLengthSource','Property', ...
+   'DopplerFFTLength', 50, ...
+   'DopplerWindow', 'Kaiser', ...
+   'DopplerSidelobeAttenuation', 38, ...
+   'DopplerOutput','Speed', ...
+   'OperatingFrequency', fc);
+close all
+figure
+plotResponse(rdresp, u_pad)
+close all
+figure
+plotResponse(rdresp, IQ_u)
+
+
