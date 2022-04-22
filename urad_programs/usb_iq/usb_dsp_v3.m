@@ -47,24 +47,24 @@ plot(abs(fftshift(dopfft')))    % need transpose of dopp fft to put dopp fft col
                                 % below
 
 %% Loop dopp fft
-close all
-figure
-for pos = 1:sz/2
-    frame_u = rng_u(pos:pos+1, :);
-    frame_d = rng_d(pos:pos+1, :);
-
-    dopfft = fft(frame_u);
-    
-    dopfft(1,:) = dopfft(2,:);      % Null DC component
-    peak = max(dopfft);              % returns max value of each column
-    
-    plot(f/1000, abs(fftshift(dopfft')))
-    pause(0.2)
-end
+% close all
+% figure
+% for pos = 1:sz/2
+%     frame_u = rng_u(pos:pos+1, :);
+%     frame_d = rng_d(pos:pos+1, :);
+% 
+%     dopfft = fft(frame_u);
+%     
+%     dopfft(1,:) = dopfft(2,:);      % Null DC component
+%     peak = max(dopfft);              % returns max value of each column
+%     
+%     plot(f/1000, abs(fftshift(dopfft')))
+%     pause(0.2)
+% end
 %% Plots
-close all
-figure
-plot(rngs, fftshift(abs(dopfft)))
+% close all
+% figure
+% plot(rngs, fftshift(abs(dopfft)))
 
 %% Root music
 % pos = 150;
@@ -84,14 +84,14 @@ plot(rngs, fftshift(abs(dopfft)))
 
 %% Test
 
-rng default
-n = (0:99)';
-frqs = [pi/4 pi/4+0.06];
-
-s = 2*exp(1j*frqs(1)*n)+1.5*exp(1j*frqs(2)*n)+ ...
-    0.5*randn(100,1)+1j*0.5*randn(100,1);
-
-[~,R] = corrmtx(s,12,'mod');
-[W,P] = rootmusic(R,2,'corr')
-
+% rng default
+% n = (0:99)';
+% frqs = [pi/4 pi/4+0.06];
+% 
+% s = 2*exp(1j*frqs(1)*n)+1.5*exp(1j*frqs(2)*n)+ ...
+%     0.5*randn(100,1)+1j*0.5*randn(100,1);
+% 
+% [~,R] = corrmtx(s,12,'mod');
+% [W,P] = rootmusic(R,2,'corr')
+% 
 
