@@ -22,8 +22,16 @@ d = I_down + 1i*Q_down;
 
 %% Extract beat frequency
 
-Ns = size(u, 2);
+Ns = 200;
 Fs = 200e3;
+
+% Zero padding
+sweeps = size(u, 1)
+u = padarray(u,[0 2*4096 - Ns], 'post');
+d = padarray(d,[0 2*4096 - Ns], 'post');
+
+% new parameters
+Ns = size(u, 2);
 df = Fs/Ns;
 f = 0:df:(Ns-1)*df;
 
@@ -32,9 +40,15 @@ U = fft(u,[],2);
 D = fft(d,[],2);
 
 % Null transmitter feed-through
-U(:,1) = U(:,2);
-D(:,1) = D(:,2);
+% positive and negative null factors
+% needed to increase nulling width as padding is increased
+pnf = 20*4;
+nnf = 20*4;
+U(:,1:pnf) = repmat(U(:,pnf+1), 1, pnf);
+D(:,1:pnf) = repmat(D(:,pnf+1), 1, pnf);
 
+U(:,end-nnf:end) = repmat(U(:,end-nnf+1), 1, nnf+1);
+D(:,end-nnf:end) = repmat(D(:,end-nnf+1), 1, nnf+1);
 % Extract FFT peaks in each row
 [pk_u, idx_u]= max(U,[],2);
 
@@ -57,8 +71,9 @@ fbd = -f(idx_d)';
 % Extract distance
 r = beat2range([fbu fbd],sweep_slope,c);
 % Extract velocity
-fd = -(fbu+fbd)/2;
-v = dop2speed(fd,lambda)/2;
+fd = (fbu+fbd)/2;
+v= fd*lambda/2;
+%v = dop2speed(fd,lambda)/2;
 
 %% Filter spikes
 rmax = 10; % max distance is 10 m
@@ -80,6 +95,8 @@ end
 close all
 figure
 tiledlayout(2,1)
+% plot(f, abs(U(90,:)))
+
 nexttile
 plot(r)
 nexttile
