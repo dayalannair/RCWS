@@ -23,13 +23,12 @@ d = I_down + 1i*Q_down;
 %% Extract beat frequency
 
 % samples before padding
-% Ns = 200;
+Ns = 200;
 Fs = 200e3;
 
 % Zero padding
-
-% u = padarray(u,[0 2*4096 - Ns], 'post');
-% d = padarray(d,[0 2*4096 - Ns], 'post');
+u = padarray(u,[0 512 - Ns], 'post');
+d = padarray(d,[0 512 - Ns], 'post');
 
 % Samples after padding
 Ns = size(u, 2);
@@ -48,13 +47,13 @@ D = fft(d,[],2);
 % Null transmitter feed-through
 % positive and negative null factors
 % needed to increase nulling width as padding is increased
-pnf = 1;%20*2;
-nnf = 1;%20*2;
+pnf = 10;%20*2;
+nnf = 10;%20*2;
 U(:,1:pnf) = repmat(U(:,pnf+1), 1, pnf);
 D(:,1:pnf) = repmat(D(:,pnf+1), 1, pnf);
 
-% U(:,end-nnf:end) = repmat(U(:,end-nnf+1), 1, nnf+1);
-% D(:,end-nnf:end) = repmat(D(:,end-nnf+1), 1, nnf+1);
+U(:,end-nnf:end) = repmat(U(:,end-nnf+1), 1, nnf+1);
+D(:,end-nnf:end) = repmat(D(:,end-nnf+1), 1, nnf+1);
 
 % Easiest method for extracting down chirp peaks is to flip
 % each sweep
@@ -152,7 +151,7 @@ plot(v)
 %% Debugging
 % close all 
 % figure
-% plot(abs(D(338,:)))
+% plot(abs(U(151,:)))
 % hold on
 % plot(abs(D(339,:)))
 % 
