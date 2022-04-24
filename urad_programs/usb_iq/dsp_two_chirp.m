@@ -41,10 +41,12 @@ t = 0:dt:t_sweep;
 U = fft(u,[],2);
 D = fft(d,[],2);
 
-U(:,1) = U(:,2);
-D(:,1) = D(:,2);
 
-%%
+% Nulling
+% U(:,1) = U(:,2);
+% D(:,1) = D(:,2);
+
+%% HPF
 U = filter(HPF_feedthrough,U');
 close all
 figure
@@ -88,14 +90,14 @@ close all
 figure
 tiledlayout(2,1)
 nexttile
-plot(f, fftshift(10*log(abs(U(1,:)))))
+plot(f, U_mag(1,:))
 hold on 
-plot(f, fftshift(10*log(abs(flip(D(1,:), 2)))))
+plot(f, D_mag(1, :))
 legend('Up', 'Down')
 nexttile
-plot(f, fftshift(10*log(abs(U(2,:)))))
+plot(f, U_mag(2,:))
 hold on 
-plot(f, fftshift(10*log(abs(flip(D(2,:), 2)))))
+plot(f, D_mag(2,:))
 legend('Up', 'Down')
 
 %% Plots
