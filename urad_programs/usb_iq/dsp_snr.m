@@ -34,18 +34,34 @@ disp(SNR)
 
 %% Extract peaks
 sweeps = size(i,1);
-IQ_mag = abs(IQ);
+IQ_mag = 10*log(abs(IQ));
 pks = zeros(sweeps, 2);
 fbs = zeros(sweeps, 2);
 freq_res = Fs/Ns; % Minimum separation between two targets
-
+%% View peak detection
+close all
+figure
+% %'MinPeakWidth',5*freq_res,
+% % Specifying a minimum peak height can reduce processing time.
+% % Prominence is roughly SNR
+%findpeaks(IQ_mag(162,:), f,'MinPeakProminence',20, 'NPeaks', 3,'Annotate','extents');
+%findpeaks(IQ_mag(162,:), f,'Annotate','extents')
+%%
 % Note: MinPeakDistance uses sort(descend) anyway
+% "SortStr","descend"
+% close all
+% figure
 for row = 1:sweeps
     % Extract the three tallest peaks
-    [peak, freq] = findpeaks(IQ_mag(row,:), f, "SortStr","descend", "NPeaks", 3);
+    pause(0.05)
+    % findpeaks(IQ_mag(row,:), f, 'MinPeakDistance', 1000,'MinPeakProminence',15,'MinPeakHeight',72,'MinPeakWidth', 1000, 'NPeaks', 15,'Annotate','extents');
+    [peak, freq] = findpeaks(IQ_mag(row,:), f, 'MinPeakProminence',12, 'NPeaks', 15);
     % Ignore first peak due to feed through
-    pks(row,:) = peak(2:3);
-    fbs(row,:) = freq(2:3);
+    if numel(peak)>2
+        % Extract beat frequencies. Middle peak is from feed through
+        pks(row,:) = peak(1:2:3);
+        fbs(row,:) = freq(1:2:3);
+    end
 end
 
 %% Plot peaks
