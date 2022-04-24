@@ -18,12 +18,18 @@ iq = i + 1i*q;
 %% FFT
 
 Ns = 400;
+%iq = padarray(iq,[0 4096 - Ns], 'post');
+Ns = size(iq, 2);
 Fs = 200e3;
 f = f_ax(Ns, Fs);
 
 t_sweep = Itbl.Var401(91)-Itbl.Var401(90); % Should average this 
 dt = t_sweep/Ns;
 t = 0:t_sweep:344*t_sweep;
+
+gwin = gausswin(Ns);
+
+
 
 IQ = fftshift(fft(iq,[],2),2);
 
@@ -34,7 +40,7 @@ disp(SNR)
 
 %% Extract peaks
 sweeps = size(i,1);
-IQ_mag = 10*log(abs(IQ));
+IQ_mag = abs(IQ);
 pks = zeros(sweeps, 2);
 fbs = zeros(sweeps, 2);
 freq_res = Fs/Ns; % Minimum separation between two targets
@@ -51,23 +57,51 @@ figure
 % "SortStr","descend"
 % close all
 % figure
+fbu = zeros(344,1);
+fbd = zeros(344,1);
 for row = 1:sweeps
-    % Extract the three tallest peaks
-    pause(0.05)
-    % findpeaks(IQ_mag(row,:), f, 'MinPeakDistance', 1000,'MinPeakProminence',15,'MinPeakHeight',72,'MinPeakWidth', 1000, 'NPeaks', 15,'Annotate','extents');
-    [peak, freq] = findpeaks(IQ_mag(row,:), f, 'MinPeakProminence',12, 'NPeaks', 15);
+    %Extract the three tallest peaks
+%     pause(0.08)
+%     findpeaks(IQ_mag(row,:), f/1000, 'MinPeakDistance', 1,'MinPeakProminence',3e4,'MinPeakHeight',0.5e4,'MinPeakWidth', 1, 'NPeaks', 4,'Annotate','extents');
+%     axis([-100 100 0 40e4])
+    [peak, freq] = findpeaks(IQ_mag(row,:), f, 'MinPeakDistance', 1500,'MinPeakProminence',1e4,'MinPeakHeight',0.5e4,'MinPeakWidth', 1000, 'NPeaks', 4);
     % Ignore first peak due to feed through
-    if numel(peak)>2
         % Extract beat frequencies. Middle peak is from feed through
-        pks(row,:) = peak(1:2:3);
-        fbs(row,:) = freq(1:2:3);
-    end
+     if (numel(peak)>1)
+         pk_sorted = sort(peak, 2, 'descend');
+         idx = find(peak==pk_sorted(1));
+         fq = freq(idx);
+         if fq>1
+            fbu(row) = fq;
+            idx = find(peak==pk_sorted(2));
+            fbd(row) = freq(idx);
+         else
+             fbd(row) = fq;
+            idx = find(peak==pk_sorted(2));
+            fbu(row) = freq(idx);
+         end
+     end
 end
 
-%% Plot peaks
+%% Estimates
+% Extract distance
+r = beat2range([fbu fbd],sweep_slope,c);
+% Extract velocity
+fd = (-fbd-fbu)/2;
+%v = fd*lambda/2;
+v = dop2speed(fd,lambda)/2;
+%% Plot estimates
 close all
 figure
-plot(fbs,pks);
+tiledlayout(2,1)
+nexttile
+plot(r);
+nexttile
+plot(v);
+%% Plot peaks
+% close all
+% figure
+% plot(fbs,pks);
 
 %% Real-time view
 % close all
