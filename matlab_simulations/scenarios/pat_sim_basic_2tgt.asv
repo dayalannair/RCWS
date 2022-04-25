@@ -21,14 +21,14 @@ fs = max(2*fb_max,bw);
 rng(2012);
 waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
     'SampleRate',fs, 'SweepDirection','Triangle');
-close all
-figure
-sig = waveform();
-subplot(211); plot(0:1/fs:tm-1/fs,real(sig));
-xlabel('Time (s)'); ylabel('Amplitude (v)');
-title('FMCW signal'); axis tight;
-subplot(212); spectrogram(sig,32,16,32,fs,'yaxis');
-title('FMCW signal spectrogram');
+% close all
+% figure
+% sig = waveform();
+% subplot(211); plot(0:1/fs:tm-1/fs,real(sig));
+% xlabel('Time (s)'); ylabel('Amplitude (v)');
+% title('FMCW signal'); axis tight;
+% subplot(212); spectrogram(sig,32,16,32,fs,'yaxis');
+% title('FMCW signal spectrogram');
 
 %%
 
@@ -46,19 +46,29 @@ receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
     'SampleRate',fs);
 
 %% Scenario
-car_dist = 50;
-car_speed = 80/3.6;
-car_rcs = db2pow(min(10*log10(car_dist)+5,20));
+car1_x_dist = 50;
+car1_y_dist = 2;
+car1_speed = 80/3.6;
+car2_x_dist = 50;
+car2_y_dist = -2;
+car2_speed = 80/3.6;
 
+car1_dist = sqrt()
+car_rcs1 = db2pow(min(10*log10(car_dist)+5,20));
+
+% Define reflected signal
 cartarget = phased.RadarTarget('MeanRCS',car_rcs,'PropagationSpeed',c,...
     'OperatingFrequency',fc);
 
-carmotion = phased.Platform('InitialPosition',[car_dist;0;0.5],...
-    'Velocity',[-car_speed;0;0]);
+% Define target motion - 2 targets
+carmotion = phased.Platform('InitialPosition',[car1_x_dist car2_x_dist;car1_y_dist car2_y_dist;0.5 0.5],...
+    'Velocity',[-car1_speed -car2_speed;0 0;0 0]);
 
+% Define propagation medium
 channel = phased.FreeSpace('PropagationSpeed',c,...
     'OperatingFrequency',fc,'SampleRate',fs,'TwoWayPropagation',true);
 
+% Define radar motion
 radar_speed = 0;
 radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
     'Velocity',[radar_speed;0;0]);
@@ -85,10 +95,12 @@ sceneview = phased.ScenarioViewer('BeamRange',62.5,...
     'UpdateRate',1/t_step);
 
 [rdr_pos,rdr_vel] = radarmotion(1);
-fbu = zeros(n_steps, 1);
-fbd = zeros(n_steps, 1);
-r = zeros(n_steps, 1);
-v = zeros(n_steps, 1);
+
+% Set up arrays for two targets
+fbu = zeros(n_steps, 2);
+fbd = zeros(n_steps, 2);
+r = zeros(n_steps, 2);
+v = zeros(n_steps, 2);
 
 for t = 1:n_steps
     %disp(t)
@@ -103,15 +115,20 @@ for t = 1:n_steps
     xr = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
         transmitter,channel,cartarget,receiver);
     
-    fbu_rng = rootmusic(pulsint(xr(:,1:2:end),'coherent'),1,fs);
-    fbd_rng = rootmusic(pulsint(xr(:,2:2:end),'coherent'),1,fs);
+    fbu_rng = rootmusic(pulsint(xr(:,1:2:end),'coherent'),2,fs);
+    fbd_rng = rootmusic(pulsint(xr(:,2:2:end),'coherent'),2,fs);
     
-    r(t) = beat2range([fbu_rng fbd_rng],sweep_slope,c);
-    
-    fd = -(fbu_rng+fbd_rng)/2;
-    v(t) = dop2speed(fd,lambda)/2;
-    fbu(t) = fbu_rng;
-    fbd(t) = fbd_rng;
+    r(t, 1) = beat2range([fbu_rng(1) fbd_rng(1)],sweep_slope,c);
+    r(t, 2) = beat2range([fbu_rng(2) fbd_rng(2)],sweep_slope,c);
+
+    fd = -(fbu_rng(1)+fbd_rng(1))/2;
+    v(t, 1) = dop2speed(fd,lambda)/2;
+
+    fd = -(fbu_rng(2)+fbd_rng(2))/2;
+    v(t, 2) = dop2speed(fd,lambda)/2;
+
+    fbu(t,:) = fbu_rng;
+    fbd(t,:) = fbd_rng;
 end
 
 

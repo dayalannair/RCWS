@@ -66,7 +66,7 @@ radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
 %% Simulation Loop
 close all
 
-t_total = 1;
+t_total = 2;
 t_step = 0.1;
 Nsweep = 16;
 n_steps = t_total/t_step;
