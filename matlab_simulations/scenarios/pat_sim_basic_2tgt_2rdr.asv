@@ -51,9 +51,9 @@ receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
 car1_x_dist = 50;
 car1_y_dist = 2;
 car1_speed = 80/3.6;
-car2_x_dist = 50;
+car2_x_dist = -50;
 car2_y_dist = -2;
-car2_speed = 80/3.6;
+car2_speed = -80/3.6;
 
 car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
 car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
@@ -75,8 +75,8 @@ channel = phased.FreeSpace('PropagationSpeed',c,...
 
 % Define radar motion
 radar_speed = 0;
-radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
-    'Velocity',[radar_speed;0;0]);
+radarmotion = phased.Platform('InitialPosition',[0 0;0 0;0.5 0.5],...
+    'Velocity',[radar_s;0;0]);
 
 %% Simulation Loop
 close all
