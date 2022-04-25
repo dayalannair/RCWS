@@ -18,7 +18,7 @@ iq = i + 1i*q;
 %% FFT
 
 Ns = 400;
-%iq = padarray(iq,[0 4096 - Ns], 'post');
+iq = padarray(iq,[0 4096 - Ns], 'post');
 Ns = size(iq, 2);
 Fs = 200e3;
 f = f_ax(Ns, Fs);
