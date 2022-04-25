@@ -34,7 +34,6 @@ for m = 1:Nsweep
 
     % Sum rows - received sum of returns from each target
     rxsig = receiver(sum(rxsig,2));
-    size(rxsig)
 
     % Get intermediate frequency
     xd = dechirp(rxsig,sig);
