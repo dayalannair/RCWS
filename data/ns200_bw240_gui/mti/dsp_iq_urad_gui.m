@@ -7,10 +7,13 @@ bw = 240e6;                     % Bandwidth
 sweep_slope = bw/tm;
 
 %% Import data
-iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
-time = iq_tbl.Var801;
-i = table2array(iq_tbl(:,1:(end-1)/2));
-q = table2array(iq_tbl(:,((end-1)/2 + 1):(end-1)));
+I_u = readtable('I_up.txt','Delimiter' ,' ');
+I_d = readtable('I_down.txt','Delimiter' ,' ');
+Q_u = readtable('Q_up.txt','Delimiter' ,' ');
+Q_d = readtable('Q_down.txt','Delimiter' ,' ');
+i = table2array(I_u(:,1:end-2)) + table2array(I_d(:,1:end-2));
+q = table2array(Q_u(:,1:end-2)) + table2array(Q_d(:,1:end-2));
+time = I_u.Var202;
 iq = i + 1i*q;
 %% FFT
 
@@ -39,8 +42,8 @@ pks = zeros(sweeps, 2);
 fbs = zeros(sweeps, 2);
 freq_res = Fs/Ns; % Minimum separation between two targets
 %% View peak detection
-close all
-figure
+% close all
+% figure
 % %'MinPeakWidth',5*freq_res,
 % % Specifying a minimum peak height can reduce processing time.
 % % Prominence is roughly SNR
@@ -49,7 +52,7 @@ figure
 %%
 % Note: MinPeakDistance uses sort(descend) anyway
 % "SortStr","descend"
-%close all
+% close all
 % figure
 fbu = zeros(344,1);
 fbd = zeros(344,1);
@@ -58,9 +61,9 @@ for row = 1:sweeps
     %Extract the three tallest peaks
 %     pause(0.001)
 %     disp(row)
-%     findpeaks(IQ_mag(row,:), f/1000, 'MinPeakDistance', 1,'MinPeakProminence',1e4,'MinPeakHeight',0.5e4,'MinPeakWidth', 0.5, 'NPeaks', 4,'Annotate','extents');
-   % axis([-100 100 0 40e3])
-    [peak, freq] = findpeaks(IQ_mag(row,:), f, 'MinPeakDistance', 1500,'MinPeakProminence',0.9e4,'MinPeakHeight',0.4e4,'MinPeakWidth', 1000, 'NPeaks', 4);
+%     findpeaks(IQ_mag(row,:), f/1000, 'MinPeakDistance', 1,'MinPeakProminence',1e4,'MinPeakHeight',0.5e4,'MinPeakWidth', 1, 'NPeaks', 4,'Annotate','extents');
+%    axis([-100 100 0 40e3])
+    [peak, freq] = findpeaks(IQ_mag(row,:), f, 'MinPeakDistance', 1000,'MinPeakProminence',1000,'MinPeakHeight',0.1e2,'MinPeakWidth', 500, 'NPeaks', 4);
     % Ignore first peak due to feed through
         % Extract beat frequencies. Middle peak is from feed through
      if (numel(peak)>1)
@@ -79,7 +82,7 @@ for row = 1:sweeps
      end
 end
 
-%% Estimates
+% Estimates
 % Extract distance
 r = beat2range([fbu fbd],sweep_slope,c);
 % Extract velocity
@@ -93,20 +96,21 @@ for pos =  1:size(v,1)
     end
 end
 
-%% Plot estimates
+% Plot estimates
 t_total = time(end)-time(1);
 t = linspace(0,t_total, size(r, 1));
 close all
-figure
+figure(1)
 tiledlayout(2,1)
 nexttile
-plot(t, r);
+plot(t, abs(r));
 ylabel("Radial distance (m)")
 xlabel("Time (s)")
 nexttile
 plot(t, v);
 ylabel("Radial velocity (m/s)")
 xlabel("Time (s)")
+drawnow;
 %% Plot peaks
 % close all
 % figure
