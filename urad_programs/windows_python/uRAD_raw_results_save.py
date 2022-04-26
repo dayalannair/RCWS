@@ -25,7 +25,7 @@ movement_true = False 		# Don't apply as only raw data is desired
 # Serial Port configuration - need to check device manager or GUI
 ser = serial.Serial()
 if (usb_communication):
-	ser.port = 'COM8'
+	ser.port = 'COM3'
 	ser.baudrate = 1e6
 else:
 	ser.port = '/dev/serial0'
