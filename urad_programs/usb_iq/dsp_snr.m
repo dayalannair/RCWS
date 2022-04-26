@@ -23,6 +23,10 @@ Ns = size(iq, 2);
 Fs = 200e3;
 f = f_ax(Ns, Fs);
 
+times =Itbl.Var401(1:end);
+diffs =  pdist(times,@(x,y) y-x)
+sweep_avg = sum(times)/height(Itbl);
+
 t_sweep = Itbl.Var401(91)-Itbl.Var401(90); % Should average this 
 dt = t_sweep/Ns;
 t = 0:t_sweep:344*t_sweep;
