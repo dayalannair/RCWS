@@ -6,10 +6,10 @@ from time import time, sleep
 usb_communication = True
 
 # input parameters
-mode = 3					# sawtooth mode
+mode = 3					# trig mode
 f0 = 5						# starting at 24.005 GHz
-BW = 200					# using all the BW available = 240 MHz
-Ns = 100					# 200 samples
+BW = 240					# using all the BW available = 240 MHz
+Ns = 200					# 200 samples
 Ntar = 3					# Don't apply as only raw data is desired
 Rmax = 100					# Don't apply as only raw data is desired
 MTI = 0						# MTI mode disable because we want information of static and moving targets
@@ -25,7 +25,7 @@ movement_true = False 		# Don't apply as only raw data is desired
 # Serial Port configuration - need to check device manager or GUI
 ser = serial.Serial()
 if (usb_communication):
-	ser.port = 'COM3'
+	ser.port = 'COM4'
 	ser.baudrate = 1e6
 else:
 	ser.port = '/dev/serial0'
@@ -96,10 +96,10 @@ while True:
 	# 	IQ_string += '%d %d' % (I[index],Q[index])
 	fileResults.write(IQ_string + '%1.3f\n' % t_i)
 
-	iterations += 1
+	# iterations += 1
 
-	if (iterations > 100):
-		print('Fs %1.2f Hz' % (iterations/(t_i-t_0)))
+	# if (iterations > 100):
+	# 	print('Fs %1.2f Hz' % (iterations/(t_i-t_0)))
 
 	# if (not usb_communication):
 	# 	sleep(timeSleep)
