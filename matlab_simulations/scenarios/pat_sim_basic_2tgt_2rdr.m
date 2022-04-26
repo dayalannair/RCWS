@@ -49,11 +49,11 @@ receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
 
 % Target parameters
 car1_x_dist = 50;
-car1_y_dist = 2;
+car1_y_dist = 2; % RHS Lane
 car1_speed = 80/3.6;
-car2_x_dist = -50;
-car2_y_dist = -2;
-car2_speed = -80/3.6;
+car2_x_dist = -60;
+car2_y_dist = 4; % LHS Lane
+car2_speed = -60/3.6;
 
 car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
 car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
@@ -75,10 +75,10 @@ channel = phased.FreeSpace('PropagationSpeed',c,...
 
 % Define radar motion
 rdr_orientation = [1 0 0;0 1 0;0 0 1];
-rdr_orientation(:,:,2) = [1 0 0;0 1 0;0 0 1];
+rdr_orientation(:,:,2) = [-1 0 0;0 1 0;0 0 1];
 
 radarmotion = phased.Platform('InitialPosition',[0 0;0 0;0.5 0.5],...
-    'Velocity',[0 0;0 0;0 0], 'InitialOrientationAxes',rdr_orientation,'ScanMode','Circular', 'InitialScanAngle', [0 180]);
+    'Velocity',[0 0;0 0;0 0], 'InitialOrientationAxes',rdr_orientation);
 
 %% Simulation Loop
 close all
@@ -87,24 +87,29 @@ t_total = 1;
 t_step = 0.1;
 Nsweep = 16;
 n_steps = t_total/t_step;
+
+[rdr_pos,rdr_vel] = radarmotion(t_step);
+[tgt_pos,tgt_vel] = carmotion(t_step);
+
 % Generate visuals
-sceneview = phased.ScenarioViewer('BeamRange',[62.5 62.5],...
-    'BeamWidth',[10 30; 10 30], ...
+sceneview = phased.ScenarioViewer('Title', 'Dual radar cross traffic detection', ...
+    'PlatformNames', {'RHS Radar', 'LHS Radar', 'RHS Car', 'LHS Car'},...
+    'ShowLegend',true,...
+    'BeamRange',[62.5 62.5],...
+    'BeamWidth',[30 30; 30 30], ...
     'ShowBeam', 'All', ...
     'CameraPerspective', 'Custom', ...
-    'CameraPosition', [2101.04 -1094.5 644.77], ...
-    'CameraOrientation', [-152 -15.48 0]', ...
-    'CameraViewAngle', 1.45, ...
-    'ShowName',true,...
+    'CameraPosition', [1564.3 -1482.76 1160.2], ...
+    'CameraOrientation', [-136.32 -28.28 0]', ...
+    'CameraViewAngle', 2.25, ...
+    'ShowName',false,...
     'ShowPosition', true,...
     'ShowSpeed', true,...
-    'ShowRadialSpeed',false,...
-    'UpdateRate',1/t_step);
+    'UpdateRate',1/t_step, ...
+    'BeamSteering', [0 180;0 0]);
 sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
 drawnow
 %%
-
-[rdr_pos,rdr_vel] = radarmotion(1);
 
 % Set up arrays for two targets
 fbu = zeros(n_steps, 2);
@@ -122,38 +127,42 @@ for t = 1:n_steps
 %     % issue: helper updates target position and velocity within each
 %     sweep. Resolved --> issue was releasing waveforms?
 
-    xr = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
+    [r_xr, l_xr] = sim_sweeps_2rdr(Nsweep,waveform,radarmotion,carmotion,...
         transmitter,channel,cartarget,receiver);
-    
-    fbu_rng = rootmusic(pulsint(xr(:,1:2:end),'coherent'),2,fs);
-    fbd_rng = rootmusic(pulsint(xr(:,2:2:end),'coherent'),2,fs);
-    
-    r(t, 1) = beat2range([fbu_rng(1) fbd_rng(1)],sweep_slope,c);
-    r(t, 2) = beat2range([fbu_rng(2) fbd_rng(2)],sweep_slope,c);
 
-    fd = -(fbu_rng(1)+fbd_rng(1))/2;
+    fbu_r = rootmusic(pulsint(r_xr(:,1:2:end),'coherent'),1,fs);
+    fbd_r = rootmusic(pulsint(l_xr(:,2:2:end),'coherent'),1,fs);
+    fbu_l = rootmusic(pulsint(r_xr(:,1:2:end),'coherent'),1,fs);
+    fbd_l = rootmusic(pulsint(l_xr(:,2:2:end),'coherent'),1,fs);
+    
+    r(t, 1) = beat2range([fbu_r fbd_r],sweep_slope,c);
+    r(t, 2) = beat2range([fbu_l fbd_l],sweep_slope,c);
+
+    fd = -(fbu_r+fbd_r)/2;
     v(t, 1) = dop2speed(fd,lambda)/2;
 
-    fd = -(fbu_rng(2)+fbd_rng(2))/2;
+    fd = -(fbu_l+fbd_l)/2;
     v(t, 2) = dop2speed(fd,lambda)/2;
 
-    fbu(t,:) = fbu_rng;
-    fbd(t,:) = fbd_rng;
+    fbu(t,1) = fbu_r;
+    fbu(t,2) = fbu_l;
+    fbd(t,1) = fbd_r;
+    fbd(t,2) = fbd_l;
 end
 
 
 %% Plots
 
-XR = fft(xr(:,8));
-Fs = 200e3;
-f = f_ax(size(XR,1),Fs);
-close all
-figure
-% tiledlayout(2,1)
-% nexttile
-% plot(real(xr))
-% nexttile
-plot(f, fftshift(10*log(abs(XR))))
+% XR = fft(xr(:,8));
+% Fs = 200e3;
+% f = f_ax(size(XR,1),Fs);
+% close all
+% figure
+% % tiledlayout(2,1)
+% % nexttile
+% % plot(real(xr))
+% % nexttile
+% plot(f, fftshift(10*log(abs(XR))))
 % plot(fbu(:,1))
 % nexttile
 % plot(r(:,1))
