@@ -56,24 +56,41 @@ freq_res = Fs/Ns; % Minimum separation between two targets
 %%
 % Note: MinPeakDistance uses sort(descend) anyway
 % "SortStr","descend"
-% close all
+close all
 % figure
-fbu = zeros(sweeps,1);
-fbd = zeros(sweeps,1);
+% tiledlayout(2,1);
+% fbu = zeros(sweeps,1);
+% fbd = zeros(sweeps,1);
+rng_array = zeros(sweeps,1);
+spd_array = zeros(sweeps,1);
+% nexttile
+% plot(rng_array)
+% nexttile
+% plot(spd_array)
+
 IQ_UP_mag(:, 1) = IQ_UP_mag(:, 2);
 for row = 1:sweeps
 
     % Plot peak detection
-%     pause(0.001)
+     pause(2.5)
 %     disp(row)
+     figure(1)
+     findpeaks(IQ_UP_mag(row,:), f, 'MinPeakDistance', 1500, ...
+         'MinPeakProminence',1e3, ...
+         'MinPeakHeight',3e3, ...
+         'MinPeakWidth', 500, ...
+         'NPeaks', 2, ...
+         'Annotate','extents');
+     axis([-100000 100000 0 40e3])
 
-%      findpeaks(IQ_UP_mag(row,:), f, 'MinPeakDistance', 1500, ...
-%          'MinPeakProminence',1e3, ...
-%          'MinPeakHeight',3e3, ...
-%          'MinPeakWidth', 500, ...
-%          'NPeaks', 2, ...
-%          'Annotate','extents');
-%      axis([-100000 100000 0 40e3])
+     figure(2)
+     findpeaks(IQ_DOWN_mag(row,:), f, 'MinPeakDistance', 1500, ...
+         'MinPeakProminence',1e3, ...
+         'MinPeakHeight',3e3, ...
+         'MinPeakWidth', 500, ...
+         'NPeaks', 2, ...
+         'Annotate','extents');
+     axis([-100000 100000 0 40e3])
 
      [peaku, frequ] = findpeaks(IQ_UP_mag(row,:), f, 'MinPeakDistance', 1500, ...
          'MinPeakProminence',1e3, ...
@@ -98,29 +115,25 @@ for row = 1:sweeps
          idxd = find(peakd==pkd_sorted(2));
 
          % use peak index to find beat frequencies   
-         fbu(row) = frequ(idxu);
-         fbd(row) = freqd(idxd);
-         
+         fbu = frequ(idxu);
+         fbd = freqd(idxd);
+         r = beat2range([fbu fbd],sweep_slope,c)
+         rng_array(row) = r;%beat2range([fbu fbd],sweep_slope,c)
+         fd = (-fbd-fbu)/2;
+         v = dop2speed(fd,lambda)/2
+         if (v<25)
+             spd_array(row) = v;
+         end
+         %figure(3)
+%          plot(rng_array)
+%          figure(4)
+%          plot(spd_array)
          % NOTE: multi targets will be problematic. Cannot assign beat
          % frequencies to correct targets, therefore ghosts possible
          % try dual rate for multi target, or sawtooth
      end
+     
 end
-
-%% Estimates
-% Extract distance
-r = beat2range([fbu fbd],sweep_slope,c);
-% Extract velocity
-fd = (-fbd-fbu)/2;
-%v = fd*lambda/2;
-v = dop2speed(fd,lambda)/2;
-
-for pos =  1:size(v,1)
-    if abs(v(pos))>25 % check if v >10m/s
-        v(pos) = v(pos-1);
-    end
-end
-
 %% Plot estimates
 t_total = time(end)-time(1);
 t = linspace(0,t_total, size(r, 1));
@@ -128,11 +141,11 @@ close all
 figure
 tiledlayout(2,1)
 nexttile
-plot(t, r);
+plot(t, rng_array);
 ylabel("Radial distance (m)")
 xlabel("Time (s)")
 nexttile
-plot(t, v);
+plot(t, spd_array);
 ylabel("Radial velocity (m/s)")
 xlabel("Time (s)")
 %% Plot peaks
