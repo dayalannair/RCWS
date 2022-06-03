@@ -18,6 +18,7 @@ for pos =  1:height(tbl)
         results(pos,2) = results(pos-1,2);
     end
 end
+
 %%
 
 figure
@@ -47,6 +48,34 @@ xlabel("Time");
 % xlabel("distance");
 % ylabel("velocity")
 % zlabel("snr")
+
+%% Moving plot
+entries = height(tbl);
+
+figure
+t_ax = linspace(0,t_total,entries);
+for pos = 1:entries
+    %p = time(0.04);
+    pause(0.04)
+    tiledlayout(3,1)
+    nexttile
+    plot(t_ax(1:pos),results(1:pos,1))
+    ylabel("Distance (m)");
+    xlabel("Time (s)");
+%     xlim([time(1) time(end)])
+%     ylim([0 50])
+    nexttile
+    plot(t_ax(1:pos), -results(1:pos,2))
+    ylabel("Velocity (m/s)");
+    xlabel("Time (s)");
+%     axis([time(1) time(end) 0 10])
+    nexttile
+    plot(t_ax(1:pos), results(1:pos,3))
+    ylabel("SNR (dB)");
+    xlabel("Time (s)");
+%     axis([time(1) time(end) 0 30])
+end
+
 
 
 
