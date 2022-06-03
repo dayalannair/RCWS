@@ -118,16 +118,27 @@ for row = 1:sweeps
      'MinPeakHeight',3e3, ...
      'MinPeakWidth', 500, ...
      'NPeaks', 2);
+
+   fbu = sort(frequ, 1, 'ascend')'; % CHECK THIS
+   fbd = sort(freqd, 1, 'descend')'; % negative frequencies
     
-   % if and(numel(peaku)>1,numel(peakd)>1) % need peaks in both for now
-    % padding arrays
-%      fbu = zeros(2, 1);
-%      fbd = zeros(2, 1);
+   % seems more efficient to use if statements
+    % Case 1: 2 targets
+if and(numel(peaku)>1,numel(peakd)>1)
+    
+   % Case 2: 2 peak in up chirp, 1 in down
+elseif and(numel(peaku)>1,numel(peakd)==1)
+     fbd = padarray(fbd,1,0,'post');
+
+elseif and(numel(peaku)==1,numel(peakd)>1)
+     fbu = padarray(fbu,1,0,'post');
+end
+
      % pad in the event only one target detected
-     fbu = padarray(frequ,2-numel(frequ),0,'post');
-     fbd = padarray(freqd,2-numel(freqd),0,'post');
+     
      % sort peaks from highest SNR to lowest
      % speed determined by num peaks
+
      fbu = sort(fbu, 1, 'ascend')'; % CHECK THIS
      fbd = sort(fbd, 1, 'descend')'; % negative frequencies
      
@@ -156,7 +167,7 @@ for row = 1:sweeps
      % NOTE: multi targets will be problematic. Cannot assign beat
      % frequencies to correct targets, therefore ghosts possible
      % try dual rate for multi target, or sawtooth
-    %end
+    end
      
 end
 %% Plot estimates
