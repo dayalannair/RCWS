@@ -9,10 +9,11 @@ sweep_slope = bw/tm;
 %% Import data
 iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
 time = iq_tbl.Var801;
-i_up = table2array(iq_tbl(:,1:200));
-i_down = table2array(iq_tbl(:,201:400));
-q_up = table2array(iq_tbl(:,401:600));
-q_down = table2array(iq_tbl(:,601:800));
+%%
+i_up = table2array(iq_tbl(1:200,1:200));
+i_down = table2array(iq_tbl(1:200,201:400));
+q_up = table2array(iq_tbl(1:200,401:600));
+q_down = table2array(iq_tbl(1:200,601:800));
 
 iq_up = i_up + 1i*q_up;
 iq_down = i_down + 1i*q_down;
@@ -75,6 +76,7 @@ fb_array_targ1 = zeros(sweeps, 2);
 fb_array_targ2 = zeros(sweeps, 2);
 
 IQ_UP_mag(:, 1) = IQ_UP_mag(:, 2);
+delta_f = 1000;
 for row = 1:sweeps
     % Plot peak detection
     % ------------------------------------------------------
@@ -93,7 +95,7 @@ for row = 1:sweeps
      'Annotate','extents');
     axis([-100.000 100.000 0 40e3])
     
-    %      figure(2)
+%          figure(2)
     hold on
     findpeaks(IQ_DOWN_mag(row,:), f/1000, 'MinPeakDistance', 1.500, ...
      'MinPeakProminence',1e3, ...
@@ -119,33 +121,35 @@ for row = 1:sweeps
      'MinPeakWidth', 500, ...
      'NPeaks', 2);
 
-   fbu = sort(frequ, 1, 'ascend')'; % CHECK THIS
-   fbd = sort(freqd, 1, 'descend')'; % negative frequencies
+   frequ = sort(frequ, 1, 'ascend')'; % CHECK THIS
+   freqd = sort(freqd, 1, 'descend')'; % negative frequencies
+   
+   frequ = padarray(frequ,2,0,'post');
+   freqd = padarray(freqd,2,0,'post');
+   % check which fbd corresponds to first fbu
+    % max doppler spread = +- 2*1kHz
+    if (discretize(frequ(1), [-freqd(1) - 2*delta_f,-freqd(1) + 2*delta_f ])==1)
+         fb_array_targ1(row, :) = [frequ(1) freqd(1)];
     
-   % seems more efficient to use if statements
-    % Case 1: 2 targets
-if and(numel(peaku)>1,numel(peakd)>1)
-    
-   % Case 2: 2 peak in up chirp, 1 in down
-elseif and(numel(peaku)>1,numel(peakd)==1)
-     fbd = padarray(fbd,1,0,'post');
+    elseif (discretize(frequ(1), [-freqd(2) - 2*delta_f,-freqd(2) + 2*delta_f ])==1)
+         fb_array_targ1(row, :) = [frequ(1) freqd(2)];
+    end
 
-elseif and(numel(peaku)==1,numel(peakd)>1)
-     fbu = padarray(fbu,1,0,'post');
-end
+    if (discretize(frequ(2), [-freqd(1) - 2*delta_f,-freqd(1) + 2*delta_f ])==1)
+         fb_array_targ2(row, :) = [frequ(2) freqd(1)];
+    
+    elseif (discretize(frequ(2), [-freqd(2) - 2*delta_f,-freqd(2) + 2*delta_f ])==1)
+         fb_array_targ2(row, :) = [frequ(2) freqd(2)];
+    end
 
      % pad in the event only one target detected
      
      % sort peaks from highest SNR to lowest
      % speed determined by num peaks
 
-     fbu = sort(fbu, 1, 'ascend')'; % CHECK THIS
-     fbd = sort(fbd, 1, 'descend')'; % negative frequencies
-     
-     
-
-     fb_array_targ1(row, :) = [fbu(1) fbd(1)];
-     fb_array_targ2(row, :) = [fbu(2) fbd(2)];
+%      fbu = sort(fbu, 1, 'ascend')'; % CHECK THIS
+%      fbd = sort(fbd, 1, 'descend')'; % negative frequencies
+    
      % find index of first peak - highest value is tx feed through
 %      idxu = find(peaku==pku_sorted(2));
 %      idxd = find(peakd==pkd_sorted(2));
@@ -153,13 +157,18 @@ end
      % use peak index to find beat frequencies   
 %      fbu(1) = frequ(idxu);
 %      fbd = freqd(idxd);
-     r = beat2range([fbu fbd],sweep_slope,c)
-     rng_array(row, :) = r';%beat2range([fbu fbd],sweep_slope,c)
-     fd = (-fbd-fbu)/2;
-     v = dop2speed(fd,lambda)/2
-     if (v<25)
-         spd_array(row, :) = v;
-     end
+     %r = beat2range([fbu fbd],sweep_slope,c)
+     rng_array(row, 1) = beat2range(fb_array_targ1(row),sweep_slope,c);
+     rng_array(row, 2) = beat2range(fb_array_targ2(row),sweep_slope,c);
+     fd1 = (-fb_array_targ1(row,2)-fb_array_targ1(row,1))/2;
+     fd2 = (-fb_array_targ2(row,2)-fb_array_targ2(row,1))/2;
+     v1 = dop2speed(fd1,lambda)/2;
+     v2 = dop2speed(fd2,lambda)/2;
+
+     spd_array(row, :) = [v1 v2];
+%      if (v<25)
+%          spd_array(row, :) = v;
+%      end
      %figure(3)
     %          plot(rng_array)
     %          figure(4)
@@ -167,7 +176,7 @@ end
      % NOTE: multi targets will be problematic. Cannot assign beat
      % frequencies to correct targets, therefore ghosts possible
      % try dual rate for multi target, or sawtooth
-    end
+    %end
      
 end
 %% Plot estimates
