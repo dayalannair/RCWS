@@ -38,25 +38,63 @@ IQ_DOWN = fft(iq_down,[],2);
 % modify CFAR code to simultaneously record beat frequencies
 up_detections = CFAR(abs(IQ_UP)', 1:n_samples);
 down_detections = CFAR(abs(IQ_DOWN)', 1:n_samples);
-
 fs = 200e3; %200 kHz
 f = f_ax(n_samples, fs);
 
-fbu = zeros(n_sweeps,n_samples);
-fbd = zeros(n_sweeps,n_samples);
+%%
+close all
+figure
+tiledlayout(2,1)
+nexttile
+stem(f(101:200), up_detections(1:100,1:100)');
+nexttile
+stem(f(1:100), down_detections(101:200,1:100)');
+
+%%
+
+
+% Number of targets recorded, starting from the closest target
+n_targets = 2;
+
+fbu = zeros(n_sweeps,n_samples/2);
+fbd = zeros(n_sweeps,n_samples/2);
 % Each sample can return a detection - max number of targets is 200?
 % beat2range - expects a set of beat freqs up and down
-range_array = zeros(n_sweeps, n_samples);
-fd_array = zeros(n_sweeps, n_samples);
-speed_array = zeros(n_sweeps, n_samples);
-for i = 1:n_sweeps
-    % freq axis 'f' is already fftshifted
-    fbu(i,:) = f.*fftshift(up_detections(:,i)');
-    fbd(i,:) = f.*fftshift(down_detections(:,i)');
+range_array = zeros(n_sweeps, n_targets);
+fd_array = zeros(n_sweeps, n_targets);
+speed_array = zeros(n_sweeps, n_targets);
 
-    range_array(i,:) = beat2range([fbu(i,:)' fbd(i,:)'], sweep_slope, c);
-    fd_array(i,:) = (-fbd(i,:)'-fbu(i,:)')/2;
-    speed_array(i,:) = dop2speed(fd_array(i,:),lambda)/2;
+
+for i = 1:100%n_sweeps
+    % freq axis 'f' is already fftshifted
+    % up chirp: take only positive side
+    fbu(i,:) = f(101:200).*up_detections(1:100,i)';
+    % down chirp: take only negative side
+    fbd(i,:) = f(1:100).*down_detections(101:200,i)';
+    
+    % num targets captured
+    n_stored = 0;
+
+    for j = 1:n_samples/2
+        if (n_stored >= n_targets)
+            disp("break")
+            j
+            break;
+        end
+        
+        % if up and down beat frequencies are valid
+        if and(fbu(i,j)>0,fbu(i,j)>0)
+            range_array(i,n_stored+1) = beat2range([fbu(i,j)' fbd(i,j)'], sweep_slope, c);
+            fd_array(i,n_stored+1) = (-fbd(i,j)'-fbu(i,j)')/2;
+            speed_array(i,n_stored+1) = dop2speed(fd_array(i,n_stored+1),lambda)/2;
+            n_stored = n_stored+1;
+        end
+
+
+    end
+%     range_array(i,:) = beat2range([fbu(i,:)' fbd(i,:)'], sweep_slope, c);
+%     fd_array(i,:) = (-fbd(i,:)'-fbu(i,:)')/2;
+%     speed_array(i,:) = dop2speed(fd_array(i,:),lambda)/2;
 end
 
 % Determine range
@@ -64,16 +102,20 @@ end
 %% Plots
 close all
 figure
-IQ_UP_normal = normalize(abs(IQ_UP));
-for i = 1:52
-%     plot(abs(iq_up(i,:)));
-    plot(f/1000, 40*fftshift(up_detections(:,i))); % rows and columns opp to data
-    hold on
-    %plot(fftshift(IQ_UP_normal(i,:)))
-    plot(f/1000, 10*log10(fftshift(abs(IQ_UP(i,:)))))
-    hold off
-    pause(0.5)
-end
+plot(range_array)
+
+
+
+% IQ_UP_normal = normalize(abs(IQ_UP));
+% for i = 1:52
+% %     plot(abs(iq_up(i,:)));
+%     plot(f/1000, 40*fftshift(up_detections(:,i))); % rows and columns opp to data
+%     hold on
+%     %plot(fftshift(IQ_UP_normal(i,:)))
+%     plot(f/1000, 10*log10(fftshift(abs(IQ_UP(i,:)))))
+%     hold off
+%     pause(0.5)
+% end
 %%
 % for i = 1:52
 %     plot(fbu(i,:)/1000);
@@ -94,15 +136,15 @@ end
 % hold on
 % plot(10*log10(fftshift(abs(IQ_UP))));
 
-plot(fbu'/1000);
-title("up chirp beat frequency");
-xlabel("sample number");
-ylabel("Frequency (kHz)");
-axis([0 200 -100 100]);
-hold on
-plot(fbd'/1000);
-title("down chirp beat frequency");
-xlabel("sample number");
-ylabel("Frequency (kHz)");
-axis([0 200 -100 100]);
+% plot(fbu'/1000);
+% title("up chirp beat frequency");
+% xlabel("sample number");
+% ylabel("Frequency (kHz)");
+% axis([0 200 -100 100]);
+% hold on
+% plot(fbd'/1000);
+% title("down chirp beat frequency");
+% xlabel("sample number");
+% ylabel("Frequency (kHz)");
+% axis([0 200 -100 100]);
 
