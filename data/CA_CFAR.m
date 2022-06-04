@@ -9,7 +9,7 @@ bw = 240e6;                     % Bandwidth
 sweep_slope = bw/tm;
 
 %% Import data
-iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
+iq_tbl=readtable('IQ_portion.txt','Delimiter' ,' ');
 time = iq_tbl.Var801;
 i_up = table2array(iq_tbl(:,1:200));
 i_down = table2array(iq_tbl(:,201:400));
@@ -32,8 +32,8 @@ CFAR = phased.CFARDetector('NumTrainingCells',20, ...
     'ProbabilityFalseAlarm', F);
 
 % FFT
-IQ_UP = fft(iq_up,[],2);
-IQ_DOWN = fft(iq_down,[],2);
+IQ_UP = fftshift(fft(iq_up,[],2));
+IQ_DOWN = fftshift(fft(iq_down,[],2));
 
 % modify CFAR code to simultaneously record beat frequencies
 up_detections = CFAR(abs(IQ_UP)', 1:n_samples);
@@ -42,14 +42,33 @@ fs = 200e3; %200 kHz
 f = f_ax(n_samples, fs);
 
 %%
-close all
-figure
-tiledlayout(2,1)
-nexttile
-stem(f(101:200), up_detections(1:100,1:100)');
-nexttile
-stem(f(1:100), down_detections(101:200,1:100)');
+% flipped -- no need, can do at time of calculations
 
+% dds = flip(down_detections(1:100,:));
+% close all
+% figure
+% tiledlayout(2,1)
+% nexttile
+% stem(down_detections);
+% nexttile
+% stem(flip(down_detections));
+% 
+% %%
+% close all
+% figure
+% tiledlayout(4,1)
+% nexttile
+% stem(f(101:200)/1000, up_detections(101:200,:));
+% nexttile
+% stem(f(101:100)/1000, flip(down_detections)(1:100,:));
+% nexttile
+% stem(f/1000, up_detections);
+% nexttile
+% stem(f/1000, down_detections);
+%%
+% close all
+% figure
+% tiledlayout(4,1)
 %%
 
 
@@ -63,9 +82,9 @@ fbd = zeros(n_sweeps,n_samples/2);
 range_array = zeros(n_sweeps, n_targets);
 fd_array = zeros(n_sweeps, n_targets);
 speed_array = zeros(n_sweeps, n_targets);
-
-
-for i = 1:100%n_sweeps
+fbu_Ntarg = zeros(n_sweeps, n_targets);
+fbd_Ntarg = zeros(n_sweeps, n_targets);
+for i = 1:52%100%n_sweeps
     % freq axis 'f' is already fftshifted
     % up chirp: take only positive side
     fbu(i,:) = f(101:200).*up_detections(1:100,i)';
@@ -83,7 +102,11 @@ for i = 1:100%n_sweeps
         end
         
         % if up and down beat frequencies are valid
-        if and(fbu(i,j)>0,fbu(i,j)>0)
+        % can do OR, though means that one beat was not captured or is
+        % shifted!
+        if or(fbu(i,j)>0,fbu(i,j)>0)
+            fbu_Ntarg(i,n_stored+1) = fbu(i,j);
+            fbd_Ntarg(i,n_stored+1) = fbd(i,j);
             range_array(i,n_stored+1) = beat2range([fbu(i,j)' fbd(i,j)'], sweep_slope, c);
             fd_array(i,n_stored+1) = (-fbd(i,j)'-fbu(i,j)')/2;
             speed_array(i,n_stored+1) = dop2speed(fd_array(i,n_stored+1),lambda)/2;
@@ -102,20 +125,32 @@ end
 %% Plots
 close all
 figure
-plot(range_array)
+%plot(range_array)
 
 
 
 % IQ_UP_normal = normalize(abs(IQ_UP));
-% for i = 1:52
-% %     plot(abs(iq_up(i,:)));
-%     plot(f/1000, 40*fftshift(up_detections(:,i))); % rows and columns opp to data
-%     hold on
-%     %plot(fftshift(IQ_UP_normal(i,:)))
-%     plot(f/1000, 10*log10(fftshift(abs(IQ_UP(i,:)))))
-%     hold off
-%     pause(0.5)
-% end
+for i = 1:52
+%     plot(abs(iq_up(i,:)));
+    plot(f/1000, 40*fftshift(up_detections(:,i))); % rows and columns opp to data
+    hold on
+    %plot(fftshift(IQ_UP_normal(i,:)))
+    plot(f/1000, 10*log10(fftshift(abs(IQ_UP(i,:)))))
+    hold off
+    pause(0.5)
+end
+%%
+close all
+figure
+for i = 1:52
+%     plot(abs(iq_up(i,:)));
+    plot(f/1000, 40*fftshift(down_detections(:,i))); % rows and columns opp to data
+    hold on
+    %plot(fftshift(IQ_UP_normal(i,:)))
+    plot(f/1000, 10*log10(fftshift(abs(IQ_DOWN(i,:)))))
+    hold off
+    pause(0.5)
+end
 %%
 % for i = 1:52
 %     plot(fbu(i,:)/1000);
