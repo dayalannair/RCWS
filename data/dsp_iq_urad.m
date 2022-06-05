@@ -128,11 +128,13 @@ close all
 figure
 tiledlayout(2,1)
 nexttile
-plot(t, r);
+%plot(t, r);
+plot(r)
 ylabel("Radial distance (m)")
 xlabel("Time (s)")
 nexttile
-plot(t, v);
+plot(v)
+%plot(t, v);
 ylabel("Radial velocity (m/s)")
 xlabel("Time (s)")
 %% Plot peaks

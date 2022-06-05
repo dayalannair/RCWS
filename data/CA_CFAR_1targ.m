@@ -51,8 +51,8 @@ stem(f(101:200)/1000, 10*log10(abs(IQ_UP_peaks(:,101:200))'))
 nexttile
 stem(f(1:100)/1000, 10*log10(abs(IQ_DOWN_peaks(:,1:100))'))
 %% Verify CFAR
-close all
-figure
+% close all
+% figure
 % for i = 1:n_sweeps
 % %     plot(abs(iq_up(i,:)));
 %     plot(f(101:200)/1000, 40*up_detections(101:200,i)); % rows and columns opp to data
@@ -62,15 +62,15 @@ figure
 %     hold off
 %     pause(0.1)
 % end
-for i = 1:n_sweeps
-%     plot(abs(iq_up(i,:)));
-    plot(f(1:100)/1000, 40*fftshift(down_detections(1:100,i))); % rows and columns opp to data
-    hold on
-    %plot(fftshift(IQ_UP_normal(i,:)))
-    plot(f(1:100)/1000, 10*log10(abs(IQ_DOWN(i,1:100))))
-    hold off
-    pause(0.1)
-end
+% for i = 1:n_sweeps
+% %     plot(abs(iq_up(i,:)));
+%     plot(f(1:100)/1000, 40*fftshift(down_detections(1:100,i))); % rows and columns opp to data
+%     hold on
+%     %plot(fftshift(IQ_UP_normal(i,:)))
+%     plot(f(1:100)/1000, 10*log10(abs(IQ_DOWN(i,1:100))))
+%     hold off
+%     pause(0.1)
+% end
 %%
 % flipped -- no need, can do at time of calculations
 
@@ -100,57 +100,28 @@ end
 % figure
 % tiledlayout(4,1)
 %%
-
-
-% Number of targets recorded, starting from the closest target
-n_targets = 2;
-
-fbu = zeros(n_sweeps,n_samples/2);
-fbd = zeros(n_sweeps,n_samples/2);
+fbu = zeros(n_sweeps);
+fbd = zeros(n_sweeps);
 % Each sample can return a detection - max number of targets is 200?
 % beat2range - expects a set of beat freqs up and down
-range_array = zeros(n_sweeps, n_targets);
-fd_array = zeros(n_sweeps, n_targets);
-speed_array = zeros(n_sweeps, n_targets);
-fbu_Ntarg = zeros(n_sweeps, n_targets);
-fbd_Ntarg = zeros(n_sweeps, n_targets);
+range_array = zeros(n_sweeps);
+fd_array = zeros(n_sweeps);
+speed_array = zeros(n_sweeps);
 for i = 1:n_sweeps
-
-    highest_SNR_up = max(IQ_UP_peaks(i,:));
-    highest_SNR_down = max(IQ_UP_peaks(i,:));
-    % freq axis 'f' is already fftshifted
-    % up chirp: take only positive side
-    fbu(i,:) = f(101:200).*up_detections(1:100,i)';
-    % down chirp: take only negative side
-    fbd(i,:) = f(1:100).*down_detections(101:200,i)';
     
-    % num targets captured
-    n_stored = 0;
+    % SINGLE TARG:
+    % null feed through
+    IQ_UP_peaks(i,98:104) = 0;
+    IQ_DOWN_peaks(i,98:104) = 0;
+    [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,:))
+    [highest_SNR_down, pk_idx_down] = max(IQ_DOWN_peaks(i,:))
 
-    for j = 1:n_samples/2
-%         if (n_stored >= n_targets)
-%             disp("break")
-%             j
-%             break;
-%         end
-        
-        % if up and down beat frequencies are valid
-        % can do OR, though means that one beat was not captured or is
-        % shifted!
-        if or(fbu(i,j)>0,fbu(i,j)>0)
-            fbu_Ntarg(i,n_stored+1) = fbu(i,j);
-            fbd_Ntarg(i,n_stored+1) = fbd(i,j);
-            range_array(i,n_stored+1) = beat2range([fbu(i,j)' fbd(i,j)'], sweep_slope, c);
-            fd_array(i,n_stored+1) = (-fbd(i,j)'-fbu(i,j)')/2;
-            speed_array(i,n_stored+1) = dop2speed(fd_array(i,n_stored+1),lambda)/2;
-            n_stored = n_stored+1;
-        end
+    fbu(i) = f(pk_idx_up);
+    fbd(i) = f(pk_idx_down);
 
-
-    end
-%     range_array(i,:) = beat2range([fbu(i,:)' fbd(i,:)'], sweep_slope, c);
-%     fd_array(i,:) = (-fbd(i,:)'-fbu(i,:)')/2;
-%     speed_array(i,:) = dop2speed(fd_array(i,:),lambda)/2;
+    range_array(i) = beat2range([fbu(i) fbd(i)], sweep_slope, c);
+    fd_array(i) = (-fbd(i)-fbu(i))/2;
+    speed_array(i) = dop2speed(fd_array(i),lambda)/2;
 end
 
 % Determine range
