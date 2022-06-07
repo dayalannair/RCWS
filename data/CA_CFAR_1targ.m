@@ -9,7 +9,8 @@ bw = 240e6;                     % Bandwidth
 sweep_slope = bw/tm;
 
 %% Import data
-iq_tbl=readtable('IQ_0_1024_sweeps.txt','Delimiter' ,' ');
+%iq_tbl=readtable('IQ_0_1024_sweeps.txt','Delimiter' ,' ');
+iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
 time = iq_tbl.Var801;
 i_up = table2array(iq_tbl(:,1:200));
 i_down = table2array(iq_tbl(:,201:400));
@@ -32,7 +33,7 @@ CFAR = phased.CFARDetector('NumTrainingCells',20, ...
     'Method', 'SOCA');
 
 % FFT
-n_fft = 512;
+n_fft = 200;%512;
 IQ_UP = fftshift(fft(iq_up,n_fft,2));
 IQ_DOWN = fftshift(fft(iq_down,n_fft,2));
 
@@ -101,8 +102,12 @@ stem(f(1:n_fft/2)/1000, 10*log10(abs(IQ_DOWN_peaks(:,1:n_fft/2))'))
 % figure
 % tiledlayout(4,1)
 %%
-fbu = zeros(n_sweeps);
-fbd = zeros(n_sweeps);
+% v_max = 60km/h , fd max = 2.7kHz approx 3kHz
+v_max = 60/3.6; 
+%fd_max = speed2dop(v_max, lambda)*2;
+fd_max = 3e3;
+fb = zeros(n_sweeps,2);
+%fbd = zeros(n_sweeps,2);
 % Each sample can return a detection - max number of targets is 200?
 % beat2range - expects a set of beat freqs up and down
 range_array = zeros(n_sweeps);
@@ -117,14 +122,20 @@ for i = 1:n_sweeps
     [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,:))
     [highest_SNR_down, pk_idx_down] = max(IQ_DOWN_peaks(i,:))
 
-    fbu(i) = f(pk_idx_up);
-    fbd(i) = f(pk_idx_down);
+    fb(i, 1) = f(pk_idx_up);
+    fb(i, 2) = f(pk_idx_down);
 
-    range_array(i) = beat2range([fbu(i) fbd(i)], sweep_slope, c);
-    fd_array(i) = (-fbd(i)-fbu(i))/2;
-    speed_array(i) = dop2speed(fd_array(i),lambda)/2;
+    fd = -fb(i,1)-fb(i,2);
+    % ensuring Doppler shift is within the maximum expected value also
+    % serves to eliminate incorrect pairing of beat frequencies, which
+    % affects both range and Doppler estimation
+    % second condition implements MTI
+    if and(abs(fd)<=fd_max, fd ~= 0)
+        fd_array(i) = (fd)/2;
+        speed_array(i) = dop2speed(fd,lambda)/2;
+        range_array(i) = beat2range([fb(i,1) fb(i,2)], sweep_slope, c);
+    end
 end
-
 % Determine range
 % range_array = beat2range([ ])
 %% Plots

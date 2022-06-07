@@ -31,6 +31,42 @@ t_targ_in_range_bin = rng_res/v_max
 % should allow this many sweeps per cell
 % realistically far less
 
+%% Optimised parameters
+% This section calculates the optimised wave based on required distance and
+% velocity
 
+v_max = 60/3.6;
+r_targ = 50;
+
+% max time required to turn and match oncoming car speed
+% reducing this parameter increases the required turn speed
+t_turn_accel_max = 3;
+
+t = r_targ/v_max
+% reduced number of samples improves the update rate
+
+n_samples = 160; 
+
+% will be less in real scenario
+r_max = 75*(n_samples/bw)*1e6
+
+n_samples_50m = r_targ*bw/75e6
+
+%% Resolution
+
+f_res = 1/t_sweep
+
+% may not be correct TBWP
+TBWP = t_sweep*bw
+
+%delta_r =
+
+v_res = f_res*lambda/2
+
+%% Other
+% Doppler shift due to vehicle traveling at maximum required speed
+% 1.3 kHz
+fd = speed2dop(v_max, lambda)*2
+v = dop2speed(1e3, lambda)*3.6/2
 
 
