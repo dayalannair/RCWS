@@ -1,6 +1,6 @@
 %% Split large data set into portions as needed
-n_sweeps = 1024;
-f_name = 'IQ_0_1024_sweeps';
+n_sweeps = 8192;
+f_name = 'IQ_0_8192_sweeps';
 
 iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
 %%

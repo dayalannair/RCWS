@@ -10,7 +10,8 @@ sweep_slope = bw/tm;
 
 %% Import data
 %iq_tbl=readtable('IQ_0_1024_sweeps.txt','Delimiter' ,' ');
-iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
+iq_tbl=readtable('IQ_0_8192_sweeps.txt','Delimiter' ,' ');
+%iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
 time = iq_tbl.Var801;
 i_up = table2array(iq_tbl(:,1:200));
 i_down = table2array(iq_tbl(:,201:400));
@@ -45,13 +46,13 @@ f = f_ax(n_fft, fs);
 IQ_UP_peaks = abs(IQ_UP).*up_detections';
 IQ_DOWN_peaks = abs(IQ_DOWN).*down_detections';
 %%
-close all
-figure
-tiledlayout(2,1)
-nexttile
-stem(f((n_fft/2+1):n_fft-1)/1000, 10*log10(abs(IQ_UP_peaks(:,(n_fft/2+1):n_fft-1))'))
-nexttile
-stem(f(1:n_fft/2)/1000, 10*log10(abs(IQ_DOWN_peaks(:,1:n_fft/2))'))
+% close all
+% figure
+% tiledlayout(2,1)
+% nexttile
+% stem(f((n_fft/2+1):n_fft-1)/1000, 10*log10(abs(IQ_UP_peaks(:,(n_fft/2+1):n_fft-1))'))
+% nexttile
+% stem(f(1:n_fft/2)/1000, 10*log10(abs(IQ_DOWN_peaks(:,1:n_fft/2))'))
 %% Verify CFAR
 % close all
 % figure
@@ -110,17 +111,20 @@ fb = zeros(n_sweeps,2);
 %fbd = zeros(n_sweeps,2);
 % Each sample can return a detection - max number of targets is 200?
 % beat2range - expects a set of beat freqs up and down
-range_array = zeros(n_sweeps);
-fd_array = zeros(n_sweeps);
-speed_array = zeros(n_sweeps);
+% NB: MATLAB makes square matrix by default
+range_array = zeros(n_sweeps,1);
+fd_array = zeros(n_sweeps,1);
+speed_array = zeros(n_sweeps,1);
+
+%%
 for i = 1:n_sweeps
     
     % SINGLE TARG:
     % null feed through
     IQ_UP_peaks(i,98:104) = 0;
     IQ_DOWN_peaks(i,98:104) = 0;
-    [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,:))
-    [highest_SNR_down, pk_idx_down] = max(IQ_DOWN_peaks(i,:))
+    [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,:));
+    [highest_SNR_down, pk_idx_down] = max(IQ_DOWN_peaks(i,:));
 
     fb(i, 1) = f(pk_idx_up);
     fb(i, 2) = f(pk_idx_down);
