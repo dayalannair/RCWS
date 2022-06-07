@@ -32,14 +32,15 @@ CFAR = phased.CFARDetector('NumTrainingCells',20, ...
     'Method', 'SOCA');
 
 % FFT
-IQ_UP = fftshift(fft(iq_up,[],2));
-IQ_DOWN = fftshift(fft(iq_down,[],2));
+n_fft = 512;
+IQ_UP = fftshift(fft(iq_up,n_fft,2));
+IQ_DOWN = fftshift(fft(iq_down,n_fft,2));
 
 % modify CFAR code to simultaneously record beat frequencies
-up_detections = CFAR(abs(IQ_UP)', 1:n_samples);
-down_detections = CFAR(abs(IQ_DOWN)', 1:n_samples);
+up_detections = CFAR(abs(IQ_UP)', 1:n_fft);
+down_detections = CFAR(abs(IQ_DOWN)', 1:n_fft);
 fs = 200e3; %200 kHz
-f = f_ax(n_samples, fs);
+f = f_ax(n_fft, fs);
 IQ_UP_peaks = abs(IQ_UP).*up_detections';
 IQ_DOWN_peaks = abs(IQ_DOWN).*down_detections';
 %%
@@ -47,9 +48,9 @@ close all
 figure
 tiledlayout(2,1)
 nexttile
-stem(f(101:200)/1000, 10*log10(abs(IQ_UP_peaks(:,101:200))'))
+stem(f((n_fft/2+1):n_fft-1)/1000, 10*log10(abs(IQ_UP_peaks(:,(n_fft/2+1):n_fft-1))'))
 nexttile
-stem(f(1:100)/1000, 10*log10(abs(IQ_DOWN_peaks(:,1:100))'))
+stem(f(1:n_fft/2)/1000, 10*log10(abs(IQ_DOWN_peaks(:,1:n_fft/2))'))
 %% Verify CFAR
 % close all
 % figure
