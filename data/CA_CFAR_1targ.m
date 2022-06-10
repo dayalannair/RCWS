@@ -133,23 +133,52 @@ for i = 1:n_sweeps
     % ensuring Doppler shift is within the maximum expected value also
     % serves to eliminate incorrect pairing of beat frequencies, which
     % affects both range and Doppler estimation
-    % second condition implements MTI
-    if and(abs(fd)<=fd_max, fd ~= 0)
-        fd_array(i) = (fd)/2;
-        speed_array(i) = dop2speed(fd,lambda)/2;
+    % implement MTI condition: fd ~= 0
+    % MTI + negative Doppler filter: fd > 0
+    if and(abs(fd)<=fd_max, fd > 0)
+        fd_array(i) = fd/2;
+        speed_array(i) = dop2speed(fd/2,lambda)/2;
         range_array(i) = beat2range([fb(i,1) fb(i,2)], sweep_slope, c);
     end
 end
 % Determine range
 % range_array = beat2range([ ])
+%% Time Axis formulation
+% subtract first time from all others to start at 0s
+t0 = time(1);
+time = time - t0;
+
 %% Plots
 close all
-figure
+figure('WindowState','maximized');
+movegui('east')
 tiledlayout(2,1)
 nexttile
-plot(range_array)
+plot(time, range_array)
+title('Range estimations of APPROACHING targets')
+xlabel('Time (seconds)')
+ylabel('Range (m)')
+% plot markings
+hold on 
+rectangle('Position',[0 0 6.6 15.6], 'EdgeColor','r', 'LineWidth',1)
+text(0,17,'BMW')
+rectangle('Position',[3.7 0 9.4580 15.6], 'EdgeColor','g', 'LineWidth',1)
+text(3.7,17,'Renault+Nissan')
+rectangle('Position',[13 0 8 30], 'EdgeColor','k', 'LineWidth',1)
+text(13.5,25,'Pedestrians only')
+rectangle('Position',[21.5 0 3.5 34], 'EdgeColor','r', 'LineWidth',1)
+text(22,32,'Pedestrians+Mini')
+rectangle('Position',[25.4 0 5.3 25], 'EdgeColor','g', 'LineWidth',1)
+text(25.5,26,'Pedestrians+Hyundai')
+rectangle('Position',[39 0 10 17], 'EdgeColor','m', 'LineWidth',1)
+text(40,18,'VW followed by Toyota')
+rectangle('Position',[56 0 24 32], 'EdgeColor','r', 'LineWidth',1)
+text(57,33,'2x Toyota - Area of Interest')
 nexttile
-plot(speed_array)
+plot(time, speed_array*3.6)
+title('Radial speed estimations of APPROACHING targets')
+xlabel('Time (seconds)')
+ylabel('Speed (km/h)')
 
 
 %%

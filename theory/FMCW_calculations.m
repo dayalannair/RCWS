@@ -62,6 +62,8 @@ TBWP = t_sweep*bw
 %delta_r =
 
 v_res = f_res*lambda/2
+% ORRR
+v_res = f_res/2 * lambda/2
 
 %% Other
 % Doppler shift due to vehicle traveling at maximum required speed
