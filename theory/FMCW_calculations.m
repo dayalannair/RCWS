@@ -100,6 +100,15 @@ v_1kHz = dop2speed(1e3, lambda)*3.6/2
 % at 60km/h -> rd = 1.7 m
 rng_offset = rdcoupling(fd_max, sweep_slope,c)
 
-%%
-
-
+%% Noise Errors
+% Assume SNR = 10 dB = 10
+SNR=10;
+K = 1.6
+% phased array
+%d = lambda/2
+d = 0.003;
+rng_error = rng_res*1/sqrt(2*SNR)
+vel_error = vel_res*1/sqrt(2*SNR)
+% not sure if necessary
+az_error = d/K/sqrt(2*SNR)
+el_error = d/K*1/sqrt(2*SNR)
