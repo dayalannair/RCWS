@@ -2,6 +2,14 @@
 % - The uRAD seems borderline suitable for the task and so a design project
 % will put it to its limits
 % Will be good to then say it is not over designed for the task
+% NB: Need to add a padding time between switching from unsafe to safe when
+% a car is moving through frontal blind spot. This assumes the car does not
+% stop in front of the host. In this event, short range front radar needs
+% to determine safety if autonomous, else driver will see car in front
+% Need to confirm phase noise is less than thermal noise. Phase noise
+% generally due to coupling and can cause decorrelation after the mixing
+% process (downconversion)
+% Objective: Obtain better speed resolution
 %% Triangle FMCW - parameters
 fc = 24.005e9;
 c = physconst('LightSpeed');
@@ -10,11 +18,21 @@ t_sweep = 1e-3;
 bw = 240e6;
 sweep_slope = bw/t_sweep;
 n_samples_max = 200;
-v_max = 80/3.6;
+v_max = 60/3.6;
 % Resolutions
 % note: targets must be separated in one of the two domains i.e. by 1.5m or
 % by 3 m/s
-rng_res = 1.5; % or different velocity
+rng_res_datasheet = 1.5; % or different velocity
+
+% FMCW range resolution = t_sweep/t_data * c/2B
+fs = 200e3;
+t_data = n_samples_max/fs;
+rng_res_calc = t_sweep/t_data * (c/(2*bw))
+% not equal to datasheet!
+
+% same as above, as tdata = tsweep
+rng_res_basic = c/(2*bw)
+
 vel_res = 3; % or different distance
 % note: factor in accuracy
 % +/-
@@ -25,16 +43,20 @@ az_beam = 30;
 el_beam = 30;
 %r_max = 50; % safe. Should be 62.5m (VERIFY)
 %% Theoretical calculations
-
+r_max = 50;
 th_rng_res = c/2*bw
 max_distance_per_sweep = v_max*t_sweep
+% Extra/ not NB:
 az_res_50m = az_beam*r_max*pi/180
 
 % VERIFY below
-t_targ_in_range_bin = rng_res/v_max
+t_targ_in_range_bin = rng_res_datasheet/v_max
+
 % should allow this many sweeps per cell
 % realistically far less
-
+% From real data, seems like 2 sweeps per range bin if sweep time is 1ms
+% for TRIANGLE modulation (tsweep+tproc = 0.04). Need to investigate
+% Need to investigate shorter sweep time
 %% Optimised parameters
 % This section calculates the optimised wave based on required distance and
 % velocity
@@ -99,6 +121,8 @@ v_1kHz = dop2speed(1e3, lambda)*3.6/2
 
 % at 60km/h -> rd = 1.7 m
 rng_offset = rdcoupling(fd_max, sweep_slope,c)
+% perform calculation on each range est and subtract
+% find out if above method is acceptable
 
 %% Noise Errors
 % Assume SNR = 10 dB = 10
