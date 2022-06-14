@@ -23,10 +23,13 @@ iq_down = i_down + 1i*q_down;
 
 %% CA-CFAR
 % false alarm rate - sets sensitivity
-F = 0.015;
+F = 0.015; % see relevant papers
 n_samples = size(i_up,2);
 n_sweeps = size(i_up,1);
 % Assumes AWGN
+% research options
+% 4 bins -> car is 2m, bin is 0.6
+% try with simulated data and noise & clutter
 CFAR = phased.CFARDetector('NumTrainingCells',20, ...
     'NumGuardCells',4, ...
     'ThresholdFactor', 'Auto', ...
@@ -41,6 +44,7 @@ IQ_DOWN = fftshift(fft(iq_down,n_fft,2));
 % modify CFAR code to simultaneously record beat frequencies
 up_detections = CFAR(abs(IQ_UP)', 1:n_fft);
 down_detections = CFAR(abs(IQ_DOWN)', 1:n_fft);
+
 fs = 200e3; %200 kHz
 f = f_ax(n_fft, fs);
 IQ_UP_peaks = abs(IQ_UP).*up_detections';
@@ -123,6 +127,7 @@ for i = 1:n_sweeps
     % null feed through
     IQ_UP_peaks(i,98:104) = 0;
     IQ_DOWN_peaks(i,98:104) = 0;
+    
     [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,:));
     [highest_SNR_down, pk_idx_down] = max(IQ_DOWN_peaks(i,:));
 
