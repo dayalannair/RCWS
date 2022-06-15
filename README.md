@@ -1,4 +1,4 @@
-# Radar Collision Warning System
+# Radar-based Vehicle Turn Safety System (VTSS)
 Radar-based system used to determine turn safety for road vehicles.
 
 # uRAD ICWS - Intersection Collision Warning System
