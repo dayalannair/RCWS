@@ -82,10 +82,26 @@ CFAR = phased.CFARDetector('NumTrainingCells',20, ...
 %% Simulation Loop
 close all
 
+
 t_total = 1;
-t_step = 0.1;
+% Time between observations
+t_step = 0.01;
 sweeps_per_dwell = 2;
 n_steps = t_total/t_step;
+n_sweeps = n_steps;
+
+% Below does not work. LINSPACE :)
+%t = 1:t_step:t_total;
+t = linspace(0,t_total, n_steps);
+
+% makes sense. We only look at a sweep
+% at each step increment
+% does this affect triangle?
+% NO. we use 2 sweeps per dwell, meaning one up and one down
+% during each step
+% the maximum ?useful? step is around the CW period
+%n_sweeps = n_steps;
+%n_sweeps = 200;
 % Generate visuals
 % sceneview = phased.ScenarioViewer('BeamRange',62.5,...
 %     'BeamWidth',[30; 30], ...
@@ -106,8 +122,8 @@ v = zeros(n_steps, 1);
 Dn = fix(fs/(2*fb_max));
 fs_adc = 200e3;
 
-n_sweeps = 200;
-f = f_ax(n_sweeps, fs_adc);
+n_samples = 200;
+f = f_ax(n_samples, fs_adc);
 v_max = 80/3.6; 
 %fd_max = speed2dop(v_max, lambda)*2
 fd_max = 100000;
@@ -116,7 +132,7 @@ range_array = zeros(n_sweeps,1);
 fd_array = zeros(n_sweeps,1);
 speed_array = zeros(n_sweeps,1);
 %rng(2012);
-for i = 1:50%n_steps
+for i = 1:n_steps
     %disp(t)
     [tgt_pos,tgt_vel] = carmotion(t_step);
     
@@ -158,37 +174,54 @@ for i = 1:50%n_steps
 end
 
 %% Results
+
+expected_range = car_dist - car_speed.*t;
+expected_speed = car_speed .* ones(1, n_steps);
+
 close all 
 figure
 tiledlayout(2,1)
 nexttile
-plot(range_array)
-nexttile
-plot(speed_array)
 
+plot(t, range_array)
+title("Range")
+ylabel("range (m)")
+xlabel("time (s)")
+hold on
+plot(t, expected_range)
+%legend({'result', 'expected'});
+nexttile
+
+plot(t, speed_array)
+title("Speed")
+ylabel("speed (m/s)")
+xlabel("time (s)")
+hold on
+plot(t, expected_speed)
+%legend({'result', 'expected'});
 
 %% Plots
-close all
-up_peaks = up_detections.*IQ_UP;
-down_peaks = down_detections.*IQ_DOWN;
-figure
-tiledlayout(4,1)
-nexttile
-plot(f/1000, 10*log10(abs(IQ_UP)))
-hold on
-stem(f/1000, 10*log10(up_peaks))
-nexttile
-plot(f/1000, 10*log10(abs(IQ_DOWN)))
-hold on
-stem(f/1000, 10*log10(down_peaks))
+% close all
+% up_peaks = up_detections.*IQ_UP;
+% down_peaks = down_detections.*IQ_DOWN;
+% figure
+% tiledlayout(4,1)
 % nexttile
-% plot(f/1000, abs(IQ_UP))
+% plot(f/1000, 10*log10(abs(IQ_UP)))
+% hold on
+% stem(f/1000, 10*log10(up_peaks))
 % nexttile
-% plot(f/1000, abs(IQ_DOWN))
-nexttile
-plot(real(xr_d_up))
-nexttile
-plot(real(xr_d_down))
+% plot(f/1000, 10*log10(abs(IQ_DOWN)))
+% hold on
+% stem(f/1000, 10*log10(down_peaks))
+% % nexttile
+% % plot(f/1000, abs(IQ_UP))
+% % nexttile
+% % plot(f/1000, abs(IQ_DOWN))
+% nexttile
+% plot(real(xr_d_up))
+% nexttile
+% plot(real(xr_d_down))
 % plot(real(xr(:,1)))
 % nexttile
 % plot(real(xr(:,2)))
