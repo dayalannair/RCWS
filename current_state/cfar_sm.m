@@ -14,7 +14,7 @@ sweep_slope = bw/tm;
 
 fr_max = range2beat(range_max,sweep_slope,c);
 v_max = 230*1000/3600;
-fd_max = speed2dop(2*v_max,lambda);
+%fd_max = speed2dop(2*v_max,lambda)
 %fb_max = fr_max+fd_max;
 fb_max = 100e3;
 % fs_wav_gen = max(2*fb_max,bw);
@@ -101,13 +101,22 @@ n_steps = t_total/t_step;
 %     'UpdateRate',1/t_step);
 
 [rdr_pos,rdr_vel] = radarmotion(1);
-fbu = zeros(n_steps, 1);
-fbd = zeros(n_steps, 1);
 r = zeros(n_steps, 1);
 v = zeros(n_steps, 1);
 Dn = fix(fs/(2*fb_max));
 fs_adc = 200e3;
-for t = 1:2%n_steps
+
+n_sweeps = 200;
+f = f_ax(n_sweeps, fs_adc);
+v_max = 80/3.6; 
+%fd_max = speed2dop(v_max, lambda)*2
+fd_max = 100000;
+fb = zeros(n_sweeps,2);
+range_array = zeros(n_sweeps,1);
+fd_array = zeros(n_sweeps,1);
+speed_array = zeros(n_sweeps,1);
+%rng(2012);
+for i = 1:50%n_steps
     %disp(t)
     [tgt_pos,tgt_vel] = carmotion(t_step);
     
@@ -120,38 +129,48 @@ for t = 1:2%n_steps
     % Received demodulation (mixer) signal
     xr = simulate_sweeps(sweeps_per_dwell,waveform,radarmotion,carmotion,...
         transmitter,channel,cartarget,receiver);
+
     % sample signal at twice max beat frequency - decimation
     % round to integer
-    xr_d_up = decimate(xr(:,1),Dn)%,'FIR');
-    xr_d_down = decimate(xr(:,2),Dn)%,'FIR');
+    % FIR seems to not work - need to find optimal filter
+    % currently uses Chebychev IIR
+    xr_d_up = decimate(xr(:,1),Dn);%,'FIR');
+    xr_d_down = decimate(xr(:,2),Dn);%,'FIR');
 
     IQ_UP = fftshift(fft(xr_d_up,[],1));
     IQ_DOWN = fftshift(fft(xr_d_down,[],1));
    
     up_detections = CFAR(abs(IQ_UP), 1:200);
     down_detections = CFAR(abs(IQ_DOWN), 1:200);
-%     
-%     fs = 200e3; %200 kHz
-%     f = f_ax(n_fft, fs);
-%     IQ_UP_peaks = abs(IQ_UP).*up_detections';
-%     IQ_DOWN_peaks = abs(IQ_DOWN).*down_detections';
+    
+    [highest_SNR_up, pk_idx_up]= max(up_detections.*IQ_UP);
+    [highest_SNR_down, pk_idx_down] = max(down_detections.*IQ_DOWN);
 
-    fbu_rng = rootmusic(xr(:,1),1,fs);
-    fbd_rng = rootmusic(xr(:,2),1,fs);
-    
-    r(t) = beat2range([fbu_rng fbd_rng],sweep_slope,c);
-    
-    fd = -(fbu_rng+fbd_rng)/2;
-    v(t) = dop2speed(fd,lambda)/2;
-    fbu(t) = fbu_rng;
-    fbd(t) = fbd_rng;
+    fb(i, 1) = f(pk_idx_up);
+    fb(i, 2) = f(pk_idx_down);
+
+    fd = -fb(i,1)-fb(i,2);
+    if and(abs(fd)<=fd_max, fd > 0)
+        fd_array(i) = fd/2;
+        speed_array(i) = dop2speed(fd/2,lambda)/2;
+        range_array(i) = beat2range([fb(i,1) fb(i,2)], sweep_slope, c);
+    end
 end
 
+%% Results
+close all 
+figure
+tiledlayout(2,1)
+nexttile
+plot(range_array)
+nexttile
+plot(speed_array)
+
+
 %% Plots
+close all
 up_peaks = up_detections.*IQ_UP;
 down_peaks = down_detections.*IQ_DOWN;
-close all
-f = f_ax(length(IQ_DOWN), fs_adc);
 figure
 tiledlayout(4,1)
 nexttile
