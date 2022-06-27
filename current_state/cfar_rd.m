@@ -9,8 +9,8 @@ bw = 240e6;                     % Bandwidth
 sweep_slope = bw/tm;
 
 %% Import data
-%iq_tbl=readtable('IQ_0_1024_sweeps.txt','Delimiter' ,' ');
-iq_tbl=readtable('IQ_0_8192_sweeps.txt','Delimiter' ,' ');
+iq_tbl=readtable('trig_fmcw_data\IQ_0_1024_sweeps.txt','Delimiter' ,' ');
+%iq_tbl=readtable('IQ_0_8192_sweeps.txt','Delimiter' ,' ');
 %iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
 time = iq_tbl.Var801;
 i_up = table2array(iq_tbl(:,1:200));
@@ -164,21 +164,21 @@ title('Range estimations of APPROACHING targets')
 xlabel('Time (seconds)')
 ylabel('Range (m)')
 % plot markings
-hold on 
-rectangle('Position',[0 0 6.6 15.6], 'EdgeColor','r', 'LineWidth',1)
-text(0,17,'BMW')
-rectangle('Position',[3.7 0 9.4580 15.6], 'EdgeColor','g', 'LineWidth',1)
-text(3.7,17,'Renault+Nissan')
-rectangle('Position',[13 0 8 30], 'EdgeColor','k', 'LineWidth',1)
-text(13.5,25,'Pedestrians only')
-rectangle('Position',[21.5 0 3.5 34], 'EdgeColor','r', 'LineWidth',1)
-text(22,32,'Pedestrians+Mini')
-rectangle('Position',[25.4 0 5.3 25], 'EdgeColor','g', 'LineWidth',1)
-text(25.5,26,'Pedestrians+Hyundai')
-rectangle('Position',[39 0 10 17], 'EdgeColor','m', 'LineWidth',1)
-text(40,18,'VW followed by Toyota')
-rectangle('Position',[56 0 24 32], 'EdgeColor','r', 'LineWidth',1)
-text(57,33,'2x Toyota - Area of Interest')
+% hold on 
+% rectangle('Position',[0 0 6.6 15.6], 'EdgeColor','r', 'LineWidth',1)
+% text(0,17,'BMW')
+% rectangle('Position',[3.7 0 9.4580 15.6], 'EdgeColor','g', 'LineWidth',1)
+% text(3.7,17,'Renault+Nissan')
+% rectangle('Position',[13 0 8 30], 'EdgeColor','k', 'LineWidth',1)
+% text(13.5,25,'Pedestrians only')
+% rectangle('Position',[21.5 0 3.5 34], 'EdgeColor','r', 'LineWidth',1)
+% text(22,32,'Pedestrians+Mini')
+% rectangle('Position',[25.4 0 5.3 25], 'EdgeColor','g', 'LineWidth',1)
+% text(25.5,26,'Pedestrians+Hyundai')
+% rectangle('Position',[39 0 10 17], 'EdgeColor','m', 'LineWidth',1)
+% text(40,18,'VW followed by Toyota')
+% rectangle('Position',[56 0 24 32], 'EdgeColor','r', 'LineWidth',1)
+% text(57,33,'2x Toyota - Area of Interest')
 nexttile
 plot(time, speed_array*3.6)
 title('Radial speed estimations of APPROACHING targets')
