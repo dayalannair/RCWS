@@ -108,9 +108,9 @@ ylabel('Range (m)')
 hold on
 plot(time, rng_cf)
 nexttile
-plot(time, spd_rm*3.6)
+plot(time, spd_rm*3.6*5e2)
 title('Radial speed estimations of APPROACHING targets')
 xlabel('Time (seconds)')
 ylabel('Speed (km/h)')
 hold on
-plot(time, spd_cf)
+plot(time, spd_cf*3.6)
