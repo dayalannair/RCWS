@@ -58,31 +58,44 @@ for i = 1:n_sweeps
     fb_rm(i, 1) = a(2);
     fb_rm(i, 2) = b(2);
 end
+%% Quick plot
+close all
+figure
+tiledlayout(2,1)
+nexttile
+plot(real(iq_u)')
+nexttile
+plot(real(iq_d)')
+
+fft_up(:,98:104) = 0;
+fft_dw(:,98:104) = 0;
+
+close all
+figure
+tiledlayout(2,1)
+nexttile
+plot(f/1000, abs(fft_up))
+nexttile
+plot(f/1000, abs(fft_dw))
+
 
 %% Result comparison
 %fd_max = speed2dop(v_max, lambda)*2;
 fd_max = 100e3;
 
-rng_rm = zeros(n_sweeps,1);
-rng_cf = zeros(n_sweeps,1);
-dop_rm = zeros(n_sweeps,1);
-dop_cf = zeros(n_sweeps,1);
-spd_rm = zeros(n_sweeps,1);
-spd_cf = zeros(n_sweeps,1);
-
 fd_cf = -fb_cf(:,1)-fb_cf(:,2);
 
-dop_cf(i) = fd_rm/2;
-spd_cf(i) = dop2speed(fd_cf/2,lambda)/2;
-rng_cf(i) = beat2range([fb_cf(:,1) fb_cf(:,2)], k, c);
+dop_cf = fd_rm/2;
+spd_cf = dop2speed(fd_cf/2,lambda)/2;
+rng_cf = beat2range([fb_cf(:,1) fb_cf(:,2)], k, c);
 
 
 fd_rm = -fb_rm(:,1)-fb_rm(:,2);
 
 
-dop_rm(i) = fd_rm/2;
-spd_rm(i) = dop2speed(fd_rm/2,lambda)/2;
-rng_rm(i) = beat2range([fb_rm(:,1) fb_rm(:,2)], k, c);
+dop_rm = fd_rm/2;
+spd_rm = dop2speed(fd_rm/2,lambda)/2;
+rng_rm = beat2range([fb_rm(:,1) fb_rm(:,2)], k, c);
 
 
 %%
