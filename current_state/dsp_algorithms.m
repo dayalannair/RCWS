@@ -49,6 +49,154 @@ for i = 1:n_sweeps
     fb_rm_b(i, 1) = rootmusic(iq_u(i,:),1,fs);
     fb_rm_b(i, 2) = rootmusic(iq_d(i,:),1,fs);
 end
+%%
+
+fb_rm = zeros(n_sweeps,2);
+for i = 1:n_sweeps
+    a = rootmusic(iq_u(i,:),2,fs);
+    b = rootmusic(iq_d(i,:),2,fs);
+    fb_rm(i, 1) = a(2);
+    fb_rm(i, 2) = b(2);
+end
+
+%% Result comparison
+%fd_max = speed2dop(v_max, lambda)*2;
+fd_max = 100e3;
+
+rng_rm = zeros(n_sweeps,1);
+rng_cf = zeros(n_sweeps,1);
+dop_rm = zeros(n_sweeps,1);
+dop_cf = zeros(n_sweeps,1);
+spd_rm = zeros(n_sweeps,1);
+spd_cf = zeros(n_sweeps,1);
+
+fd_cf = -fb_cf(:,1)-fb_cf(:,2);
+
+dop_cf(i) = fd_rm/2;
+spd_cf(i) = dop2speed(fd_cf/2,lambda)/2;
+rng_cf(i) = beat2range([fb_cf(:,1) fb_cf(:,2)], k, c);
+
+
+fd_rm = -fb_rm(:,1)-fb_rm(:,2);
+
+
+dop_rm(i) = fd_rm/2;
+spd_rm(i) = dop2speed(fd_rm/2,lambda)/2;
+rng_rm(i) = beat2range([fb_rm(:,1) fb_rm(:,2)], k, c);
+
+
+%%
+% t0 = t_stamps(1);
+% t = t_stamps - t0;
+
+close all
+figure('WindowState','maximized');
+movegui('east')
+tiledlayout(2,1)
+nexttile
+plot(rng_rm)
+title('Range estimations of APPROACHING targets')
+xlabel('Time (seconds)')
+ylabel('Range (m)')
+hold on
+plot(rng_cf)
+nexttile
+plot(spd_rm*3.6*5e2)
+title('Radial speed estimations of APPROACHING targets')
+xlabel('Time (seconds)')
+ylabel('Speed (km/h)')
+hold on
+plot(spd_cf*3.6)
+
+% pass FFT to root MUSIC
+% ofcourse, incorrect
+%rm_u =  rootmusic(fft_up(1,:),1,fs);
+%%
+beat=10e3;
+total_t = 1e-3;
+delta_t = 5e-6;
+t = 0:delta_t:(total_t-delta_t);
+x = sin(2*pi*beat*t);
+close all
+figure 
+plot(x)
+tic
+msc = rootmusic(x, 2, fs);
+toc
+
+X = fft(x);
+% Get runtime of CFAR
+
+
+
+
+%%
+% convert unsigned data to signed by centering on zero
+% CONCLUSION: only the DC frequency component changes
+% sweep = 200;
+% iq_tbl=readtable('trig_fmcw_data\IQ_0_1024_sweeps.txt','Delimiter' ,' ');
+% t_stamps = iq_tbl.Var801;
+% i_up = table2array(iq_tbl(sweep,1:200));
+% i_down = table2array(iq_tbl(sweep,201:400));
+% q_up = table2array(iq_tbl(sweep,401:600));
+% q_down = table2array(iq_tbl(sweep,601:800));
+% 
+% iqu = i_up + 1i*q_up;
+% iqd = i_down+1i*q_down;
+
+% IQU1 = fft(iqu);
+% IQD1 = fft(iqd);
+% close all
+% figure
+% tiledlayout(4,1)
+% nexttile
+% plot(i_up)
+% nexttile
+% plot(i_down)
+% nexttile
+% plot(q_up)
+% nexttile
+% plot(q_down)
+%% 
+% i_up = i_up - 4096/2;
+% i_down = i_down - 4096/2;
+% q_up = q_up - 4096/2;
+% q_down = q_down - 4096/2;
+% 
+% close all
+% figure
+% tiledlayout(4,1)
+% nexttile
+% plot(i_up)
+% nexttile
+% plot(i_down)
+% nexttile
+% plot(q_up)
+% nexttile
+% plot(q_down)
+%% FFT
+
+% iqu = i_up + 1i*q_up;
+% iqd = i_down+1i*q_down;
+% 
+% IQU = fft(iqu);
+% IQD = fft(iqd);
+% 
+% close all
+% figure
+% tiledlayout(2,1)
+% nexttile
+% plot(f, 10*log10(abs(fftshift(IQU))))
+% hold on
+% plot(f, 10*log10(abs(fftshift(IQU1))))
+% nexttile
+% plot(f, 10*log10(abs(fftshift(IQD))))
+% hold on
+% plot(f, 10*log10(abs(fftshift(IQD1))))
+% nexttile
+% plot(f, 10*log10(abs(fftshift(IQU1))))
+% nexttile
+% plot(f, 10*log10(abs(fftshift(IQD1))))
 
 % CONCLUSION: signal subspace dimension is NOT
 % the number of sweeps... need to figure it out
