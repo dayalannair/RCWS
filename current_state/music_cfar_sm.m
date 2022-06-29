@@ -21,6 +21,14 @@ fs_wav = max(2*fb_max,bw);
 rng(2012);
 waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
     'SampleRate',fs_wav, 'SweepDirection','Triangle');
+close all
+figure
+sig = waveform();
+subplot(211); plot(0:1/fs_wav:tm-1/fs_wav,real(sig));
+xlabel('Time (s)'); ylabel('Amplitude (v)');
+title('FMCW signal'); axis tight;
+subplot(212); spectrogram(sig,32,16,32,fs_wav,'yaxis');
+title('FMCW signal spectrogram');
 
 %%
 
@@ -54,6 +62,14 @@ channel = phased.FreeSpace('PropagationSpeed',c,...
 radar_speed = 0;
 radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
     'Velocity',[radar_speed;0;0]);
+%% CFAR
+n_samples = 200; % samples per sweep
+trn = 20;
+grd = 4;
+Pfa = 0.0010;
+n_fft = n_samples;
+fs = 200e3;
+f = f_ax(n_fft, fs);
 
 %% Simulation Loop
 close all
@@ -64,73 +80,69 @@ Nsweep = 2; % up and down
 n_steps = t_total/t_step;
 fs_adc = 200e3;% 2fbmax
 Dn = fix(fs_wav/fs_adc);
-n_samples = 200; % samples per sweep
-% Generate visuals
-% sceneview = phased.ScenarioViewer('BeamRange',62.5,...
-%     'BeamWidth',[30; 30], ...
-%     'ShowBeam', 'All', ...
-%     'CameraPerspective', 'Custom', ...
-%     'CameraPosition', [2101.04 -1094.5 644.77], ...
-%     'CameraOrientation', [-152 -15.48 0]', ...
-%     'CameraViewAngle', 1.45, ...
-%     'ShowName',true,...
-%     'ShowPosition', true,...
-%     'ShowSpeed', true,...
-%     'ShowRadialSpeed',false,...
-%     'UpdateRate',1/t_step);
+
 
 [rdr_pos,rdr_vel] = radarmotion(1);
+fbu = zeros(n_steps, 1);
+fbd = zeros(n_steps, 1);
+r = zeros(n_steps, 1);
+v = zeros(n_steps, 1);
 
-fbu1 = zeros(n_steps, 1);
-fbd1 = zeros(n_steps, 1);
-r1 = zeros(n_steps, 1);
-v1 = zeros(n_steps, 1);
+fbucf = zeros(n_steps, 1);
+fbdcf = zeros(n_steps, 1);
+rcf = zeros(n_steps, 1);
+vcf = zeros(n_steps, 1);
 
-fbu2 = zeros(n_steps, 1);
-fbd2 = zeros(n_steps, 1);
-r2 = zeros(n_steps, 1);
-v2 = zeros(n_steps, 1);
-
+fb_cf = zeros(n_steps,2);
 xr_d = zeros(n_samples, 2);
 
 for t = 1:n_steps
     [tgt_pos,tgt_vel] = carmotion(t_step);
-    
-%     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
-%     drawnow;
-
+   
     xr = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
         transmitter,channel,cartarget,receiver);
-    
+
     xr_d(:,1) = decimate(xr(:,1),Dn);%,'FIR');
     xr_d(:,2) = decimate(xr(:,2),Dn);
 
-    % high sampling
-    fbu_rng = rootmusic(xr(:,1),1,fs_wav);
-    fbd_rng = rootmusic(xr(:,2),1,fs_wav);
-   
-    fd = -(fbu_rng+fbd_rng)/2;
-    r1(t) = beat2range([fbu_rng fbd_rng],sweep_slope,c);
-    v1(t) = dop2speed(fd,lambda)/2;
-    fbu1(t) = fbu_rng;
-    fbd1(t) = fbd_rng;
+    [fft_up, fft_dw, up_det, dw_det] = CFAR(trn, grd, ...
+    Pfa, xr_d(:,1).', xr_d(:,2).', n_fft);
 
+    fft_up_pks = abs(fft_up).*up_det';
+    fft_dw_pks = abs(fft_dw).*dw_det';
+    
+    fft_up_pks(:,98:104) = 0;
+    fft_dw_pks(:,98:104) = 0;
+    
+    [highest_SNR_up, pk_idx_up]= max(fft_up_pks, [],2);
+    [highest_SNR_down, pk_idx_down] = max(fft_dw_pks,[],2);
+    
+    fb_cf(:, 1) = f(pk_idx_up);
+    fb_cf(:, 2) = f(pk_idx_down);
+
+    rcf(t) = beat2range([fb_cf(:, 1) fb_cf(:, 2)],sweep_slope,c);
+    fd = -(fb_cf(:, 1)+fb_cf(:, 2))/2;
+    vcf(t) = dop2speed(fd,lambda)/2;
+    fbucf(t) = fb_cf(:, 1);
+    fbdcf(t) = fb_cf(:, 2);
+
+    % high sampling
+%     fbu_rng = rootmusic(xr(:,1),1,fs_wav);
+%     fbd_rng = rootmusic(xr(:,2),1,fs_wav);
+   
     % sampling at 2fbmax
     fbu_rng = rootmusic(xr_d(:,1),1,fs_adc);
     fbd_rng = rootmusic(xr_d(:,2),1,fs_adc);
-   
+
+    r(t) = beat2range([fbu_rng fbd_rng],sweep_slope,c);
+    
     fd = -(fbu_rng+fbd_rng)/2;
-    r2(t) = beat2range([fbu_rng fbd_rng],sweep_slope,c);
-    v2(t) = dop2speed(fd,lambda)/2;
-    fbu2(t) = fbu_rng;
-    fbd2(t) = fbd_rng;
+    v(t) = dop2speed(fd,lambda)/2;
+    fbu(t) = fbu_rng;
+    fbd(t) = fbd_rng;
 end
 
-%% Plot results
-
-
-
-%% FFT
+%%
 XRu = fftshift(fft(xr(:,1)));
 XRd = fftshift(fft(xr(:,2)));
 

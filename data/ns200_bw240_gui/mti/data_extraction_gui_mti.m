@@ -15,17 +15,17 @@ figure
 tiledlayout(3,1)
 
 nexttile
-plot(time,results(:,1))
+stem(time,results(:,1))
 ylabel("Distance (m)");
 xlabel("Time");
 
 nexttile
-plot(time, -results(:,2))
+stem(time, -results(:,2))
 ylabel("Velocity (m/s)");
 xlabel("Time");
 
 nexttile
-plot(time, results(:,3))
+stem(time, results(:,3))
 ylabel("SNR (dB)");
 xlabel("Time");
 

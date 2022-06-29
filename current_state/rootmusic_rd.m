@@ -64,7 +64,7 @@ figure('WindowState','maximized');
 movegui('east')
 tiledlayout(2,1)
 nexttile
-plot(time, range_array.*1e4)
+plot(time, range_array)
 title('Range estimations of APPROACHING targets')
 xlabel('Time (seconds)')
 ylabel('Range (m)')

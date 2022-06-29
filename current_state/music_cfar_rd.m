@@ -1,6 +1,7 @@
 % Parameters
 % Import data
-[fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data();
+sweeps = 200:205;
+[fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps);
 
 n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
@@ -48,7 +49,7 @@ for i = 1:n_sweeps
     fd_cf = -fb_cf(i,1)-fb_cf(i,2);
 
     if and(abs(fd_cf)<=fd_max, fd_cf > 0)
-        dop_cf(i) = fd_rm/2;
+        dop_cf(i) = fd_cf/2;
         spd_cf(i) = dop2speed(fd_cf/2,lambda)/2;
         rng_cf(i) = beat2range([fb_cf(i,1) fb_cf(i,2)], k, c);
     end
@@ -76,16 +77,16 @@ figure('WindowState','maximized');
 movegui('east')
 tiledlayout(2,1)
 nexttile
-plot(t, rng_rm.*1e4)
+plot(rng_rm.*1e4)
 title('Range estimations of APPROACHING targets')
 xlabel('Time (seconds)')
 ylabel('Range (m)')
 hold on
-plot(t, rng_cf)
+plot(rng_cf)
 nexttile
-plot(t, spd_rm*3.6*5e2)
+plot(spd_rm*3.6*5e2)
 title('Radial speed estimations of APPROACHING targets')
 xlabel('Time (seconds)')
 ylabel('Speed (km/h)')
 hold on
-plot(t, spd_cf*3.6)
+plot(spd_cf*3.6)
