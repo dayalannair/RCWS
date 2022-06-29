@@ -117,15 +117,13 @@ for t = 1:n_steps
     [highest_SNR_up, pk_idx_up]= max(fft_up_pks, [],2);
     [highest_SNR_down, pk_idx_down] = max(fft_dw_pks,[],2);
     
-    fb_cf(:, 1) = f(pk_idx_up);
-    fb_cf(:, 2) = f(pk_idx_down);
+    fb_cf(t, 1) = f(pk_idx_up);
+    fb_cf(t, 2) = f(pk_idx_down);
 
-    rcf(t) = beat2range([fb_cf(:, 1) fb_cf(:, 2)],sweep_slope,c);
-    fd = -(fb_cf(:, 1)+fb_cf(:, 2))/2;
+    rcf(t) = beat2range([fb_cf(t, 1) fb_cf(t, 2)],sweep_slope,c);
+    fd = -(fb_cf(t, 1)+fb_cf(t, 2))/2;
     vcf(t) = dop2speed(fd,lambda)/2;
-    fbucf(t) = fb_cf(:, 1);
-    fbdcf(t) = fb_cf(:, 2);
-
+    
     % high sampling
 %     fbu_rng = rootmusic(xr(:,1),1,fs_wav);
 %     fbd_rng = rootmusic(xr(:,2),1,fs_wav);
