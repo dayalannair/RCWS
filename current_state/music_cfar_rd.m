@@ -1,6 +1,6 @@
 % Parameters
 % Import data
-sweeps = 200:205;
+sweeps = 1:1024;% 200:205;
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps);
 
 n_samples = size(iq_u,2);
@@ -48,22 +48,30 @@ for i = 1:n_sweeps
 
     fd_cf = -fb_cf(i,1)-fb_cf(i,2);
 
-    if and(abs(fd_cf)<=fd_max, fd_cf > 0)
+    if and(abs(fd_cf)<=fd_max,1) %
         dop_cf(i) = fd_cf/2;
         spd_cf(i) = dop2speed(fd_cf/2,lambda)/2;
         rng_cf(i) = beat2range([fb_cf(i,1) fb_cf(i,2)], k, c);
     end
     % -------------------root MUSIC--------------------------
-    fb_rm(i, 1) = rootmusic(iq_u(i, :).',1,fs);
-    fb_rm(i, 2) = rootmusic(iq_d(i, :).',1,fs);
+%     fb_rm(i, 1) = rootmusic(iq_u(i, :).',1,fs);
+%     fb_rm(i, 2) = rootmusic(iq_d(i, :).',1,fs);
+% 
+%     fd_rm = -fb_rm(i,1)-fb_rm(i,2);
+    
+    % using the signal in the second subspace dimension
+    fbu = rootmusic(iq_u(i, :),2,fs);
+    fbd = rootmusic(iq_d(i, :),2,fs);
+
+    fb_rm(i, 1) = fbu(2);
+    fb_rm(i, 2) = fbd(2);
 
     fd_rm = -fb_rm(i,1)-fb_rm(i,2);
-
-    if and(abs(fd_rm)<=fd_max, fd_rm > 0)
-        dop_rm(i) = fd_rm/2;
-        spd_rm(i) = dop2speed(fd_rm/2,lambda)/2;
-        rng_rm(i) = beat2range([fb_rm(i,1) fb_rm(i,2)], k, c);
-    end
+    %if and(abs(fd_rm)<=fd_max, fd_rm > 0)
+    dop_rm(i) = fd_rm/2;
+    spd_rm(i) = dop2speed(fd_rm/2,lambda)/2;
+    rng_rm(i) = beat2range([fb_rm(i,1) fb_rm(i,2)], k, c);
+    %end
 end
 
 % Compare CFAR to root MUSIC
@@ -77,14 +85,14 @@ figure('WindowState','maximized');
 movegui('east')
 tiledlayout(2,1)
 nexttile
-plot(rng_rm.*1e4)
+plot(rng_rm)
 title('Range estimations of APPROACHING targets')
 xlabel('Time (seconds)')
 ylabel('Range (m)')
 hold on
 plot(rng_cf)
 nexttile
-plot(spd_rm*3.6*5e2)
+plot(spd_rm*3.6)
 title('Radial speed estimations of APPROACHING targets')
 xlabel('Time (seconds)')
 ylabel('Speed (km/h)')

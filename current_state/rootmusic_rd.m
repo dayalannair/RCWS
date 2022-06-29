@@ -36,20 +36,18 @@ speed_array = zeros(n_sweeps,1);
 fs = 200e3;
 for i = 1:n_sweeps
 
-    fb(i, 1) = rootmusic(iq_up(i, :).',1,fs);
-    fb(i, 2) = rootmusic(iq_down(i, :).',1,fs);
+    fbu = rootmusic(iq_up(i, :),2,fs);
+    fbd= rootmusic(iq_down(i, :),2,fs);
+
+    fb(i, 1) = fbu(2);
+    fb(i, 2) = fbd(2);
 
     fd = -fb(i,1)-fb(i,2);
-    % ensuring Doppler shift is within the maximum expected value also
-    % serves to eliminate incorrect pairing of beat frequencies, which
-    % affects both range and Doppler estimation
-    % implement MTI condition: fd ~= 0
-    % MTI + negative Doppler filter: fd > 0
-    if and(abs(fd)<=fd_max, fd > 0)
-        fd_array(i) = fd/2;
-        speed_array(i) = dop2speed(fd/2,lambda)/2;
-        range_array(i) = beat2range([fb(i,1) fb(i,2)], sweep_slope, c);
-    end
+
+    fd_array(i) = fd/2;
+    speed_array(i) = dop2speed(fd/2,lambda)/2;
+    range_array(i) = beat2range([fb(i,1) fb(i,2)], sweep_slope, c);
+
 end
 % Determine range
 % range_array = beat2range([ ])
