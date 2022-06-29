@@ -201,13 +201,13 @@ close all
 figure 
 tiledlayout(2,1)
 nexttile
-plot(f, abs(IQ_U))
+plot(f, abs(IQ_U(:,16)))
 hold on
-stem(f, detu)
+stem(f, detu(:,16))
 nexttile
-plot(f, abs(IQ_D))
+plot(f, abs(IQ_D(:,16)))
 hold on
-stem(f, detd)
+stem(f, detd(:,16))
 
 
 
