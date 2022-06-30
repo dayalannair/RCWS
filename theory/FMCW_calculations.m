@@ -131,8 +131,23 @@ K = 1.6
 % phased array
 %d = lambda/2
 d = 0.003;
-rng_error = rng_res*1/sqrt(2*SNR)
+%rng_error = rng_res*1/sqrt(2*SNR)
 vel_error = vel_res*1/sqrt(2*SNR)
 % not sure if necessary
 az_error = d/K/sqrt(2*SNR)
 el_error = d/K*1/sqrt(2*SNR)
+%% Minimum distance
+% let minimum distance be 1 meter. Could increase and leave this to close
+% range sensors
+rmin = 1.5;
+fbmin = range2beat(rmin,sweep_slope,c)
+
+% getting rmin from a beat freq min
+fbmin = 5e3;
+
+rmin = beat2range(fbmin,sweep_slope,c)
+
+
+
+
+

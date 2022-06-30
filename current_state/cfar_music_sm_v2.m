@@ -13,7 +13,7 @@ bw = 240e6;
 sweep_slope = bw/tm;
 
 fr_max = range2beat(range_max,sweep_slope,c);
-v_max = 230*1000/3600;
+% v_max = 230*1000/3600;
 %fd_max = speed2dop(2*v_max,lambda)
 %fb_max = fr_max+fd_max;
 fb_max = 100e3;
@@ -242,11 +242,11 @@ stem(t, v2, 'DisplayName','ROOTMUSIC')
 legend
 
 %% Plots
-% close all
+close all
 % up_peaks = up_detections.*IQ_UP;
 % down_peaks = down_detections.*IQ_DOWN;
-% figure
-% tiledlayout(4,1)
+figure
+tiledlayout(2,1)
 % nexttile
 % plot(f/1000, 10*log10(abs(IQ_UP)))
 % hold on
@@ -259,10 +259,10 @@ legend
 % % plot(f/1000, abs(IQ_UP))
 % % nexttile
 % % plot(f/1000, abs(IQ_DOWN))
-% nexttile
-% plot(real(xr_d_up))
-% nexttile
-% plot(real(xr_d_down))
+nexttile
+plot(real(xr_d_up))
+nexttile
+plot(real(xr_d_down))
 % plot(real(xr(:,1)))
 % nexttile
 % plot(real(xr(:,2)))

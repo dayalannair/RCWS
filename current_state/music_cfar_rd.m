@@ -11,7 +11,7 @@ grd = 4;
 Pfa = 0.015;
 n_fft = n_samples;
 
-[fft_up, fft_dw, up_det, dw_det] = CFAR(trn, grd, ...
+[fft_up, fft_dw, up_det, dw_det] = myCFAR(trn, grd, ...
     Pfa, iq_u, iq_d, n_fft);
 
 fs = 200e3; %200 kHz
@@ -76,8 +76,8 @@ for i = 1:n_sweeps
 
     % METHOD 4
     % Inverse nulled second ss dim
-%     fbu = rootmusic(iqu_nul(i, :),1,fs);
-%     fbd = rootmusic(iqd_nul(i, :),1,fs);
+    fbu = rootmusic(iqu_nul(i, :),1,fs);
+    fbd = rootmusic(iqd_nul(i, :),1,fs);
     
     % METHOD 5 ???
 %     fbu = rootmusic(iqu_nul(i, :),1,fs);
@@ -119,18 +119,19 @@ ylabel('Speed (km/h)')
 hold on
 plot(spd_cf*3.6)
 %%
-
+A = rescale(real(iqu_nul(100, :)));
+B = rescale(real(iqd_nul(100, :)));
 figure          
 close all
 tiledlayout(2,1)
 nexttile
-% plot(real(iqu_nul(100, :)))
-% hold on
-plot(real(iq_u(100, :)))
+plot(A)
+%hold on
+%plot(real(iq_u(100, :)))
 nexttile
-% plot(real(iqd_nul(100, :)))
-% hold on
-plot(real(iq_d(100, :)))
+plot(B)
+%hold on
+%plot(real(iq_d(100, :)))
 %%
 figure          
 close all
