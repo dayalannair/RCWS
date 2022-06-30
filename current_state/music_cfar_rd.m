@@ -32,6 +32,12 @@ dop_cf = zeros(n_sweeps,1);
 spd_rm = zeros(n_sweeps,1);
 spd_cf = zeros(n_sweeps,1);
 fs = 200e3;
+% Inverse FFT of the nulled feedthrough signal
+fft_up(:,98:104) = 0;
+fft_dw(:,98:104) = 0;
+iqu_nul = ifft(fft_up, [], 2);
+iqd_nul = ifft(fft_dw, [], 2);
+
 
 for i = 1:n_sweeps
 
@@ -48,24 +54,38 @@ for i = 1:n_sweeps
 
     fd_cf = -fb_cf(i,1)-fb_cf(i,2);
 
-    if and(abs(fd_cf)<=fd_max,1) %
+    if and(abs(fd_cf)<=fd_max,fd_cf~=0) %
         dop_cf(i) = fd_cf/2;
         spd_cf(i) = dop2speed(fd_cf/2,lambda)/2;
         rng_cf(i) = beat2range([fb_cf(i,1) fb_cf(i,2)], k, c);
     end
     % -------------------root MUSIC--------------------------
+    % METHOD 1
 %     fb_rm(i, 1) = rootmusic(iq_u(i, :).',1,fs);
 %     fb_rm(i, 2) = rootmusic(iq_d(i, :).',1,fs);
 % 
-%     fd_rm = -fb_rm(i,1)-fb_rm(i,2);
-    
+    % METHOD 2
     % using the signal in the second subspace dimension
-    fbu = rootmusic(iq_u(i, :),2,fs);
-    fbd = rootmusic(iq_d(i, :),2,fs);
+%     fbu = rootmusic(iq_u(i, :),2,fs);
+%     fbd = rootmusic(iq_d(i, :),2,fs);
 
-    fb_rm(i, 1) = fbu(2);
-    fb_rm(i, 2) = fbd(2);
+    % METHOD 3
+    % Inverse FFT of the nulled feedthrough signal
+%     fbu = rootmusic(iqu_nul(i, :),1,fs);
+%     fbd = rootmusic(iqd_nul(i, :),1,fs);
 
+    % METHOD 4
+    % Inverse nulled second ss dim
+%     fbu = rootmusic(iqu_nul(i, :),1,fs);
+%     fbd = rootmusic(iqd_nul(i, :),1,fs);
+    
+    % METHOD 5 ???
+%     fbu = rootmusic(iqu_nul(i, :),1,fs);
+%     fbd = rootmusic(iqd_nul(i, :),1,fs);
+
+
+    fb_rm(i, 1) = fbu(1);
+    fb_rm(i, 2) = fbd(1);
     fd_rm = -fb_rm(i,1)-fb_rm(i,2);
     %if and(abs(fd_rm)<=fd_max, fd_rm > 0)
     dop_rm(i) = fd_rm/2;
@@ -74,7 +94,7 @@ for i = 1:n_sweeps
     %end
 end
 
-% Compare CFAR to root MUSIC
+%% Compare CFAR to root MUSIC
 
 % subtract first t_stamps from all others to start at 0s
 t0 = t_stamps(1);
@@ -98,3 +118,28 @@ xlabel('Time (seconds)')
 ylabel('Speed (km/h)')
 hold on
 plot(spd_cf*3.6)
+%%
+
+figure          
+close all
+tiledlayout(2,1)
+nexttile
+% plot(real(iqu_nul(100, :)))
+% hold on
+plot(real(iq_u(100, :)))
+nexttile
+% plot(real(iqd_nul(100, :)))
+% hold on
+plot(real(iq_d(100, :)))
+%%
+figure          
+close all
+tiledlayout(2,1)
+nexttile
+% plot(real(iqu_nul(100, :)))
+% hold on
+plot(abs(fft_up(100, :)))
+nexttile
+% plot(real(iqd_nul(100, :)))
+% hold on
+plot(abs(fft_dw(100, :)))

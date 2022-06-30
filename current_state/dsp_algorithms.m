@@ -58,86 +58,95 @@ for i = 1:n_sweeps
     fb_rm(i, 1) = a(2);
     fb_rm(i, 2) = b(2);
 end
+
+%% Periodogram
+periodogram(iq_u.', [], [], fs, 'centered');
+hold on
+periodogram(iq_d.', [], [], fs, 'centered');
+% [pdg,~] = periodogram(iq_u.', [],[],fs);
+% 
+% close all
+% figure
+% plot(pdg)
 %% Quick plot
-close all
-figure
-tiledlayout(2,1)
-nexttile
-plot(real(iq_u)')
-nexttile
-plot(real(iq_d)')
-
-fft_up(:,98:104) = 0;
-fft_dw(:,98:104) = 0;
-
-close all
-figure
-tiledlayout(2,1)
-nexttile
-plot(f/1000, abs(fft_up))
-nexttile
-plot(f/1000, abs(fft_dw))
+% close all
+% figure
+% tiledlayout(2,1)
+% nexttile
+% plot(real(iq_u)')
+% nexttile
+% plot(real(iq_d)')
+% 
+% fft_up(:,98:104) = 0;
+% fft_dw(:,98:104) = 0;
+% 
+% close all
+% figure
+% tiledlayout(2,1)
+% nexttile
+% plot(f/1000, abs(fft_up))
+% nexttile
+% plot(f/1000, abs(fft_dw))
 
 
 %% Result comparison
 %fd_max = speed2dop(v_max, lambda)*2;
-fd_max = 100e3;
-
-fd_cf = -fb_cf(:,1)-fb_cf(:,2);
-
-dop_cf = fd_rm/2;
-spd_cf = dop2speed(fd_cf/2,lambda)/2;
-rng_cf = beat2range([fb_cf(:,1) fb_cf(:,2)], k, c);
-
-
-fd_rm = -fb_rm(:,1)-fb_rm(:,2);
-
-
-dop_rm = fd_rm/2;
-spd_rm = dop2speed(fd_rm/2,lambda)/2;
-rng_rm = beat2range([fb_rm(:,1) fb_rm(:,2)], k, c);
+% fd_max = 100e3;
+% 
+% fd_cf = -fb_cf(:,1)-fb_cf(:,2);
+% 
+% dop_cf = fd_rm/2;
+% spd_cf = dop2speed(fd_cf/2,lambda)/2;
+% rng_cf = beat2range([fb_cf(:,1) fb_cf(:,2)], k, c);
+% 
+% 
+% fd_rm = -fb_rm(:,1)-fb_rm(:,2);
+% 
+% 
+% dop_rm = fd_rm/2;
+% spd_rm = dop2speed(fd_rm/2,lambda)/2;
+% rng_rm = beat2range([fb_rm(:,1) fb_rm(:,2)], k, c);
 
 
 %%
 % t0 = t_stamps(1);
 % t = t_stamps - t0;
-
-close all
-figure('WindowState','maximized');
-movegui('east')
-tiledlayout(2,1)
-nexttile
-plot(rng_rm)
-title('Range estimations of APPROACHING targets')
-xlabel('Time (seconds)')
-ylabel('Range (m)')
-hold on
-plot(rng_cf)
-nexttile
-plot(spd_rm*3.6*5e2)
-title('Radial speed estimations of APPROACHING targets')
-xlabel('Time (seconds)')
-ylabel('Speed (km/h)')
-hold on
-plot(spd_cf*3.6)
-
-% pass FFT to root MUSIC
-% ofcourse, incorrect
-%rm_u =  rootmusic(fft_up(1,:),1,fs);
-%%
-beat=10e3;
-total_t = 1e-3;
-delta_t = 5e-6;
-t = 0:delta_t:(total_t-delta_t);
-x = sin(2*pi*beat*t);
-close all
-figure 
-plot(x)
-tic
-msc = rootmusic(x, 2, fs);
-toc
-
-X = fft(x);
+% close all
+% figure('WindowState','maximized');
+% movegui('east')
+% tiledlayout(2,1)
+% nexttile
+% plot(rng_rm)
+% title('Range estimations of APPROACHING targets')
+% xlabel('Time (seconds)')
+% ylabel('Range (m)')
+% hold on
+% plot(rng_cf)
+% nexttile
+% plot(spd_rm*3.6*5e2)
+% title('Radial speed estimations of APPROACHING targets')
+% xlabel('Time (seconds)')
+% ylabel('Speed (km/h)')
+% hold on
+% plot(spd_cf*3.6)
+% 
+% % pass FFT to root MUSIC
+% % ofcourse, incorrect
+% %rm_u =  rootmusic(fft_up(1,:),1,fs);
+% %%
+% beat=10e3;
+% total_t = 1e-3;
+% delta_t = 5e-6;
+% t = 0:delta_t:(total_t-delta_t);
+% x = sin(2*pi*beat*t);
+% close all
+% figure 
+% plot(x)
+% tic
+% msc = rootmusic(x, 2, fs);
+% toc
+% 
+% X = fft(x);
 % Get runtime of CFAR
 
 
@@ -214,7 +223,6 @@ X = fft(x);
 % CONCLUSION: signal subspace dimension is NOT
 % the number of sweeps... need to figure it out
 % Also, need to find out why rootmusic != cfar
-
 % If the input signal x is real, and an odd number of sinusoids
 % is specified by p, an error message is displayed:
 % Real signals require an even number p of complex sinusoids.
@@ -222,7 +230,6 @@ X = fft(x);
 % This seems to indicate that the subspace dimension is the number
 % of sinusoids to detect... we should expect to see only one which
 % is the beat frequency (complex so one sided)
-
 % rootmusic is most useful for frequency estimation of signals made up 
 % of a sum of sinusoids embedded in additive white Gaussian noise.
 
