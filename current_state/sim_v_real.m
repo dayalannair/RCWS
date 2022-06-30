@@ -50,6 +50,13 @@ nexttile
 plot(B)
 hold on
 plot(D)
+
+
+
+
+
+
+
 %% 
 close all
 figure

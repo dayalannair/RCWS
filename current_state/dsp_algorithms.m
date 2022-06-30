@@ -59,6 +59,24 @@ for i = 1:n_sweeps
     fb_rm(i, 2) = b(2);
 end
 
+%% Phased MUSIC estimator
+
+% Need to measure uRAD spacing again. Seems like it is 0.003 which 
+% causes grating lobes? double check. for now lambda/2
+% array = phased.ULA('NumElements',1,'ElementSpacing',lambda/2);
+% antElmnt = phased.IsotropicAntennaElement('BackBaffled',true);
+% 
+% % NOTE: Uniform Rect Array does not work. Works for 2D MUSIC estimator
+% %array = phased.URA('Element', antElmnt, 'Size',4, 'ElementSpacing',lambda/2);
+% 
+% % NOTE: Expects data from each array element! This is for DOA
+% % Try 1 element
+% music_est = phased.MUSICEstimator('SensorArray',array, ...
+%     'OperatingFrequency', fc);
+% 
+% music_est(iq_u(1, :).')
+% plotSpectrum(music_est, 'NormalizeResponse', true)
+
 %% Periodogram
 periodogram(iq_u.', [], [], fs, 'centered');
 hold on
