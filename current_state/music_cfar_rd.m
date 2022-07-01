@@ -1,7 +1,7 @@
 % Parameters
 % Import data
-sweeps = 1:1024;% 200:205;
-[fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps);
+subset = 200:205;
+[fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
 
 n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
