@@ -21,25 +21,42 @@ q_down = table2array(iq_tbl(:,601:800));
 iq_up = i_up + 1i*q_up;
 iq_down = i_down + 1i*q_down;
 
-%% CA-CFAR
+%% CA-CFAR + Gaussian Window
+% Gaussian Window
+% remember to increase fft point size
+gwin = gausswin(n_samples);
+iq_up = iq_up.*gwin.';
+iq_down = iq_down.*gwin.';
+% FFT
+n_fft = 1024;%512;
+% factor of signal to be nulled. 4% determined experimentally
+nul_width_factor = 0.04;
+num_nul = round((n_fft/2)*nul_width_factor);
+nul_lower = n_fft - num_nul;
+nul_upper = n_fft + num_nul;
+
+IQ_UP = fftshift(fft(iq_up,n_fft,2));
+IQ_DOWN = fftshift(fft(iq_down,n_fft,2));
+
+% from 20/200 = 0.1
+train_factor = 0.1;
+% from 4/200 = 0.02;
+guard_factor = 0.02;
+guard = round(n_fft*guard_factor);
+train = round(n_fft*train_factor);
 % false alarm rate - sets sensitivity
-F = 0.015; % see relevant papers
+F = 0.011; % see relevant papers
 n_samples = size(i_up,2);
 n_sweeps = size(i_up,1);
 % Assumes AWGN
 % research options
 % 4 bins -> car is 2m, bin is 0.6
 % try with simulated data and noise & clutter
-CFAR = phased.CFARDetector('NumTrainingCells',20, ...
-    'NumGuardCells',4, ...
+CFAR = phased.CFARDetector('NumTrainingCells',train, ...
+    'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
     'Method', 'SOCA');
-
-% FFT
-n_fft = 200;%512;
-IQ_UP = fftshift(fft(iq_up,n_fft,2));
-IQ_DOWN = fftshift(fft(iq_down,n_fft,2));
 
 % modify CFAR code to simultaneously record beat frequencies
 up_detections = CFAR(abs(IQ_UP)', 1:n_fft);
@@ -49,63 +66,8 @@ fs = 200e3; %200 kHz
 f = f_ax(n_fft, fs);
 IQ_UP_peaks = abs(IQ_UP).*up_detections';
 IQ_DOWN_peaks = abs(IQ_DOWN).*down_detections';
-%%
-% close all
-% figure
-% tiledlayout(2,1)
-% nexttile
-% stem(f((n_fft/2+1):n_fft-1)/1000, 10*log10(abs(IQ_UP_peaks(:,(n_fft/2+1):n_fft-1))'))
-% nexttile
-% stem(f(1:n_fft/2)/1000, 10*log10(abs(IQ_DOWN_peaks(:,1:n_fft/2))'))
-%% Verify CFAR
-% close all
-% figure
-% for i = 1:n_sweeps
-% %     plot(abs(iq_up(i,:)));
-%     plot(f(101:200)/1000, 40*up_detections(101:200,i)); % rows and columns opp to data
-%     hold on
-%     %plot(fftshift(IQ_UP_normal(i,:)))
-%     plot(f(101:200)/1000, 10*log10(abs(IQ_UP(i,101:200))))
-%     hold off
-%     pause(0.1)
-% end
-% for i = 1:n_sweeps
-% %     plot(abs(iq_up(i,:)));
-%     plot(f(1:100)/1000, 40*fftshift(down_detections(1:100,i))); % rows and columns opp to data
-%     hold on
-%     %plot(fftshift(IQ_UP_normal(i,:)))
-%     plot(f(1:100)/1000, 10*log10(abs(IQ_DOWN(i,1:100))))
-%     hold off
-%     pause(0.1)
-% end
-%%
-% flipped -- no need, can do at time of calculations
 
-% dds = flip(down_detections(1:100,:));
-% close all
-% figure
-% tiledlayout(2,1)
-% nexttile
-% stem(down_detections);
-% nexttile
-% stem(flip(down_detections));
-% 
-% %%
-% close all
-% figure
-% tiledlayout(4,1)
-% nexttile
-% stem(f(101:200)/1000, up_detections(101:200,:));
-% nexttile
-% stem(f(101:100)/1000, flip(down_detections)(1:100,:));
-% nexttile
-% stem(f/1000, up_detections);
-% nexttile
-% stem(f/1000, down_detections);
-%%
-% close all
-% figure
-% tiledlayout(4,1)
+
 %%
 % v_max = 60km/h , fd max = 2.7kHz approx 3kHz
 v_max = 60/3.6; 
@@ -120,13 +82,12 @@ range_array = zeros(n_sweeps,1);
 fd_array = zeros(n_sweeps,1);
 speed_array = zeros(n_sweeps,1);
 
-%%
 for i = 1:n_sweeps
     
     % SINGLE TARG:
     % null feed through
-    IQ_UP_peaks(i,98:104) = 0;
-    IQ_DOWN_peaks(i,98:104) = 0;
+    IQ_UP_peaks(i,nul_lower:nul_upper) = 0;
+    IQ_DOWN_peaks(i,nul_lower:nul_upper) = 0;
     
     [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,:));
     [highest_SNR_down, pk_idx_down] = max(IQ_DOWN_peaks(i,:));
@@ -148,77 +109,5 @@ for i = 1:n_sweeps
 end
 % Determine range
 % range_array = beat2range([ ])
-%% Time Axis formulation
-% subtract first time from all others to start at 0s
-t0 = time(1);
-time = time - t0;
 
-%% Plots
-close all
-figure('WindowState','maximized');
-movegui('east')
-tiledlayout(2,1)
-nexttile
-plot(time, range_array)
-title('Range estimations of APPROACHING targets')
-xlabel('Time (seconds)')
-ylabel('Range (m)')
-% plot markings
-% hold on 
-% rectangle('Position',[0 0 6.6 15.6], 'EdgeColor','r', 'LineWidth',1)
-% text(0,17,'BMW')
-% rectangle('Position',[3.7 0 9.4580 15.6], 'EdgeColor','g', 'LineWidth',1)
-% text(3.7,17,'Renault+Nissan')
-% rectangle('Position',[13 0 8 30], 'EdgeColor','k', 'LineWidth',1)
-% text(13.5,25,'Pedestrians only')
-% rectangle('Position',[21.5 0 3.5 34], 'EdgeColor','r', 'LineWidth',1)
-% text(22,32,'Pedestrians+Mini')
-% rectangle('Position',[25.4 0 5.3 25], 'EdgeColor','g', 'LineWidth',1)
-% text(25.5,26,'Pedestrians+Hyundai')
-% rectangle('Position',[39 0 10 17], 'EdgeColor','m', 'LineWidth',1)
-% text(40,18,'VW followed by Toyota')
-% rectangle('Position',[56 0 24 32], 'EdgeColor','r', 'LineWidth',1)
-% text(57,33,'2x Toyota - Area of Interest')
-nexttile
-plot(time, speed_array*3.6)
-title('Radial speed estimations of APPROACHING targets')
-xlabel('Time (seconds)')
-ylabel('Speed (km/h)')
-
-
-%%
-% IQ_UP_normal = normalize(abs(IQ_UP));
-
-
-%%
-% for i = 1:52
-%     plot(fbu(i,:)/1000);
-%     title("up chirp beat frequency");
-%     xlabel("sample number");
-%     ylabel("Frequency (kHz)");
-%     axis([0 200 -100 100]);
-%     hold on
-%     plot(fbd(i,:)/1000);
-%     title("down chirp beat frequency");
-%     xlabel("sample number");
-%     ylabel("Frequency (kHz)");
-%     axis([0 200 -100 100]);
-%     %hold off
-%     pause(1)
-% end
-% plot(fftshift(detections));
-% hold on
-% plot(10*log10(fftshift(abs(IQ_UP))));
-
-% plot(fbu'/1000);
-% title("up chirp beat frequency");
-% xlabel("sample number");
-% ylabel("Frequency (kHz)");
-% axis([0 200 -100 100]);
-% hold on
-% plot(fbd'/1000);
-% title("down chirp beat frequency");
-% xlabel("sample number");
-% ylabel("Frequency (kHz)");
-% axis([0 200 -100 100]);
 
