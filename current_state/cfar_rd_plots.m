@@ -64,19 +64,19 @@ end
 
 %% Time Axis formulation
 % subtract first time from all others to start at 0s
-% t0 = time(1);
-% time = time - t0;
+t0 = time(1);
+time = time - t0;
 
 %% Plots
-% close all
-% figure('WindowState','maximized');
-% movegui('east')
-% tiledlayout(2,1)
-% nexttile
-% plot(time(subset), range_array)
-% title('Range estimations of APPROACHING targets')
-% xlabel('Time (seconds)')
-% ylabel('Range (m)')
+close all
+figure('WindowState','maximized');
+movegui('east')
+tiledlayout(2,1)
+nexttile
+plot(time(subset), range_array)
+title('Range estimations of APPROACHING targets')
+xlabel('Time (seconds)')
+ylabel('Range (m)')
 
 % plot markings
 % hold on 
@@ -94,11 +94,11 @@ end
 % text(40,18,'VW followed by Toyota')
 % rectangle('Position',[56 0 24 32], 'EdgeColor','r', 'LineWidth',1)
 % text(57,33,'2x Toyota - Area of Interest')
-% nexttile
-% plot(time(subset), speed_array*3.6)
-% title('Radial speed estimations of APPROACHING targets')
-% xlabel('Time (seconds)')
-% ylabel('Speed (km/h)')
+nexttile
+plot(time(subset), speed_array*3.6)
+title('Radial speed estimations of APPROACHING targets')
+xlabel('Time (seconds)')
+ylabel('Speed (km/h)')
 
 
 %%

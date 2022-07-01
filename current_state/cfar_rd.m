@@ -26,6 +26,8 @@ iq_down = i_down + 1i*q_down;
 %% CA-CFAR + Gaussian Window
 % Gaussian Window
 % remember to increase fft point size
+n_samples = size(i_up,2);
+n_sweeps = size(i_up,1);
 gwin = gausswin(n_samples);
 iq_up = iq_up.*gwin.';
 iq_down = iq_down.*gwin.';
@@ -48,8 +50,7 @@ guard = round(n_fft*guard_factor);
 train = round(n_fft*train_factor);
 % false alarm rate - sets sensitivity
 F = 0.011; % see relevant papers
-n_samples = size(i_up,2);
-n_sweeps = size(i_up,1);
+
 % Assumes AWGN
 % research options
 % 4 bins -> car is 2m, bin is 0.6
