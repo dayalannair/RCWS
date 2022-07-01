@@ -9,14 +9,16 @@ bw = 240e6;                     % Bandwidth
 sweep_slope = bw/tm;
 
 %% Import data
-iq_tbl=readtable('trig_fmcw_data\IQ_0_1024_sweeps.txt','Delimiter' ,' ');
-%iq_tbl=readtable('IQ_0_8192_sweeps.txt','Delimiter' ,' ');
+%subset = 1:1024;%200:205;
+subset = 1:8192;%200:205;
+%iq_tbl=readtable('trig_fmcw_data\IQ_0_1024_sweeps.txt','Delimiter' ,' ');
+iq_tbl=readtable('trig_fmcw_data\IQ_0_8192_sweeps.txt','Delimiter' ,' ');
 %iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
 time = iq_tbl.Var801;
-i_up = table2array(iq_tbl(:,1:200));
-i_down = table2array(iq_tbl(:,201:400));
-q_up = table2array(iq_tbl(:,401:600));
-q_down = table2array(iq_tbl(:,601:800));
+i_up = table2array(iq_tbl(subset,1:200));
+i_down = table2array(iq_tbl(subset,201:400));
+q_up = table2array(iq_tbl(subset,401:600));
+q_down = table2array(iq_tbl(subset,601:800));
 
 iq_up = i_up + 1i*q_up;
 iq_down = i_down + 1i*q_down;
@@ -32,8 +34,8 @@ n_fft = 1024;%512;
 % factor of signal to be nulled. 4% determined experimentally
 nul_width_factor = 0.04;
 num_nul = round((n_fft/2)*nul_width_factor);
-nul_lower = n_fft - num_nul;
-nul_upper = n_fft + num_nul;
+nul_lower = round(n_fft/2 - num_nul);
+nul_upper = round(n_fft/2 + num_nul);
 
 IQ_UP = fftshift(fft(iq_up,n_fft,2));
 IQ_DOWN = fftshift(fft(iq_down,n_fft,2));
@@ -101,7 +103,11 @@ for i = 1:n_sweeps
     % affects both range and Doppler estimation
     % implement MTI condition: fd ~= 0
     % MTI + negative Doppler filter: fd > 0
-    if and(abs(fd)<=fd_max, fd > 0)
+    % 100 is the new min after Gaussian windowing
+    % 200 is before the division by 2. carrying out division in
+    % conditional statement is more comp efficient
+    % 400 used for 195 fd
+    if and(abs(fd)<=fd_max, fd > 400)
         fd_array(i) = fd/2;
         speed_array(i) = dop2speed(fd/2,lambda)/2;
         range_array(i) = beat2range([fb(i,1) fb(i,2)], sweep_slope, c);

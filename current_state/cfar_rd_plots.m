@@ -1,12 +1,15 @@
 %% Easier to use a separate script for plotting
 cfar_rd;
-% close all
-% figure
-% tiledlayout(2,1)
-% nexttile
-% stem(f((n_fft/2+1):n_fft-1)/1000, 10*log10(abs(IQ_UP_peaks(:,(n_fft/2+1):n_fft-1))'))
-% nexttile
-% stem(f(1:n_fft/2)/1000, 10*log10(abs(IQ_DOWN_peaks(:,1:n_fft/2))'))
+%% Verify peak detection
+close all
+figure
+tiledlayout(2,1)
+nexttile
+stem(f/1000, 10*log10(abs(IQ_UP_peaks))')
+axis([-100 100 0 40])
+nexttile
+stem(f/1000, 10*log10(abs(IQ_DOWN_peaks))')
+axis([-100 100 0 40])
 %% Verify CFAR
 % close all
 % figure
@@ -67,7 +70,7 @@ figure('WindowState','maximized');
 movegui('east')
 tiledlayout(2,1)
 nexttile
-plot(time, range_array)
+plot(time(subset), range_array)
 title('Range estimations of APPROACHING targets')
 xlabel('Time (seconds)')
 ylabel('Range (m)')
@@ -88,7 +91,7 @@ ylabel('Range (m)')
 % rectangle('Position',[56 0 24 32], 'EdgeColor','r', 'LineWidth',1)
 % text(57,33,'2x Toyota - Area of Interest')
 nexttile
-plot(time, speed_array*3.6)
+plot(time(subset), speed_array*3.6)
 title('Radial speed estimations of APPROACHING targets')
 xlabel('Time (seconds)')
 ylabel('Speed (km/h)')
