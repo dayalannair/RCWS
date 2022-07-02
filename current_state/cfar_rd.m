@@ -9,10 +9,10 @@ bw = 240e6;                     % Bandwidth
 sweep_slope = bw/tm;
 
 %% Import data
-%subset = 1:1024;%200:205;
-subset = 1:8192;%200:205;
-%iq_tbl=readtable('trig_fmcw_data\IQ_0_1024_sweeps.txt','Delimiter' ,' ');
-iq_tbl=readtable('trig_fmcw_data\IQ_0_8192_sweeps.txt','Delimiter' ,' ');
+subset = 1:1024;%200:205;
+%subset = 1:8192;%200:205;
+iq_tbl=readtable('trig_fmcw_data\IQ_0_1024_sweeps.txt','Delimiter' ,' ');
+%iq_tbl=readtable('trig_fmcw_data\IQ_0_8192_sweeps.txt','Delimiter' ,' ');
 %iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
 time = iq_tbl.Var801;
 i_up = table2array(iq_tbl(subset,1:200));
