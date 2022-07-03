@@ -11,18 +11,14 @@ sweep_slope = bw/tm;
 %% Import data
 subset = 1:1024;%200:205;
 %subset = 1:8192;%200:205;
-iq_tbl=readtable('trig_fmcw_data\IQ_0_1024_sweeps.txt','Delimiter' ,' ');
+iq_tbl=readtable('../../data/urad_usb/IQ_sawtooth.txt','Delimiter' ,' ');
 %iq_tbl=readtable('trig_fmcw_data\IQ_0_8192_sweeps.txt','Delimiter' ,' ');
 %iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
-time = iq_tbl.Var801;
-i_up = table2array(iq_tbl(subset,1:200));
-i_down = table2array(iq_tbl(subset,201:400));
-q_up = table2array(iq_tbl(subset,401:600));
-q_down = table2array(iq_tbl(subset,601:800));
-
-iq_up = i_up + 1i*q_up;
-iq_down = i_down + 1i*q_down;
-
+time = iq_tbl.Var401;
+i_dat = table2array(iq_tbl(subset,1:200));
+q_dat = table2array(iq_tbl(subset,401:600));
+% q_down = table2array(iq_tbl(subset,601:800));
+iq = i_dat + 1i*q_dat;
 %% CA-CFAR + Gaussian Window
 % Gaussian Window
 % remember to increase fft point size
