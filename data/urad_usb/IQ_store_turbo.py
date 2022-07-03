@@ -119,7 +119,7 @@ try:
 			for sample in range(samples):
 				IQ_string += '%d ' % Q[sweep][sample]
 			#f.write(IQ_string + '%1.3f\n' % t_i[sweep])
-			f.write('\n')
+			f.write(IQ_string +'\n')
 	print("Complete.")
 	
 except KeyboardInterrupt:
