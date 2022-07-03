@@ -1,6 +1,6 @@
 import uRAD_USB_SDK11		# import uRAD libray
 import serial
-from time import time, sleep, time_ns, clock
+from time import time, sleep, time_ns
 import sys
 
 # True if USB, False if UART
@@ -8,13 +8,12 @@ usb_communication = True
 
 try:
     mode_in = str(sys.argv[1])
-    print(mode_in)
     if mode_in == "s":
-        print("SAWTOOTH MODE")
+        print("********** SAWTOOTH MODE **********")
         resultsFileName = 'IQ_sawtooth.txt'
         mode = 2					
     elif mode_in == "t":
-        print("TRIANGLE MODE")
+        print("********** TRIANGLE MODE **********")
         resultsFileName = 'IQ_triangle.txt'
         mode = 3					
     else: 
@@ -105,7 +104,7 @@ try:
 		#print(return_code)
 		I.append(raw_results[0])
 		Q.append(raw_results[1])
-		t_i.append(clock())
+		#t_i.append(clock())
 
 	uRAD_USB_SDK11.turnOFF(ser)
 	print("Ending. Writing data to textfile...\n")
@@ -119,7 +118,8 @@ try:
 				IQ_string += '%d ' % I[sweep][sample]
 			for sample in range(samples):
 				IQ_string += '%d ' % Q[sweep][sample]
-			f.write(IQ_string + '%1.3f\n' % t_i[sweep])
+			#f.write(IQ_string + '%1.3f\n' % t_i[sweep])
+			f.write('\n')
 	print("Complete.")
 	
 except KeyboardInterrupt:
