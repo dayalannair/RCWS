@@ -11,7 +11,7 @@ n_sweeps = size(i_dat,1);
 time = iq_tbl.Var401;
 t0 = time(1);
 t_sweeps = time - t0;
-periods = diff(t_sweeps);
+periods = diff(t_sweeps)/1e9;
 avg_period = mean(periods);
 
 % t = zeros(n_sweeps, n_samples);
