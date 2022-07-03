@@ -8,11 +8,13 @@ iq = i_dat + 1i*q_dat;
 
 n_samples = size(i_dat,2);
 n_sweeps = size(i_dat,1);
-time = iq_tbl.Var401;
-t0 = time(1);
-t_sweeps = time - t0;
-periods = diff(t_sweeps)/1e9;
-avg_period = mean(periods);
+
+% Removed due to imprecision!
+% time = iq_tbl.Var401;
+% t0 = time(1);
+% t_sweeps = time - t0;
+% periods = diff(t_sweeps)/1e9;
+% avg_period = mean(periods);
 
 % t = zeros(n_sweeps, n_samples);
 % % Smart but low key smart
@@ -68,6 +70,22 @@ for i = 1:n_sweeps
 end
 
 
+%% Results
+
+close all
+figure('WindowState','maximized');
+movegui('east')
+% tiledlayout(2,1)
+% nexttile
+plot(range_array)
+title('Range estimations of APPROACHING targets')
+%xlabel('Time (seconds)')
+ylabel('Range (m)')
+% nexttile
+% plot(speed_array*3.6)
+% title('Radial speed estimations of APPROACHING targets')
+% %xlabel('Time (seconds)')
+% ylabel('Speed (km/h)')
 
 
 
