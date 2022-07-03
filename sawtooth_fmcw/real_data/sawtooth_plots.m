@@ -14,19 +14,20 @@ t_sweeps = time - t0;
 periods = diff(t_sweeps);
 avg_period = mean(periods);
 
-t = zeros(n_sweeps, n_samples);
-for i = length(t)
-    t(i,:) = linspace(t_sweeps(i),t_sweeps(i+1), n_samples);
-end
+% t = zeros(n_sweeps, n_samples);
+% % Smart but low key smart
+% for i = 2:length(t_sweeps)
+%     t(i,:) = linspace(t_sweeps(i-1),t_sweeps(i), n_samples);
+% end
 %%
 close all
 figure
 tiledlayout(3,1)
 nexttile
-plot(t',i_dat')
+plot(i_dat')
 title("Sawtooth I data")
 nexttile
-plot(t', q_dat')
+plot(q_dat')
 title("Sawtooth Q data")
 nexttile
 plot(real(iq.'))
@@ -50,5 +51,23 @@ plot(f, fftshift(angle(IQ.')))
 title("Sawtooth FFT phase")
 xlabel("Frequency (kHz)")
 %ylabel("Magnitude (dB)")
+
+%%
+close all
+figure
+for i = 1:n_sweeps
+%     plot(abs(iq_up(i,:)));
+    stem(f/1000,  10*log10(IQ_UP_peaks(i,:))); % rows and columns opp to data
+    hold on
+    %plot(fftshift(IQ_UP_normal(i,:)))
+    plot(f/1000, 10*log10(abs(IQ_UP(i,:))))
+    hold on
+    plot(f/1000, 10*log10(upth(:, i)))
+    hold off
+    pause(1)
+end
+
+
+
 
 

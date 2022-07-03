@@ -66,7 +66,9 @@ end
 % subtract first time from all others to start at 0s
 t0 = time(1);
 time = time - t0;
-
+time = time - t0;
+periods = diff(time);
+avg_period = mean(periods);
 %% Plots
 close all
 figure('WindowState','maximized');
