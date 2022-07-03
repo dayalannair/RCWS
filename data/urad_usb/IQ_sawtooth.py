@@ -6,20 +6,22 @@ from time import time, sleep
 usb_communication = True
 
 # input parameters
-mode = 3					# triangle mode
+mode = 2					# sawtooth mode
 f0 = 5						# starting at 24.005 GHz
 BW = 240					# using all the BW available = 240 MHz
 Ns = 200					# 200 samples
+I_true = True 				# In-Phase Component (RAW data) requested
+Q_true = True 				# Quadrature Component (RAW data) requested
+
+# UNUSED FOR RAW DATA OUTPUT
 Ntar = 1					# Don't apply as only raw data is desired
 Rmax = 62					# Don't apply as only raw data is desired
-MTI = 2						# MTI mode disable because we want information of static and moving targets
-Mth = 1						# Don't apply as only raw data is desired
-Alpha = 10					# Don't apply to raw signals
+MTI = 0						# MTI mode disable because we want information of static and moving targets
+Mth = 0						# Don't apply as only raw data is desired
+Alpha = 0				    # Don't apply to raw signals
 distance_true = False 		# Don't request distance information
 velocity_true = False		# Don't request velocity information
 SNR_true = False 			# Don't request Signal-to-Noise-Ratio information
-I_true = True 				# In-Phase Component (RAW data) requested
-Q_true = True 				# Quadrature Component (RAW data) requested
 movement_true = False 		# Don't apply as only raw data is desired
 
 # Serial Port configuration
@@ -69,7 +71,7 @@ if (return_code != 0):
 if (not usb_communication):
 	sleep(timeSleep)
 
-resultsFileName = 'IQ.txt'
+resultsFileName = 'IQ_sawtooth.txt'
 #fileResults = open(resultsFileName, 'w')
 # iterations = 0
 t_0 = time()
@@ -77,7 +79,7 @@ i = 0
 I = []
 Q = []
 t_i = []
-sweeps = 25
+sweeps = 512
 # infinite detection loop
 print("Loop running\n")
 
@@ -108,7 +110,7 @@ try:
 			IQ_string = ''
 			for sample in range(samples):
 				IQ_string += '%d ' % I[sweep][sample]
-			for sample in range(len(Q)):
+			for sample in range(samples):
 				IQ_string += '%d ' % Q[sweep][sample]
 			f.write(IQ_string + '%1.3f\n' % t_i[sweep])
 	print("Complete.")
