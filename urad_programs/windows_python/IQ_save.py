@@ -6,12 +6,12 @@ from time import time, sleep
 usb_communication = True
 
 # input parameters
-mode = 3					# sawtooth mode
+mode = 3					# triangle mode
 f0 = 5						# starting at 24.005 GHz
 BW = 240					# using all the BW available = 240 MHz
 Ns = 200					# 200 samples
 Ntar = 1					# Don't apply as only raw data is desired
-Rmax = 62				# Don't apply as only raw data is desired
+Rmax = 62					# Don't apply as only raw data is desired
 MTI = 2						# MTI mode disable because we want information of static and moving targets
 Mth = 1						# Don't apply as only raw data is desired
 Alpha = 10					# Don't apply to raw signals
@@ -25,7 +25,7 @@ movement_true = False 		# Don't apply as only raw data is desired
 # Serial Port configuration
 ser = serial.Serial()
 if (usb_communication):
-	ser.port = 'COM4'
+	ser.port = 'COM3'
 	ser.baudrate = 1e6
 else:
 	ser.port = '/dev/serial0'
@@ -70,10 +70,13 @@ if (not usb_communication):
 	sleep(timeSleep)
 
 resultsFileName = 'IQ.txt'
-fileResults = open(resultsFileName, 'w')
+#fileResults = open(resultsFileName, 'w')
 # iterations = 0
 t_0 = time()
-
+i = 0
+I = []
+Q = []
+t_i = []
 # infinite detection loop
 print("Loop running\n")
 while True:
@@ -81,20 +84,31 @@ while True:
 		# target detection request
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 		# Extract results from outputs
-		I = raw_results[0]
-		Q = raw_results[1]
+		I.append(raw_results[0])
+		Q.append(raw_results[1])
+		t_i.append(time())
+		period = t_i[len(t_i)-1]-t_i[len(t_i)-2]
+		print(str(period))
 
-		t_i = time()
-		IQ_string = ''
-		for index in range(len(I)):
-			IQ_string += '%d ' % I[index]
-		for index in range(len(Q)):
-			IQ_string += '%d ' % Q[index]
-
-		fileResults.write(IQ_string + '%1.3f\n' % t_i)
+		# i = i + 1
+		# if i>100:
+		# 	fupdate = i/(t_i[len(t_i)-1]-t_0)
+		# 	period = t_i[len(t_i)-1]-t_i[len(t_i)-2]
+		# 	print(str(fupdate))
+		# 	print(str(period))
+		# I
 
 	except KeyboardInterrupt:
-		print("Exiting gracefully\n")
+		print("Ending. Writing data to textfile\n")
+		I
 		uRAD_USB_SDK11.turnOFF(ser)
-		fileResults.close()
+
+		with open(resultsFileName, 'w') as f:
+			for j in range(len(I)):
+				IQ_string = ''
+				for index in range(len(I)):
+					IQ_string += '%d ' % I[j][index]
+				for index in range(len(Q)):
+					IQ_string += '%d ' % Q[j][index]
+				f.write(IQ_string + '%1.3f\n' % t_i[j])
 		exit()
