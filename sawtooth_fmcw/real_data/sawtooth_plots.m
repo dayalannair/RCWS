@@ -101,14 +101,37 @@ figure
 imagesc([],rng_bins, 10*log10(fftshift(abs(IQ2D))))
 ylabel("Range bin index")
 xlabel("Doppler bin index")
+%% Range and Doppler FFTs
 
-%% CFAR
+
+
+fs = 200e3;
+f = f_ax(200, fs);
 
 close all
 figure
-imagesc([],rng_bins, 10*log10(fftshift(rng_det.*)))
-ylabel("Range bin index")
-xlabel("Doppler bin index")
+for i = 1:n_sweeps
+    tiledlayout(2,1)
+    nexttile
+    plot(f/1000, 10*log10(fftshift(abs(fft_frames(:,i, 8).'))))
+    title("Range FFT")
+    nexttile
+    plot(10*log10(abs(fftshift(fft_frames(i,:,8).'))))
+    title("Doppler FFT")
+    hold off
+    pause(1)
+end
+
+
+
+
+%% CFAR
+
+% close all
+% figure
+% imagesc([],rng_bins, 10*log10(fftshift(rng_det.*))
+% ylabel("Range bin index")
+% xlabel("Doppler bin index")
 
 
 % close all
