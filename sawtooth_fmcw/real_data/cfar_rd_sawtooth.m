@@ -7,7 +7,7 @@ lambda = c/fc;
 tm = 1e-3;                      % Ramp duration
 bw = 240e6;                     % Bandwidth
 sweep_slope = bw/tm;
-
+addpath('../../library/');
 %% Import data
 subset = 1:512;%200:205;
 
@@ -27,12 +27,17 @@ gwin = gausswin(n_samples);
 % FFT
 n_fft = 1024;%512;
 % factor of signal to be nulled. 4% determined experimentally
+
+
+%IQ_UP = fftshift(fft(iq,n_fft,2));
+IQ2D = fft2(iq.');
+
+%%
+% CFAR
 nul_width_factor = 0.04;
 num_nul = round((n_fft/2)*nul_width_factor);
 nul_lower = round(n_fft/2 - num_nul);
 nul_upper = round(n_fft/2 + num_nul);
-
-IQ_UP = fftshift(fft(iq,n_fft,2));
 % from 20/200 = 0.1
 train_factor = 0.1;
 % from 4/200 = 0.02;

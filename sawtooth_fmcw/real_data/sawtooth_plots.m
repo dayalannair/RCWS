@@ -87,5 +87,17 @@ ylabel('Range (m)')
 % %xlabel('Time (seconds)')
 % ylabel('Speed (km/h)')
 
+%% 2D FFT
+fs = 200e3;
+f = f_ax(200, fs);
+
+rng_bins = beat2range(f.', sweep_slope, c);
+%spd_bins = 
+close all
+figure
+imagesc([],rng_bins, 10*log10(fftshift(abs(IQ2D))))
+ylabel("Range bin index")
+xlabel("Doppler bin index")
+
 
 
