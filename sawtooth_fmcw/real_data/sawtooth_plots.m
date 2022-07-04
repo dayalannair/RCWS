@@ -55,16 +55,19 @@ xlabel("Frequency (kHz)")
 %ylabel("Magnitude (dB)")
 
 %%
+fs = 200e3;
+f = f_ax(200, fs);
+
 close all
 figure
 for i = 1:n_sweeps
 %     plot(abs(iq_up(i,:)));
-    stem(f/1000,  10*log10(IQ_UP_peaks(i,:))); % rows and columns opp to data
-    hold on
+%     stem(f/1000,  10*log10(IQ_UP_peaks(i,:))); % rows and columns opp to data
+%     hold on
     %plot(fftshift(IQ_UP_normal(i,:)))
-    plot(f/1000, 10*log10(abs(IQ_UP(i,:))))
+    plot(f/1000, 10*log10(abs(IQ2D(:,i).')))
     hold on
-    plot(f/1000, 10*log10(upth(:, i)))
+    plot(f/1000, 10*log10(rng_th(i,:)))
     hold off
     pause(1)
 end
@@ -101,11 +104,15 @@ xlabel("Doppler bin index")
 
 %% CFAR
 
-
-
-
 close all
 figure
-imagesc([],rng_bins, )
+imagesc([],rng_bins, 10*log10(fftshift(rng_det.*)))
 ylabel("Range bin index")
 xlabel("Doppler bin index")
+
+
+% close all
+% figure
+% imagesc([],rng_bins, )
+% ylabel("Range bin index")
+% xlabel("Doppler bin index")

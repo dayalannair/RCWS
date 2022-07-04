@@ -28,7 +28,7 @@ gwin = gausswin(n_samples);
 n_fft = 1024;%512;
 % factor of signal to be nulled. 4% determined experimentally
 %IQ_UP = fftshift(fft(iq,n_fft,2));
-IQ2D = fft2(iq.');
+
 
 %%
 % CFAR
@@ -45,16 +45,22 @@ train = round(n_fft*train_factor);
 % false alarm rate - sets sensitivity
 F = 0.011; % see relevant papers
 
-% Assumes AWGN
-% research options
-% 4 bins -> car is 2m, bin is 0.6
-% try with simulated data and noise & clutter
+IQ2D = fft2(iq.');
 CFAR = phased.CFARDetector2D('TrainingBandSize',[20 20], ...
     'GuardBandSize',[4 2], ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
     'Method', 'SOCA', ...
     'ThresholdOutputPort', true);
+
+CFAR1D = phased.CFARDetector('NumTrainingCells',30, ...
+    'NumGuardCells',6, ...
+    'ThresholdFactor', 'Auto', ...
+    'ProbabilityFalseAlarm', F, ...
+    'Method', 'SOCA', ...
+    'ThresholdOutputPort', true);
+
+
 
 % modify CFAR code to simultaneously record beat frequencies
 %[1:n_sweeps; 1:n_samples]
@@ -71,11 +77,25 @@ end
 ncutcells = size(cutidx,2)
 
 %%
-[up_detections, upth] = CFAR(abs(IQ2D)', cutidx);
+[up_detections, upth] = CFAR(abs(fftshift(IQ2D)), cutidx);
+
+%%
 % fs = 200e3; %200 kHz
 % f = f_ax(n_fft, fs);
 % IQ_UP_peaks = abs(IQ_UP).*up_detections';
+close all
+% Range CFAR
+n_fft = 200;
+% one_rng_fft = IQ2D(:, 200);
+% figure
+% plot(fftshift(abs(one_rng_fft)))
 
+[rng_det, rng_th] = CFAR1D(abs(IQ2D)', 1:200);
+one_dop_fft = abs(IQ2D(100,:))';
+% figure
+% plot(fftshift(abs(one_dop_fft)))
+
+[dop_det, dop_th] = CFAR1D(abs(IQ2D), 1:512);
 %%
 % v_max = 60km/h , fd max = 2.7kHz approx 3kHz
 v_max = 60/3.6; 
