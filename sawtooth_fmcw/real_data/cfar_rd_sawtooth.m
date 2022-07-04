@@ -27,8 +27,6 @@ gwin = gausswin(n_samples);
 % FFT
 n_fft = 1024;%512;
 % factor of signal to be nulled. 4% determined experimentally
-
-
 %IQ_UP = fftshift(fft(iq,n_fft,2));
 IQ2D = fft2(iq.');
 
@@ -51,18 +49,32 @@ F = 0.011; % see relevant papers
 % research options
 % 4 bins -> car is 2m, bin is 0.6
 % try with simulated data and noise & clutter
-CFAR = phased.CFARDetector('NumTrainingCells',train, ...
-    'NumGuardCells',guard, ...
+CFAR = phased.CFARDetector2D('TrainingBandSize',[20 20], ...
+    'GuardBandSize',[4 2], ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
     'Method', 'SOCA', ...
     'ThresholdOutputPort', true);
 
 % modify CFAR code to simultaneously record beat frequencies
-[up_detections, upth] = CFAR(abs(IQ_UP)', 1:n_fft);
-fs = 200e3; %200 kHz
-f = f_ax(n_fft, fs);
-IQ_UP_peaks = abs(IQ_UP).*up_detections';
+%[1:n_sweeps; 1:n_samples]
+% rowidx = 1:n_sweeps;
+% colidx = 1:n_samples;
+% cutidx = [rowidx; colidx];
+%cutidx = zeros(2, )
+cutidx = [];
+for m = 1:n_sweeps
+    for n = 1:n_samples
+        cutidx = [cutidx,[n;m]];
+    end
+end
+ncutcells = size(cutidx,2)
+
+%%
+[up_detections, upth] = CFAR(abs(IQ2D)', cutidx);
+% fs = 200e3; %200 kHz
+% f = f_ax(n_fft, fs);
+% IQ_UP_peaks = abs(IQ_UP).*up_detections';
 
 %%
 % v_max = 60km/h , fd max = 2.7kHz approx 3kHz
@@ -74,23 +86,23 @@ range_array = zeros(n_sweeps,1);
 fd_array = zeros(n_sweeps,1);
 speed_array = zeros(n_sweeps,1);
 
-for i = 1:n_sweeps
-    
-    % SINGLE TARG:
-    % null feed through
-    IQ_UP_peaks(i,nul_lower:nul_upper) = 0;
-    
-    [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,:));
-
-    fb(i) = f(pk_idx_up);
-    
-    % hack for bad CFAR
-    if fb(i)>0
-        range_array(i) = beat2range(fb(i), sweep_slope, c);
-    else
-        range_array(i) = range_array(i-1);
-    end
-end
+% for i = 1:n_sweeps
+%     
+%     % SINGLE TARG:
+%     % null feed through
+%     IQ_UP_peaks(i,nul_lower:nul_upper) = 0;
+%     
+%     [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,:));
+% 
+%     fb(i) = f(pk_idx_up);
+%     
+%     % hack for bad CFAR
+%     if fb(i)>0
+%         range_array(i) = beat2range(fb(i), sweep_slope, c);
+%     else
+%         range_array(i) = range_array(i-1);
+%     end
+% end
 % Determine range
 % range_array = beat2range([ ])
 

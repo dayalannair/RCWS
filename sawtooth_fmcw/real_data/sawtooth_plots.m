@@ -99,5 +99,13 @@ imagesc([],rng_bins, 10*log10(fftshift(abs(IQ2D))))
 ylabel("Range bin index")
 xlabel("Doppler bin index")
 
+%% CFAR
 
 
+
+
+close all
+figure
+imagesc([],rng_bins, )
+ylabel("Range bin index")
+xlabel("Doppler bin index")

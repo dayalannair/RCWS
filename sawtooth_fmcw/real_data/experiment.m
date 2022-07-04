@@ -51,5 +51,18 @@ tframe = n_sweeps_per_frame*tsweep;
 close all
 figure
 plot(f/1000,fftshift(20*log10(abs(fft_frames(:,:,1)))))
+%% Square law detector
+iq = i_dat + 1i*q_dat;
+IQ = fft(iq, [], 2);
+iq2 = i_dat.^2 + q_dat.^2;
+IQ2 = fft(iq2, [], 2);
+fs = 200e3;
+f = f_ax(200, fs);
+close all 
+figure
+tiledlayout(2,1)
+nexttile
+plot(f/1000,fftshift(20*log10(abs(IQ(200:205,:)))))
 
-
+nexttile
+plot(f/1000,fftshift(20*log10(abs(IQ2(200:205,:)))))
