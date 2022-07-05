@@ -17,7 +17,7 @@ iq = i_dat + 1i*q_dat;
 
 n_samples = size(i_dat,2);
 n_sweeps = size(i_dat,1);
-n_sweeps_per_frame = 50;
+n_sweeps_per_frame = 128;
 n_frames = round(n_sweeps/n_sweeps_per_frame);
 
 % Gaussian window
@@ -160,7 +160,7 @@ for frame = 1:n_frames
     drawnow;
     pause(0.05)
 end
-% return;
+return;
 %% Last frame
 % close all
 % figure
@@ -208,7 +208,7 @@ end
 % Range
 
 rng_array = zeros(5,n_frames);
-
+fdop_array = zeros(5,n_frames);
 % for each frame
 for frame = 1:n_frames
     
@@ -223,6 +223,7 @@ for frame = 1:n_frames
         rows = coords(1, find(coords(1, :), 5));
         cols = coords(2, find(coords(2, :), 5));
         rng_array(1:length(rows),frame) = rng_bins(rows);
+        %fdop_array(1:length(cols),frame) = 
     end
 end
 %%
@@ -242,36 +243,54 @@ figure
 plot(t_ax, rng_time);
 hold on
 plot(t_ax, rng_time_smooth)
-
+ylabel("Range (m)")
+xlabel("linspaced time (s)")
 % Doppler
 
-%%
-close all
-figure
-tiledlayout(2,1)
-nexttile
-imagesc([], rng_bins, detimg)
-title("2D CFAR detections")
-grid
-nexttile
-imagesc([],rng_bins, fftshift(abs(fft_frames(:,:,frame))))
-title("2D FFT")
+%
+% close all
+% figure
+% tiledlayout(2,1)
+% nexttile
+% imagesc([], rng_bins, detimg)
+% title("2D CFAR detections")
+% grid
+% nexttile
+% imagesc([],rng_bins, fftshift(abs(fft_frames(:,:,frame))))
+% title("2D FFT")
 % imagesc([], rng_bins, th_img)
 % title("2D CFAR threshold")
-grid
+% grid
 %axis equal
-
 %IQ2D = fft2(iq.');
-%%
+%
 % close all
 % figure
 % imagesc(det)
 % %%
 % x = abs(fft_frames(:,:,3));
-%% plots
+% plots
 % 
+% close all
+% figure
+% plot(f/1000,fftshift(20*log10(abs(fft_frames(:,:,1)))))
+
+%% Phased Range Doppler
+
+rdresp = phased.RangeDopplerResponse('RangeMethod','FFT', ...
+    'PropagationSpeed',c, ...
+    'SampleRate',fs, ...
+    'OperatingFrequency',fc, ...
+    'SweepSlope', sweep_slope, ...
+    'RangeFFTLength', n_samples)
 close all
 figure
-plot(f/1000,fftshift(20*log10(abs(fft_frames(:,:,1)))))
+%%
+for frame = 1:n_frames
+    plotResponse(rdresp,iq_frames(:,:,frame), 'Unit','db', ...
+        'NormalizeDoppler',false)
+    pause(0.05)
+    drawnow;
+end
 
 
