@@ -1,3 +1,7 @@
+## Note: 
+- add data and library folders to MATLAB path after clone not needed if addpath() is called in each script
+- Data collection/radar programs are in data/urad_usb
+
 # Radar-based Vehicle Turn Safety System (VTSS)
 Radar-based system used to determine turn safety for road vehicles.
 

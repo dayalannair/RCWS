@@ -2,50 +2,45 @@
 fc = 24.005e9;
 c = physconst('LightSpeed');
 lambda = c/fc;
-tm = 1e-3;                    
+t_sweep = 1e-3;                    
 bw = 240e6;                    
-sweep_slope = bw/tm;
+sweep_slope = bw/t_sweep;
 addpath('../../library/');
+addpath('../../data/urad_usb/');
 
 % Import data
 subset = 1:512;
-iq_tbl=readtable('../../data/urad_usb/IQ_sawtooth.txt', ...
-    'Delimiter' ,' ');
+iq_tbl=readtable('IQ_sawtooth.txt', 'Delimiter' ,' ');
 i_dat = table2array(iq_tbl(subset,1:200));
 q_dat = table2array(iq_tbl(subset,201:400));
 iq = i_dat + 1i*q_dat;
 
 n_samples = size(i_dat,2);
 n_sweeps = size(i_dat,1);
-n_sweeps_per_frame = 32;
+n_sweeps_per_frame = 50;
 n_frames = round(n_sweeps/n_sweeps_per_frame);
 
 % Gaussian window
 % gwin = gausswin(n_samples);
 % iq = iq.*gwin.';
 
-%fft_frames = zeros(n_samples, n_sweeps_per_frame, n_frames);
-%lpf = txfeed_v1();
+n_fft = 512;%n_samples;
 
-% Axes
-n_fft = 512%n_samples;
-fs = 200e3;
-f = f_ax(n_fft, fs);
-rng_bins = beat2range(f.', sweep_slope, c);
-tsweep = 1e-3;
-tframe = n_sweeps_per_frame*tsweep;
+tframe = n_sweeps_per_frame*t_sweep;
 %fdop = f_ax
 
 % Reshape data set into frames and perform FFT
 fft_frames = zeros(n_samples, n_sweeps_per_frame, n_frames);
+iq_frames = zeros(n_samples, n_sweeps_per_frame, n_frames);
 for i = 1:n_frames
     p1 = (i-1)*n_sweeps_per_frame + 1;
     p2 = i*n_sweeps_per_frame;
     fft_frames(:,:,i) = fft2(iq(p1:p2, :).');
+    iq_frames(:,:,i) = iq(p1:p2, :).';
 end
 
 % CFAR
-F = 0.011;
+F = 0.00011;
 cfar2d = phased.CFARDetector2D('TrainingBandSize',[10 10], ...
     'GuardBandSize',[2 2], ...
     'ThresholdFactor', 'Auto', ...
@@ -53,7 +48,7 @@ cfar2d = phased.CFARDetector2D('TrainingBandSize',[10 10], ...
     'Method', 'SOCA', ...
     'ThresholdOutputPort', true);
 
-% You must restrict the locations of CUT cells 
+% Restrict the locations of CUT cells 
 % so that their training regions lie completely within the input images.
 % bounds = train + guard = 10 + 2 = 12 then add 1 pad
 Ngc = cfar2d.GuardBandSize(2);
@@ -82,7 +77,6 @@ close all
 figure
 imagesc(cutimage)
 %axis equal
-%%
 % figure
 % for i = 1:n_frames
 %     p1 = (i-1)*n_sweeps_per_frame + 1;
@@ -95,34 +89,98 @@ imagesc(cutimage)
 % %     view(69.5124980863678, 46.4092184844678);
 %     pause(1)
 % end
-[dets,th] = cfar2d(abs(fft_frames),cutidx);
-%%
-di = [];
-% loop through frames
-for k = 1:n_frames
-    % extract a set of detections from frame k
-    d = dets(:,k);
 
-    % if there is a detection in frame k
-    if (any(d))
-        % add frame index to di
-        di = [di,k];
-    end
-end
+%%
+% di = [];
+% % loop through frames
+% for k = 1:n_frames
+%     % extract a set of detections from frame k
+%     d = dets(:,k);
+% 
+%     % if there is a detection in frame k
+%     if (any(d))
+%         % add frame index to di
+%         di = [di,k];
+%     end
+% end
 % store first frame index
 %idx = di(1);
 detimg = zeros(n_samples,n_sweeps_per_frame);
-
+th_img = zeros(n_samples,n_sweeps_per_frame);
 % loop through total number of cells under test
 % ncuts per frame!
-frame = 1;
+%frame = 1;
+% NOTE: NEED TO FFT SHIFT HERE!
+[dets,th] = cfar2d(sftmagdb(fft_frames),cutidx);
+% Moving Plot
+close all
+figure
+for frame = 1:n_frames
+    for k = 1:ncutcells
+        % create image. extract each detection for frame
+        detimg(cutidx(1,k),cutidx(2,k)) = dets(k,frame);
+        th_img(cutidx(1,k),cutidx(2,k)) = th(k,frame);
+    end
+    tiledlayout(1,4)
+    nexttile
+    imagesc([], rng_bins, detimg)
+    title("2D CFAR detections")
+    ylabel("Range (m)")
+    grid
+    nexttile
+    imagesc([],rng_bins, sftmagdb(fft_frames(:,:,frame)))
+    title("2D FFT")
+    ylabel("Range (m)")
+    grid
+    nexttile
+    imagesc([], rng_bins, th_img)
+    title("2D CFAR threshold")
+    ylabel("Range (m)")
+    grid
+    nexttile
+    imagesc([], rng_bins,cutimage)
+    title("Cells under test")
+    ylabel("Range (m)")
+    grid
+    pause(1)
+end
+
+%% Last frame
+close all
+figure
+tiledlayout(1,4)
+nexttile
+surf(detimg)
+title("2D CFAR detections")
+ylabel("Range (m)")
+grid
+nexttile
+surf(sftmagdb(fft_frames(:,:,frame)))
+title("2D FFT")
+ylabel("Range (m)")
+grid
+nexttile
+surf(th_img)
+title("2D CFAR threshold")
+ylabel("Range (m)")
+grid
+nexttile
+surf(cutimage)
+title("Cells under test")
+ylabel("Range (m)")
+grid
+
+
+
+
+%% Detection
 for k = 1:ncutcells
     % create image. extract each detection for frame
     detimg(cutidx(1,k),cutidx(2,k)) = dets(k,frame);
+    th_img(cutidx(1,k),cutidx(2,k)) = th(k,frame);
 end
-
 %%
-frame = 10;
+frame = 6;
 % Select frame
 d = dets(:,frame);
 
@@ -139,11 +197,19 @@ range = rng_bins(row)
 
 % Doppler
 
-
 %%
 close all
 figure
+tiledlayout(2,1)
+nexttile
 imagesc([], rng_bins, detimg)
+title("2D CFAR detections")
+grid
+nexttile
+% imagesc([],rng_bins, fftshift(abs(fft_frames(:,:,frame))))
+% title("2D FFT")
+imagesc([], rng_bins, th_img)
+title("2D CFAR threshold")
 grid
 %axis equal
 
