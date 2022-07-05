@@ -29,6 +29,13 @@ fs = 200e3;
 f = f_ax(200, fs);
 rng_bins = beat2range(f.', sweep_slope, c);
 
+% Radial velocity axis
+% 2pif = w ---> f = w/2pi
+% V = f*lambda ---> Two way V = 0.5f*lambda = w/4pi * lamda
+angular_freq = -n_sweeps_per_frame/2:n_sweeps_per_frame/2;
+vel_bins = lambda/(4*pi).*angular_freq;
+
+
 n_fft = 512;%n_samples;
 
 tframe = n_sweeps_per_frame*t_sweep;
@@ -138,7 +145,7 @@ for frame = 1:n_frames
     end
     tiledlayout(1,4)
     nexttile
-    imagesc([], rng_bins, detimg)
+    imagesc(vel_bins, rng_bins, detimg)
     title("2D CFAR detections")
     ylabel("Range (m)")
     grid
@@ -282,13 +289,13 @@ rdresp = phased.RangeDopplerResponse('RangeMethod','FFT', ...
     'SampleRate',fs, ...
     'OperatingFrequency',fc, ...
     'SweepSlope', sweep_slope, ...
-    'RangeFFTLength', n_samples)
+    'RangeFFTLength', n_samples, ...
+    'DopplerOutput','Speed')
 close all
 figure
 %%
 for frame = 1:n_frames
-    plotResponse(rdresp,iq_frames(:,:,frame), 'Unit','db', ...
-        'NormalizeDoppler',false)
+    plotResponse(rdresp,iq_frames(:,:,frame), 'Unit','db')
     pause(0.05)
     drawnow;
 end
