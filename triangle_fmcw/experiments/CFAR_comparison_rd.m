@@ -12,7 +12,7 @@ n_fft = 1024;%512;
 % factor of signal to be nulled. 4% determined experimentally
 nul_width_factor = 0.04;
 num_nul = round((n_fft/2)*nul_width_factor);
-nul_lower = round(n_fft/2 - num_nul);
+nul_lower = round(n_fft/2 - num_nul)nul_lower;
 nul_upper = round(n_fft/2 + num_nul);
 
 IQ_UP = fftshift(fft(iq_u,n_fft,2));
