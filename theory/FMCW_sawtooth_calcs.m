@@ -68,6 +68,7 @@ n = 60
 rmax = c*n/(4*bw)
 tc = n/fs;
 vmax = lambda/(4*tc)*3.6
+range_res = c/(2*bw) % ---> sim to data sheet?
 % Terrible!
 %%
 close all
