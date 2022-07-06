@@ -54,13 +54,15 @@ for i = 1:n_frames
 end
 
 %% CFAR
+figure('WindowState','maximized');
+movegui('east')
 % ISSUE: cant make band to big for rows. doesnt make sense
 % F reduced does not help tx feedthrough, though it does reduce
 % spots and doppler false alarms
 F = 1e-9; % for GOCA
 %F = 0.01;
 cfar2d = phased.CFARDetector2D('TrainingBandSize',[17 10], ...
-    'GuardBandSize',[4 2], ...
+    'GuardBandSize',[4 4], ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
     'Method', 'SOCA', ...
@@ -91,10 +93,11 @@ cutimage = zeros(200,40);
 for k = 1:ncutcells
     cutimage(cutidx(1,k),cutidx(2,k)) = 1;
 end
-% close all
-% figure
-% imagesc(cutimage)
-%axis equal
+close all
+figure
+imagesc(cutimage)
+axis equal
+%%
 % figure
 % for i = 1:n_frames
 %     p1 = (i-1)*n_sweeps_per_frame + 1;
@@ -108,7 +111,7 @@ end
 %     pause(1)
 % end
 
-%%
+%
 % di = [];
 % % loop through frames
 % for k = 1:n_frames
@@ -135,11 +138,8 @@ th_img = zeros(n_samples,n_sweeps_per_frame);
 % NOTE: NEED TO FFT SHIFT HERE!
 % NOTE: Must not get dBs here. Linear is better for CFAR
 [dets,th] = cfar2d(sftmag((fft_frames)),cutidx);
-%% Moving Plot
+% Moving Plot
 %close all
-figure('WindowState','maximized');
-movegui('east')
-%%
 for frame = 1:n_frames
     for k = 1:ncutcells
         % create image. extract each detection for frame
