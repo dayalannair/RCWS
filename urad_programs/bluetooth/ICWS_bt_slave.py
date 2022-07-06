@@ -45,7 +45,7 @@ c = BluetoothClient("DC:A6:32:53:1F:9D", data_received)
 ser = serial.Serial()
 if (usb_communication):
 	# Port differs for different PCs
-	ser.port = '/dev/ttyACM0'
+	ser.port = '/dev/ttyS12'
 	ser.baudrate = 1e6
 else:
 	# UART

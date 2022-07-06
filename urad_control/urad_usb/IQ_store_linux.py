@@ -1,4 +1,4 @@
-import uRAD_USB_SDK11		# import uRAD libray
+import uRAD_USB_SDK11
 import serial
 from time import time, sleep, time_ns
 import sys
@@ -43,7 +43,8 @@ movement_true = False 		# Don't apply as only raw data is desired
 # Serial Port configuration
 ser = serial.Serial()
 if (usb_communication):
-	ser.port = 'COM3'
+	#ser.port = 'COM3'
+	ser.port = '/dev/ttyACM0'
 	ser.baudrate = 1e6
 else:
 	ser.port = '/dev/serial0'
@@ -63,17 +64,20 @@ def closeProgram():
 	# switch OFF uRAD
 	return_code = uRAD_USB_SDK11.turnOFF(ser)
 	if (return_code != 0):
+		print("Ending")
 		exit()
 
 # Open serial port
 try:
 	ser.open()
 except:
+	print("COM port failed to open")
 	closeProgram()
 
 # switch ON uRAD
 return_code = uRAD_USB_SDK11.turnON(ser)
 if (return_code != 0):
+	print("uRAD failed to turn on")
 	closeProgram()
 
 if (not usb_communication):
@@ -82,6 +86,7 @@ if (not usb_communication):
 # loadConfiguration uRAD
 return_code = uRAD_USB_SDK11.loadConfiguration(ser, mode, f0, BW, Ns, Ntar, Rmax, MTI, Mth, Alpha, distance_true, velocity_true, SNR_true, I_true, Q_true, movement_true)
 if (return_code != 0):
+	print("uRAD configuration failed")
 	closeProgram()
 
 if (not usb_communication):
@@ -93,21 +98,18 @@ t_0 = time()
 i = 0
 I = []
 Q = []
-t_i = []
-sweeps = 512
+sweeps = 2048
 # infinite detection loop
 print("Loop running\n")
 
 try:
 	for i in range(sweeps):
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
-		#print(return_code)
 		I.append(raw_results[0])
 		Q.append(raw_results[1])
-		#t_i.append(clock())
 
-	uRAD_USB_SDK11.turnOFF(ser)
 	print("Ending. Writing data to textfile...\n")
+	uRAD_USB_SDK11.turnOFF(ser)
 	sweeps = len(I)
 	samples = len(I[1])
 	

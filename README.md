@@ -4,6 +4,7 @@
 
 Link to data storage:
 https://uctcloud-my.sharepoint.com/:f:/g/personal/nrxday001_myuct_ac_za/EjFL7omlg09PrdxWb3c22k4BgLi7pwkYM-8y16FP6_n1MA?e=45jsQ6
+### Note: USB for linux found using lsusb. Currently using ACM0. Device is infineon technologies
 
 # Radar-based Vehicle Turn Safety System (VTSS)
 Radar-based system used to determine turn safety for road vehicles.
