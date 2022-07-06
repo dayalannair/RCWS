@@ -53,16 +53,17 @@ for i = 1:n_frames
     iq_frames(:,:,i) = iq(p1:p2, :).';
 end
 
-% CFAR
+%% CFAR
 % ISSUE: cant make band to big for rows. doesnt make sense
 % F reduced does not help tx feedthrough, though it does reduce
 % spots and doppler false alarms
-F = 1e-9;
+F = 1e-9; % for GOCA
+%F = 0.01;
 cfar2d = phased.CFARDetector2D('TrainingBandSize',[17 10], ...
     'GuardBandSize',[4 2], ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
-    'Method', 'GOCA', ...
+    'Method', 'SOCA', ...
     'ThresholdOutputPort', true);
 
 % Restrict the locations of CUT cells 
@@ -86,10 +87,10 @@ for m = colstart:colend
 end
 ncutcells = size(cutidx,2);
 
-% cutimage = zeros(200,40);
-% for k = 1:ncutcells
-%     cutimage(cutidx(1,k),cutidx(2,k)) = 1;
-% end
+cutimage = zeros(200,40);
+for k = 1:ncutcells
+    cutimage(cutidx(1,k),cutidx(2,k)) = 1;
+end
 % close all
 % figure
 % imagesc(cutimage)
@@ -167,7 +168,7 @@ for frame = 1:n_frames
     ylabel("Range (m)")
     grid
     drawnow;
-    pause(0.05)
+    pause(2)
 end
 return;
 %% Last frame

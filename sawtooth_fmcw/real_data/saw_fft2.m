@@ -20,9 +20,7 @@ n_frames = round(n_sweeps/n_sweeps_per_frame);
 % Gaussian window
 rng_gwin = gausswin(n_samples);
 vel_gwin = gausswin(n_sweeps_per_frame);
-iq = iq.*rng_gwin.';
-iq = iq.'.*vel_gwin;
-iq = iq.'
+%iq = iq.*rng_gwin.';
 
 % Range axis
 fs = 200e3;
@@ -38,15 +36,23 @@ angular_freq = -n_sweeps_per_frame/2:(n_sweeps_per_frame/2 -1);
 %fdop = f_ax
 
 % Reshape data set into frames and perform FFT
+% Range on y-axis/as rows
 fft_frames = zeros(n_samples, n_sweeps_per_frame, n_frames);
 iq_frames = zeros(n_samples, n_sweeps_per_frame, n_frames);
+
+t_sweep = 1e-3;
+t_frame = n_sweeps_per_frame*t_sweep
 close all
 figure
 for fr = 1:n_frames
     p1 = (fr-1)*n_sweeps_per_frame + 1;
     p2 = fr*n_sweeps_per_frame;
-    fft_frames(:,:,fr) = fft2(iq(p1:p2, :).');
-    iq_frames(:,:,fr) = iq(p1:p2, :).';
+    %Doppler Window
+    iq_frame = iq(p1:p2, :);
+    %iq_conjwin = iq_frame.*vel_gwin; % will multiply rows
+    iq_conjwin = iq_frame;
+    fft_frames(:,:,fr) = fft2(iq_conjwin.');
+    iq_frames(:,:,fr) = iq_conjwin.';
     % Plots
 for i = 1:n_sweeps
     tiledlayout(2,1)
@@ -57,22 +63,26 @@ for i = 1:n_sweeps
     plot(angular_freq,sftmag(fft_frames(i,:,fr).'))
     title("Doppler FFT")
     hold off
-    pause(0.1)
+    pause(t_frame)
 end
+%     imagesc(sftmagdb(fft_frames(:,:,fr)))
+%     pause(t_frame)
 end
 %%
 % Plots
-for i = 1:n_sweeps
-    tiledlayout(2,1)
-    nexttile
-    plot(f/1000, 10*log10(fftshift(abs(fft_frames(:,i, 8).'))))
-    title("Range FFT")
-    nexttile
-    plot(10*log10(abs(fftshift(fft_frames(i,:,8).'))))
-    title("Doppler FFT")
-    hold off
-    pause(1)
-end
+% close all
+% figure
+% for i = 1:n_sweeps
+%     tiledlayout(2,1)
+%     nexttile
+%     plot(f/1000, 10*log10(fftshift(abs(fft_frames(:,i, 8).'))))
+%     title("Range FFT")
+%     nexttile
+%     plot(10*log10(abs(fftshift(fft_frames(i,:,8).'))))
+%     title("Doppler FFT")
+%     hold off
+%     pause(1)
+% end
 
 
 
