@@ -1,4 +1,5 @@
 % Parameters
+close all
 fc = 24.005e9;
 c = physconst('LightSpeed');
 lambda = c/fc;
@@ -26,35 +27,41 @@ rng_bins = beat2range(f.', sweep_slope, c);
 angular_freq = f_ax(n_sweeps_per_frame, 1/t_sweep);
 vel_bins = lambda/(4*pi).*angular_freq;
 
-%%
-close all
+
 figure('WindowState','maximized');
 movegui('east')
 
-%F = 1e-9; % for GOCA
-F = 0.000005;
-nt = 50;   
-ng = 6; 
+F = 1e-9; % for GOCA
+% NOTE STRANGE: ALL values below are the maximum they can be, 
+% unknown reason
+ntr = 20;   % row train
+ntc = 20;   % column train. Somehow 10 is max
+ngr = 4;  % row guard
+ngc = 4; % column guard. 2 is max
 
 % METHOD 2: Separate CFAR
-cfar = phased.CFARDetector('NumTrainingCells',ntc, ...
+
+rng_cfar = phased.CFARDetector('NumTrainingCells',ntc, ...
     'NumGuardCells',ngc, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
-    'Method', 'OS', ...
-    'Rank', 18);
+    'Method', 'SOCA');
 
-% cfar = phased.CFARDetector('NumTrainingCells',ntc, ...
-%     'NumGuardCells',ngc, ...
-%     'ThresholdFactor', 'Auto', ...
-%     'ProbabilityFalseAlarm', F, ...
-%     'Method', 'SOCA');
+vel_cfar = phased.CFARDetector('NumTrainingCells',ntr, ...
+    'NumGuardCells',ngr, ...
+    'ThresholdFactor', 'Auto', ...
+    'ProbabilityFalseAlarm', F, ...
+    'Method', 'SOCA');
 
 n_samples = nfft;
 rng_dets = zeros(n_samples,n_sweeps_per_frame,n_frames);
-
+%vel_dets = zeros(n_samples,n_sweeps_per_frame,n_frames);
+%det_frames = zeros(n_samples,n_sweeps_per_frame,n_frames);
+% may not be better than 2D cfar...
 for frame = 1:n_frames
-    rng_dets(:,:,frame) = cfar(sftmag((fft_frames(:,:,frame))),1:n_samples);
+    rng_dets(:,:,frame) = rng_cfar(sftmag((fft_frames(:,:,frame))),1:n_samples);
+    %vel_dets(:,:,frame) = vel_cfar(sftmag((fft_frames(:,:,frame))),1:n_sweeps_per_frame);
+    %det_frames(:,:,frame) = rng_dets(:,:,frame).*vel_dets(:,:,frame);
     tiledlayout(1,2)
     nexttile
     imagesc(vel_bins, rng_bins, rng_dets(:,:,frame))
@@ -75,5 +82,5 @@ for frame = 1:n_frames
 %     xlabel("Radial Velocity (m/s)")
 %     grid
     drawnow;
-    pause(0.3)
+    pause(0.2)
 end
