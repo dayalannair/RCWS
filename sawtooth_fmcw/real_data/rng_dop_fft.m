@@ -6,13 +6,15 @@ t_sweep = 1e-3;
 bw = 240e6;                    
 sweep_slope = bw/t_sweep;
 addpath('../../library/');
-addpath('../../data/urad_usb/');
+% addpath('../../data/urad_usb/');
+addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/');
 
 % Import data
-subset = 1:512;
-iq_tbl=readtable('IQ_sawtooth.txt', 'Delimiter' ,' ');
-i_dat = table2array(iq_tbl(subset,1:200));
-q_dat = table2array(iq_tbl(subset,201:400));
+%subset = 1:512;
+%iq_tbl=readtable('IQ_sawtooth4096_backyrd.txt', 'Delimiter' ,' ');
+iq_tbl=readtable('IQ_sawtooth2048_bkyrd_fast.txt', 'Delimiter' ,' ');
+i_dat = table2array(iq_tbl(:,1:200));
+q_dat = table2array(iq_tbl(:,201:400));
 iq = i_dat + 1i*q_dat;
 
 n_samples = size(i_dat,2);
@@ -84,13 +86,13 @@ for m = colstart:colend
 end
 ncutcells = size(cutidx,2);
 
-cutimage = zeros(200,40);
-for k = 1:ncutcells
-    cutimage(cutidx(1,k),cutidx(2,k)) = 1;
-end
-close all
-figure
-imagesc(cutimage)
+% cutimage = zeros(200,40);
+% for k = 1:ncutcells
+%     cutimage(cutidx(1,k),cutidx(2,k)) = 1;
+% end
+% close all
+% figure
+% imagesc(cutimage)
 %axis equal
 % figure
 % for i = 1:n_frames
@@ -291,9 +293,10 @@ rdresp = phased.RangeDopplerResponse('RangeMethod','FFT', ...
     'SweepSlope', sweep_slope, ...
     'RangeFFTLength', n_samples, ...
     'DopplerOutput','Speed')
+
+%%
 close all
 figure
-%%
 for frame = 1:n_frames
     plotResponse(rdresp,iq_frames(:,:,frame), 'Unit','db')
     pause(0.05)
