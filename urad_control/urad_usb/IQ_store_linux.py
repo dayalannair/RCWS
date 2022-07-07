@@ -32,9 +32,8 @@ except:
 
 
 # input parameters
+# BW and Ns input as arguments
 f0 = 5						# starting at 24.005 GHz
-BW = 240					# using all the BW available = 240 MHz
-Ns = 200					# 200 samples
 I_true = True 				# In-Phase Component (RAW data) requested
 Q_true = True 				# Quadrature Component (RAW data) requested
 
