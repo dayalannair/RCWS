@@ -50,6 +50,7 @@ max_distance_per_sweep = v_max*t_sweep
 az_res_50m = az_beam*r_max*pi/180
 
 % VERIFY below
+v_max = 60/3.6
 t_targ_in_range_bin = rng_res_datasheet/v_max
 
 % should allow this many sweeps per cell
