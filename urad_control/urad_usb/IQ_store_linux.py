@@ -7,21 +7,30 @@ import sys
 usb_communication = True
 
 try:
-    mode_in = str(sys.argv[1])
-    if mode_in == "s":
-        print("********** SAWTOOTH MODE **********")
-        resultsFileName = 'IQ_sawtooth.txt'
-        mode = 2					
-    elif mode_in == "t":
-        print("********** TRIANGLE MODE **********")
-        resultsFileName = 'IQ_triangle.txt'
-        mode = 3					
-    else: 
-        print("Invalid mode")
-        exit()
+	mode_in = str(sys.argv[1])
+	BW = int(sys.argv[2])
+	Ns = int(sys.argv[3])
+	sweeps = int(sys.argv[4])
+	fs = 200000
+	runtime = sweeps*Ns/200000
+	if mode_in == "s":
+		print("********** SAWTOOTH MODE **********")
+		resultsFileName = 'IQ_sawtooth.txt'
+		mode = 2					
+	elif mode_in == "t":
+		print("********** TRIANGLE MODE **********")
+		resultsFileName = 'IQ_triangle.txt'
+		mode = 3					
+	else: 
+		print("Invalid mode")
+		exit()
+	print("BW = ",str(BW),"\nNs = ",str(Ns),"\nSweeps = ",str(sweeps))
+	print("Expected run time: ",str(runtime))
 except: 
-    print("Invalid mode")
-    exit()
+	print("Invalid mode")
+	exit()
+
+
 # input parameters
 f0 = 5						# starting at 24.005 GHz
 BW = 240					# using all the BW available = 240 MHz
@@ -92,16 +101,11 @@ if (return_code != 0):
 if (not usb_communication):
 	sleep(timeSleep)
 
-#fileResults = open(resultsFileName, 'w')
-# iterations = 0
 t_0 = time()
 i = 0
 I = []
 Q = []
-sweeps = 2048
-# infinite detection loop
 print("Loop running\n")
-
 try:
 	for i in range(sweeps):
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)

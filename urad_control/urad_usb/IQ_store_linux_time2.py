@@ -7,21 +7,30 @@ import sys
 usb_communication = True
 
 try:
-    mode_in = str(sys.argv[1])
-    if mode_in == "s":
-        print("********** SAWTOOTH MODE **********")
-        resultsFileName = 'IQ_sawtooth.txt'
-        mode = 2					
-    elif mode_in == "t":
-        print("********** TRIANGLE MODE **********")
-        resultsFileName = 'IQ_triangle.txt'
-        mode = 3					
-    else: 
-        print("Invalid mode")
-        exit()
+	mode_in = str(sys.argv[1])
+	BW = int(sys.argv[2])
+	Ns = int(sys.argv[3])
+	sweeps = int(sys.argv[4])
+	fs = 200000
+	runtime = sweeps*Ns/200000
+	if mode_in == "s":
+		print("********** SAWTOOTH MODE **********")
+		resultsFileName = 'IQ_sawtooth_t.txt'
+		mode = 2					
+	elif mode_in == "t":
+		print("********** TRIANGLE MODE **********")
+		resultsFileName = 'IQ_triangle_t.txt'
+		mode = 3					
+	else: 
+		print("Invalid mode")
+		exit()
+	print("BW = ",str(BW),"\nNs = ",str(Ns),"\nSweeps = ",str(sweeps))
+	print("Expected run time: ",str(runtime))
 except: 
-    print("Invalid mode")
-    exit()
+	print("Invalid mode")
+	exit()
+
+
 # input parameters
 f0 = 5						# starting at 24.005 GHz
 BW = 240					# using all the BW available = 240 MHz
@@ -92,39 +101,28 @@ if (return_code != 0):
 if (not usb_communication):
 	sleep(timeSleep)
 
-#fileResults = open(resultsFileName, 'w')
-# iterations = 0
 t_0 = time_ns()
+t_i = []
 i = 0
 I = []
 Q = []
-t_i = []
-sweeps = 1024
-# infinite detection loop
 print("Loop running\n")
-
+print(str(t_0/10e9))
 try:
 	for i in range(sweeps):
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
-		#print(return_code)
 		I.append(raw_results[0])
 		Q.append(raw_results[1])
-		#t_i.append(clock())
 		t_i.append(time_ns())
-		
+
 		# Signal period
-		#period = t_i[len(t_i)-1]-t_i[len(t_i)-2]
+		period = t_i[len(t_i)-1]-t_i[len(t_i)-2]
 		
 		# Elapsed time
 		#period = t_i[len(t_i)-1] - t_0
-		#print(str(period/10e9))
-
-	# Elapsed time
-	period = t_i[len(t_i)-1] - t_0
-	print(str(period/10e9))
-
-	uRAD_USB_SDK11.turnOFF(ser)
+		print(str(period/10e9))
 	print("Ending. Writing data to textfile...\n")
+	uRAD_USB_SDK11.turnOFF(ser)
 	sweeps = len(I)
 	samples = len(I[1])
 	
@@ -135,7 +133,7 @@ try:
 				IQ_string += '%d ' % I[sweep][sample]
 			for sample in range(samples):
 				IQ_string += '%d ' % Q[sweep][sample]
-			f.write(IQ_string + '%1.3f\n' % t_i[sweep]/10e9)
+			f.write(IQ_string + '%1.3f\n' % int(t_i[sweep]/10e9))
 	print("Complete.")
 	
 except KeyboardInterrupt:
