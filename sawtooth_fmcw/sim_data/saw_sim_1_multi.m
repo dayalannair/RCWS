@@ -17,7 +17,7 @@ n = round(fs*tc);
 rng_res = bw2rangeres(bw,c);
 sweep_slope = bw/tc;
 
-
+addpath('../../library/');
 r_max = c*n/(4*bw);
 v_max = lambda/(4*tc);
 fd_max = speed2dop(2*v_max,lambda);
@@ -53,18 +53,33 @@ receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
     'SampleRate',fs_wav_gen);
 
 %% Scenario
-car_dist = 30;
-car_speed = 20/3.6;
-car_rcs = db2pow(min(10*log10(car_dist)+5,20));
+% Target parameters
+car1_x_dist = 30;
+car1_y_dist = 2;
+car1_speed = 30/3.6;
+car2_x_dist = 15;
+car2_y_dist = -2;
+car2_speed = 20/3.6;
 
-cartarget = phased.RadarTarget('MeanRCS',car_rcs,'PropagationSpeed',c,...
+car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
+car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
+
+car1_rcs = db2pow(min(10*log10(car1_dist)+5,20));
+car2_rcs = db2pow(min(10*log10(car2_dist)+5,20));
+
+% Define reflected signal
+cartarget = phased.RadarTarget('MeanRCS',[car1_rcs car2_rcs], ...
+    'PropagationSpeed',c,...
     'OperatingFrequency',fc);
 
-carmotion = phased.Platform('InitialPosition',[car_dist;0;0.5],...
-    'Velocity',[-car_speed;0;0]);
+% Define target motion - 2 targets
+carmotion = phased.Platform('InitialPosition', ...
+    [car1_x_dist car2_x_dist;car1_y_dist car2_y_dist;0.5 0.5],...
+    'Velocity',[-car1_speed -car2_speed;0 0;0 0]);
 
 channel = phased.FreeSpace('PropagationSpeed',c,...
-    'OperatingFrequency',fc,'SampleRate',fs_wav_gen,'TwoWayPropagation',true);
+    'OperatingFrequency',fc,'SampleRate',fs_wav_gen, ...
+    'TwoWayPropagation',true);
 
 radar_speed = 0;
 radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
@@ -79,46 +94,75 @@ radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
 rng(2012);
 % Theoretically target in range bin for 0.09 sec therefore 90 sweeps
 n_sweeps = 64;
-xr = complex(zeros(waveform.SampleRate*waveform.SweepTime,n_sweeps));
 % Decimate to simulate ADC
 Dn = fix(fs_wav_gen/(fs));
-%Dn = fix(fs_wav_gen/(2*fb_max));
-xr_d = zeros(n,n_sweeps);
+steps = 40;
+sweeptime = waveform.SweepTime;
 
-for m = 1:n_sweeps
-    % Update radar and target positions
-    [radar_pos,radar_vel] = radarmotion(waveform.SweepTime);
-    [tgt_pos,tgt_vel] = carmotion(waveform.SweepTime);
+Nsamp = round(waveform.SampleRate*sweeptime);
 
-    % Transmit FMCW waveform
-    sig = waveform();
-    txsig = transmitter(sig);
+xr = complex(zeros(Nsamp,Nsweep));
+xr_d = complex(zeros(n,Nsweep));
 
-    % Propagate the signal and reflect off the target
-    txsig = channel(txsig,radar_pos,tgt_pos,radar_vel,tgt_vel);
-    txsig = cartarget(txsig);
+Ntgt = numel(cartarget.MeanRCS);
+for step = 1:steps
+%     [xr, xr_d] = simulate_sweeps(n_sweeps,waveform, ...
+%         radarmotion,carmotion,transmitter, ...
+%         channel, cartarget,receiver, Dn, n);
+    % Cant put loop in function as motion is reset
+    for m = 1:Nsweep
+        % Update radar and target positions
+        [radar_pos,radar_vel] = radarmotion(sweeptime);
+        [tgt_pos,tgt_vel] = carmotion(sweeptime);
+        sig = waveform();
+        txsig = transmitter(sig);
+        rxsig = complex(zeros(Nsamp,Ntgt));
+        for n = 1:Ntgt
+            rxsig(:,n) = channel(txsig,radar_pos,tgt_pos(:,n),radar_vel,tgt_vel(:,n));
+        end
+        rxsig = cartarget(rxsig);
+        rxsig = receiver(sum(rxsig,2));
+        xd = dechirp(rxsig,sig);
+    
+        xr(:,m) = xd;
+        xr_d(:,m) = decimate(xr(:,m),Dn);
+        % for m = 1:n_sweeps
+        %     % Update radar and target positions
+        %     [radar_pos,radar_vel] = radarmotion(waveform.SweepTime);
+        %     [tgt_pos,tgt_vel] = carmotion(waveform.SweepTime);
+        % 
+        %     % Transmit FMCW waveform
+        %     sig = waveform();
+        %     txsig = transmitter(sig);
+        % 
+        %     % Propagate the signal and reflect off the target
+        %     txsig = channel(txsig,radar_pos,tgt_pos,radar_vel,tgt_vel);
+        %     txsig = cartarget(txsig);
+        % 
+        %     % Dechirp the received radar return
+        %     txsig = receiver(txsig);
+        %     dechirpsig = dechirp(txsig,sig);
+        % 
+        %     % Visualize the spectrum
+        % %     specanalyzer([txsig dechirpsig]);
+        % 
+        %     xr(:,m) = dechirpsig;
+        %     xr_d(:,m) = decimate(xr(:,m),Dn);%,'FIR');
+        % end
+        % map
 
-    % Dechirp the received radar return
-    txsig = receiver(txsig);
-    dechirpsig = dechirp(txsig,sig);
-
-    % Visualize the spectrum
-%     specanalyzer([txsig dechirpsig]);
-
-    xr(:,m) = dechirpsig;
-    xr_d(:,m) = decimate(xr(:,m),Dn);%,'FIR');
+    end
+    rngdopresp = phased.RangeDopplerResponse('PropagationSpeed',c,...
+            'DopplerOutput','Speed','OperatingFrequency',fc,'SampleRate',fs,...
+            'RangeMethod','FFT','SweepSlope',sweep_slope,...
+            'RangeFFTLengthSource','Property','RangeFFTLength',1024,...
+            'DopplerFFTLengthSource','Property','DopplerFFTLength',256);
+        clf;
+        plotResponse(rngdopresp,xr_d);    
+        axis([-v_max v_max 0 r_max])
+        clim = caxis;
+        pause(0.1)
 end
-%% Their map
-rngdopresp = phased.RangeDopplerResponse('PropagationSpeed',c,...
-    'DopplerOutput','Speed','OperatingFrequency',fc,'SampleRate',fs,...
-    'RangeMethod','FFT','SweepSlope',sweep_slope,...
-    'RangeFFTLengthSource','Property','RangeFFTLength',1024,...
-    'DopplerFFTLengthSource','Property','DopplerFFTLength',256);
-
-clf;
-plotResponse(rngdopresp,xr_d);    
-%axis([-v_max v_max 0 r_max])
-clim = caxis;
 % Fixed v max error by decimating to sim adc sampling
 % Range error? seems to reduce axis when reducing fft length
 return;
