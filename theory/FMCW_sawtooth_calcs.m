@@ -54,7 +54,7 @@ r_max_new = c*N_new/(4*bw)
 
 rmax_array = zeros(200,1);
 vmax_array = zeros(200,1);
-bw = 100e6;
+bw = 75e6;
 for n = 1:200
     rmax_array(n) = c*n/(4*bw);
     tc = n/fs;
@@ -71,18 +71,25 @@ vmax = lambda/(4*tc)*3.6
 range_res = c/(2*bw) % ---> sim to data sheet?
 % Terrible!
 %%
-close all
-figure
-plot(mag2db(rmax_array), 'DisplayName','Max ranges')
-yyaxis left
-ylabel("Range (dB meters)")
-xlabel("Number of ADC samples")
-hold on
-plot(mag2db(vmax_array), 'DisplayName','Max Velocities')
-yyaxis right
-ylabel("Velocity (kmdB/h)")
-xlabel("Number of ADC samples")
-legend
+% v_good_dbkmh = mag2db(60);
+% close all
+% figure
+% plot(rmax_array, 'DisplayName','Max ranges')
+% % axis([0 200 0 60])
+% yline(50, '-', '50 m')
+% yyaxis left
+% % ylim([0, 60])
+% ylabel("Range (m)")
+% xlabel("Number of ADC samples")
+% hold on
+% yyaxis right
+% plot(vmax_array, 'DisplayName','Max Velocities')
+% % ylim([0, 60])
+% % yline(60, '-', '60 km/h')
+% % axis([0 200 0 60])
+% ylabel("Velocity (km/h)")
+% xlabel("Number of ADC samples")
+% legend
 % plot(rmax_array)
 % yyaxis left
 % ylabel("Range (dB meters)")
@@ -90,3 +97,21 @@ legend
 % plot(vmax_array)
 % yyaxis right
 % ylabel("Velocity (kmdB/h)")
+
+%% Separate plot for better axes
+close all
+figure
+tiledlayout(2,1)
+nexttile
+plot(rmax_array, 'DisplayName','Max ranges')
+axis([0 200 0 60])
+yline(50, '-', '50 m')
+ylabel("Range (m)")
+xlabel("Number of ADC samples")
+nexttile
+plot(vmax_array, 'DisplayName','Max Velocities')
+yline(60, '-', '60 km/h')
+axis([0 200 0 70])
+ylabel("Velocity (km/h)")
+xlabel("Number of ADC samples")
+
