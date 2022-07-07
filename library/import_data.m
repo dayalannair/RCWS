@@ -6,9 +6,10 @@ function [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps)
     tm = 1e-3;                      % Ramp duration
     bw = 240e6;                     % Bandwidth
     k = bw/tm;                      % Sweep slope
-    
     % Data
-    iq_tbl=readtable('trig_fmcw_data\IQ_0_1024_sweeps.txt','Delimiter' ,' ');
+    % NOTE: Path must be added in the program calling this function
+    % i.e. path is relative to the call function
+    iq_tbl=readtable('IQ_0_1024_sweeps.txt','Delimiter' ,' ');
     t_stamps = iq_tbl.Var801;
     i_up = table2array(iq_tbl(sweeps,1:200));
     i_down = table2array(iq_tbl(sweeps,201:400));
