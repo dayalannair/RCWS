@@ -54,7 +54,7 @@ r_max_new = c*N_new/(4*bw)
 
 rmax_array = zeros(200,1);
 vmax_array = zeros(200,1);
-bw = 75e6;
+bw = 100e6;
 for n = 1:200
     rmax_array(n) = c*n/(4*bw);
     tc = n/fs;
@@ -64,7 +64,7 @@ end
 % For now, est from plot = 85
 %[tf, idx] = ismember(rmax_array,vmax_array)
 %idx = intersect(rmax_array,vmax_array)
-n = 60
+n = 40
 rmax = c*n/(4*bw)
 tc = n/fs;
 vmax = lambda/(4*tc)*3.6
