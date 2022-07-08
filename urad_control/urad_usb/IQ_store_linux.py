@@ -2,6 +2,7 @@ import uRAD_USB_SDK11
 import serial
 from time import time, sleep, time_ns
 import sys
+from datetime import datetime
 
 # True if USB, False if UART
 usb_communication = True
@@ -11,15 +12,16 @@ try:
 	BW = int(sys.argv[2])
 	Ns = int(sys.argv[3])
 	sweeps = int(sys.argv[4])
+	now = datetime.now()
 	fs = 200000
 	runtime = sweeps*Ns/200000
 	if mode_in == "s":
 		print("********** SAWTOOTH MODE **********")
-		resultsFileName = 'IQ_sawtooth.txt'
+		resultsFileName = 'IQ_saw_' + str(BW) + '_' + str(Ns) +  '_' + str(now) + '.txt'
 		mode = 2					
 	elif mode_in == "t":
 		print("********** TRIANGLE MODE **********")
-		resultsFileName = 'IQ_triangle.txt'
+		resultsFileName = 'IQ_tri_' + str(BW) + '_' + str(Ns) + '_' + str(now) + '.txt'
 		mode = 3					
 	else: 
 		print("Invalid mode")
