@@ -13,7 +13,8 @@ try:
 	sweeps = int(sys.argv[4])
 	fs = 200000
 	now = datetime.now()
-	runtime = sweeps*Ns/200000
+	expected_period = Ns/200000
+	runtime = sweeps*expected_period
 	if mode_in == "s":
 		print("********** SAWTOOTH MODE **********")
 		resultsFileName = 'IQ_saw_' + str(BW) + '_' + str(Ns) +  '_' + str(now) + '.txt'
@@ -27,6 +28,7 @@ try:
 		exit()
 	print("BW = ",str(BW),"\nNs = ",str(Ns),"\nSweeps = ",str(sweeps))
 	print("Expected run time: ",str(runtime))
+	print("Expected period: ",str(expected_period))
 except: 
 	print("Invalid mode")
 	exit()
