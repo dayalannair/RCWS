@@ -2,7 +2,7 @@ import uRAD_USB_SDK11
 import serial
 from time import time, sleep, time_ns
 import sys
-
+from datetime import datetime
 # True if USB, False if UART
 usb_communication = True
 
@@ -12,14 +12,15 @@ try:
 	Ns = int(sys.argv[3])
 	sweeps = int(sys.argv[4])
 	fs = 200000
+	now = datetime.now()
 	runtime = sweeps*Ns/200000
 	if mode_in == "s":
 		print("********** SAWTOOTH MODE **********")
-		resultsFileName = 'IQ_sawtooth_t.txt'
+		resultsFileName = 'IQ_saw_' + str(BW) + '_' + str(Ns) +  '_' + str(now) + '.txt'
 		mode = 2					
 	elif mode_in == "t":
 		print("********** TRIANGLE MODE **********")
-		resultsFileName = 'IQ_triangle_t.txt'
+		resultsFileName = 'IQ_tri_' + str(BW) + '_' + str(Ns) + '_' + str(now) + '.txt'
 		mode = 3					
 	else: 
 		print("Invalid mode")
@@ -33,8 +34,6 @@ except:
 
 # input parameters
 f0 = 5						# starting at 24.005 GHz
-BW = 240					# using all the BW available = 240 MHz
-Ns = 200					# 200 samples
 I_true = True 				# In-Phase Component (RAW data) requested
 Q_true = True 				# Quadrature Component (RAW data) requested
 
@@ -119,8 +118,10 @@ try:
 		period = t_i[len(t_i)-1]-t_i[len(t_i)-2]
 		
 		# Elapsed time
-		#period = t_i[len(t_i)-1] - t_0
+		# period = t_i[len(t_i)-1] - t_0
+
 		print(str(period/10e9))
+
 	print("Ending. Writing data to textfile...\n")
 	uRAD_USB_SDK11.turnOFF(ser)
 	sweeps = len(I)
