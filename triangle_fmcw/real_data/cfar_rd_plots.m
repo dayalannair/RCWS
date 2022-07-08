@@ -20,10 +20,10 @@ for i = 1:n_sweeps
     hold on
     %plot(fftshift(IQ_UP_normal(i,:)))
     plot(f/1000, 10*log10(abs(IQ_UP(i,:))))
-    hold on
-    plot(f/1000, 10*log10(upth(:, i)))
+%     hold on
+%     plot(f/1000, 10*log10(upth(:, i)))
     hold off
-    pause(1)
+    pause(0.1)
 end
 % for i = 1:n_sweeps
 % %     plot(abs(iq_up(i,:)));
@@ -75,7 +75,7 @@ figure('WindowState','maximized');
 movegui('east')
 tiledlayout(2,1)
 nexttile
-plot(time(subset), range_array)
+plot(range_array)
 title('Range estimations of APPROACHING targets')
 xlabel('Time (seconds)')
 ylabel('Range (m)')
@@ -97,7 +97,7 @@ ylabel('Range (m)')
 % rectangle('Position',[56 0 24 32], 'EdgeColor','r', 'LineWidth',1)
 % text(57,33,'2x Toyota - Area of Interest')
 nexttile
-plot(time(subset), speed_array*3.6)
+plot(speed_array*3.6)
 title('Radial speed estimations of APPROACHING targets')
 xlabel('Time (seconds)')
 ylabel('Speed (km/h)')

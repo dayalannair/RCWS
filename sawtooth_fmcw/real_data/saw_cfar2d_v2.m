@@ -2,18 +2,18 @@
 close all
 fc = 24.005e9;
 c = physconst('LightSpeed');
-lambda = c/fc;
-t_sweep = 1e-3;                    
-bw = 240e6;         
+lambda = c/fc;                   
+bw = 75e6;         
 fs = 200e3;
-n = round(fs*t_sweep);
+n = 40;
+t_sweep = n/fs; 
 sweep_slope = bw/t_sweep;
 r_max = c*n/(4*bw);
 v_max = lambda/(4*t_sweep);
 addpath('../../library/');
 
 n_sweeps_per_frame = 128;
-[iq, fft_frames, iq_frames, n_frames] = import_frames(n_sweeps_per_frame);
+[iq, fft_frames, iq_frames, n_frames] = import_frames(n_sweeps_per_frame, n);
 
 % Range Doppler Map
 Nft = size(iq,1); % Number of fast-time samples
@@ -73,8 +73,8 @@ dopestimator = phased.DopplerEstimator('ClusterInputPort',true,...
 tracker = radarTracker('FilterInitializationFcn',@initcvekf,...
     'AssignmentThreshold',50);
 
-figure('WindowState','maximized');
-movegui('east')
+% figure('WindowState','maximized');
+% movegui('east')
 
 % clf;
 % plotResponse(rdresp,iq_frames);    
@@ -95,11 +95,11 @@ rng_array = zeros(38,1);
 vel_array = zeros(38,1);
 
 for frame = 1:n_frames
-    clf;
-    plotResponse(rdresp,iq_frames(:,:,frame));    
-    axis([-v_max v_max 0 r_max])
-    clim = caxis;
-    pause(0.2)
+%     clf;
+%     plotResponse(rdresp,iq_frames(:,:,frame));    
+%     axis([-v_max v_max 0 r_max])
+%     clim = caxis;
+%     pause(0.2)
 
     % Calculate the range-Doppler response
     [Xrngdop,rnggrid,dopgrid] = rdresp(iq_frames(:,:,frame));

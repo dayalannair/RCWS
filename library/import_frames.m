@@ -1,8 +1,9 @@
 function [iq, fft_frames, iq_frames, n_frames] = import_frames(n_spf, n)
     % path relative to folder that function is called in
-    addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/M3_sawtooth_data/');
-    
-    iq_tbl=readtable('IQ_sawtooth75_60.txt', 'Delimiter' ,' ');
+%     addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/M3_sawtooth_data/');
+    addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/m4_rustenberg/');
+%     iq_tbl=readtable('IQ_sawtooth75_60.txt', 'Delimiter' ,' ');
+    iq_tbl=readtable('IQ_saw_75_40_2022-07-08 11-47-55.txt', 'Delimiter' ,' ');
     i_dat = table2array(iq_tbl(:,1:n));
     q_dat = table2array(iq_tbl(:,n+1:2*n));
     iq = i_dat + 1i*q_dat;

@@ -11,10 +11,12 @@ sweep_slope = bw/tm;
 %% Import data
 subset = 1:512;%200:205;
 %subset = 1:8192;%200:205;
-iq_tbl=readtable('..\..\data\urad_usb\IQ_triangle.txt','Delimiter' ,' ');
+addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/m4_rustenberg/');
+% iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-17-09.txt','Delimiter' ,' ');
+iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-16-07.txt','Delimiter' ,' ');
 %iq_tbl=readtable('trig_fmcw_data\IQ_0_8192_sweeps.txt','Delimiter' ,' ');
 %iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
-time = iq_tbl.Var801;
+% time = iq_tbl.Var801;
 i_up = table2array(iq_tbl(subset,1:200));
 i_down = table2array(iq_tbl(subset,201:400));
 q_up = table2array(iq_tbl(subset,401:600));
@@ -84,7 +86,9 @@ fb = zeros(n_sweeps,2);
 range_array = zeros(n_sweeps,1);
 fd_array = zeros(n_sweeps,1);
 speed_array = zeros(n_sweeps,1);
-
+count = 0;
+% close all
+% figure
 for i = 1:n_sweeps
     
     % SINGLE TARG:
@@ -92,12 +96,26 @@ for i = 1:n_sweeps
     IQ_UP_peaks(i,nul_lower:nul_upper) = 0;
     IQ_DOWN_peaks(i,nul_lower:nul_upper) = 0;
     
-    [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,:));
-    [highest_SNR_down, pk_idx_down] = max(IQ_DOWN_peaks(i,:));
-
-    fb(i, 1) = f(pk_idx_up);
+    [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,round(n_fft/2 + 1):end));
+    [highest_SNR_down, pk_idx_down] = max(IQ_DOWN_peaks(i,1:round(n_fft/2 + 1)));
+%     plot(IQ_UP_peaks(i,round(n_fft/2 + 1):end))
+%     xline(pk_idx_up)
+%     drawnow;
+%     pause(1)
+%     pk_idx_up
+%     f(pk_idx_up)
+    fb(i, 1) = f(512+pk_idx_up);
     fb(i, 2) = f(pk_idx_down);
-
+%     count = 0;
+%     while ((fb(i, 1)<0)||(fb(i, 2)>0))
+%         IQ_UP_peaks(i,pk_idx_up) = 0;
+%         IQ_DOWN_peaks(i,pk_idx_down) = 0;
+%         [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,:));
+%         [highest_SNR_down, pk_idx_down] = max(IQ_DOWN_peaks(i,:));
+%         fb(i, 1) = f(pk_idx_up);
+%         fb(i, 2) = f(pk_idx_down);
+%         count = count + 1;
+%     end
     fd = -fb(i,1)-fb(i,2);
     % ensuring Doppler shift is within the maximum expected value also
     % serves to eliminate incorrect pairing of beat frequencies, which
@@ -108,11 +126,11 @@ for i = 1:n_sweeps
     % 200 is before the division by 2. carrying out division in
     % conditional statement is more comp efficient
     % 400 used for 195 fd
-    if and(abs(fd)<=fd_max, fd > 400)
+%     if and(abs(fd)<=fd_max, fd > 400)
         fd_array(i) = fd/2;
         speed_array(i) = dop2speed(fd/2,lambda)/2;
         range_array(i) = beat2range([fb(i,1) fb(i,2)], sweep_slope, c);
-    end
+%     end
 end
 % Determine range
 % range_array = beat2range([ ])
