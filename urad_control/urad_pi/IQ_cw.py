@@ -35,6 +35,7 @@ try:
 		uRAD_RP_SDK10.detection(0, 0, 0, I, Q, 0)
 		I_cw.append(I)
 		Q_cw.append(Q)
+		print(I)
 
 	print("Ending. Writing data to textfile...\n")
 	uRAD_RP_SDK10.turnOFF()
