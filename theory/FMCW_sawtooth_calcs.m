@@ -64,9 +64,17 @@ end
 % For now, est from plot = 85
 %[tf, idx] = ismember(rmax_array,vmax_array)
 %idx = intersect(rmax_array,vmax_array)
-n = 40
+
+% minimum Ns = 50.
+n = 50
+
+
+% Reducing BW increases Max range
 rmax = c*n/(4*bw)
 tc = n/fs;
+
+% Reducing Ns increases Max speed
+% At minimum Ns, max speed is 45 km/h which is insufficient
 vmax = lambda/(4*tc)*3.6
 range_res = c/(2*bw) % ---> sim to data sheet?
 % Terrible!
