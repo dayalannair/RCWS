@@ -23,13 +23,14 @@ uRAD_RP_SDK10.loadConfiguration(mode, f0, BW, Ns, Ntar, Vmax, MTI, Mth)
 
 I_cw = []
 Q_cw = []
-I = []
-Q = []
-sweeps = 1024
+I = [0]*Ns
+Q = [0]*Ns
+sweeps = 256
 t = localtime()
 current_time = strftime("%H-%M-%S", t)  
 fcw = "iq_CW_fmcw_" + current_time + ".txt"
 try:
+	print("Loop running...")
 	for i in range(sweeps):
 		uRAD_RP_SDK10.detection(0, 0, 0, I, Q, 0)
 		I_cw.append(I)
@@ -44,9 +45,9 @@ try:
 		for sweep in range(sweeps):
 			IQ_string = ''
 			for sample in range(samples):
-				IQ_string += '%d ' % I[sweep][sample]
+				IQ_string += '%d ' % I_cw[sweep][sample]
 			for sample in range(samples):
-				IQ_string += '%d ' % Q[sweep][sample]
+				IQ_string += '%d ' % Q_cw[sweep][sample]
 			cw.write(IQ_string +'\n')
 	print("Complete.")
 	
