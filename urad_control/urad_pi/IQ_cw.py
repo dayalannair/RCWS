@@ -33,9 +33,8 @@ try:
 	print("Loop running...")
 	for i in range(sweeps):
 		uRAD_RP_SDK10.detection(0, 0, 0, I, Q, 0)
-		I_cw.append(I)
-		Q_cw.append(Q)
-		print(I)
+		I_cw.append(I[:])
+		Q_cw.append(Q[:])
 
 	print("Ending. Writing data to textfile...\n")
 	uRAD_RP_SDK10.turnOFF()
