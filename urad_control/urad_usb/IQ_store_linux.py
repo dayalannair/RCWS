@@ -27,7 +27,7 @@ try:
 	elif mode_in == "d":
 		print("********** DUAL RATE MODE **********")
 		resultsFileName = 'IQ_dual_' + str(BW) + '_' + str(Ns) + '_' + str(now) + '.txt'
-		mode = 3					
+		mode = 4					
 	else: 
 		print("Invalid mode")
 		exit()
