@@ -1,6 +1,6 @@
 import uRAD_USB_SDK11
 import serial
-from time import time, sleep, time_ns
+from time import time, sleep, strftime,localtime
 import sys
 from datetime import datetime
 
@@ -12,7 +12,8 @@ try:
 	BW = int(sys.argv[2])
 	Ns = int(sys.argv[3])
 	sweeps = int(sys.argv[4])
-	now = datetime.now()
+	t = localtime()
+	now = strftime("%H-%M-%S", t)  
 	fs = 200000
 	runtime = sweeps*Ns/200000
 	if mode_in == "s":
@@ -22,12 +23,16 @@ try:
 	elif mode_in == "t":
 		print("********** TRIANGLE MODE **********")
 		resultsFileName = 'IQ_tri_' + str(BW) + '_' + str(Ns) + '_' + str(now) + '.txt'
+		mode = 3	
+	elif mode_in == "d":
+		print("********** DUAL RATE MODE **********")
+		resultsFileName = 'IQ_dual_' + str(BW) + '_' + str(Ns) + '_' + str(now) + '.txt'
 		mode = 3					
 	else: 
 		print("Invalid mode")
 		exit()
 	print("BW = ",str(BW),"\nNs = ",str(Ns),"\nSweeps = ",str(sweeps))
-	print("Expected run time: ",str(runtime))
+	print("Expected run time (saw): ",str(runtime))
 except: 
 	print("Invalid mode")
 	exit()
