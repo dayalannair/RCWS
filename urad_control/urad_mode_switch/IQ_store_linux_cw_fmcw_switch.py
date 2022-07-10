@@ -41,8 +41,8 @@ movement_true = False 		# Don't apply as only raw data is desired
 # Serial Port configuration
 ser = serial.Serial()
 if (usb_communication):
-	ser.port = 'COM3'
-	#ser.port = '/dev/ttyACM0'
+	#ser.port = 'COM3'
+	ser.port = '/dev/ttyACM0'
 	ser.baudrate = 1e6
 else:
 	ser.port = '/dev/serial0'
@@ -114,7 +114,7 @@ try:
 				closeProgram()
 			I_fm.append(raw_results[0])
 			Q_fm.append(raw_results[1])
-			t_i.append(time_ns())
+			# t_i.append(time_ns())
 			mode_switch = True
 		else:
 			# CW mode
@@ -124,15 +124,15 @@ try:
 				closeProgram()
 			I_cw.append(raw_results[0])
 			Q_cw.append(raw_results[1])
-			t_i.append(time_ns())
+			# t_i.append(time_ns())
 			mode_switch = False
 		# Signal period
-		period = t_i[len(t_i)-1]-t_i[len(t_i)-2]
+		# period = t_i[len(t_i)-1]-t_i[len(t_i)-2]
 		
 		# Elapsed time
 		# period = t_i[len(t_i)-1] - t_0
 
-		print(str(period/10e9))
+		# print(str(period/10e9))
 
 	print("Ending. Writing data to textfile...\n")
 	uRAD_USB_SDK11.turnOFF(ser)
