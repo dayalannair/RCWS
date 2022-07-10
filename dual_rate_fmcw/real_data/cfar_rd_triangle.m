@@ -8,27 +8,34 @@ tm = 1e-3;                      % Ramp duration
 bw = 240e6;                     % Bandwidth
 sweep_slope = bw/tm;
 
-%% Import data
+% Import data
 subset = 1:512;%200:205;
+Ns = 200;
 %subset = 1:8192;%200:205;
-addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/m4_rustenberg/');
-% iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-17-09.txt','Delimiter' ,' ');
-iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-16-07.txt','Delimiter' ,' ');
+addpath('../../../OneDrive - University of Cape Town/RCWS_DATA/home_passage/');
+iq_tbl=readtable('iq_FMCW_dual_10-20-03.txt','Delimiter' ,' ');
 %iq_tbl=readtable('trig_fmcw_data\IQ_0_8192_sweeps.txt','Delimiter' ,' ');
 %iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
 % time = iq_tbl.Var801;
-i_up = table2array(iq_tbl(subset,1:200));
-i_down = table2array(iq_tbl(subset,201:400));
-q_up = table2array(iq_tbl(subset,401:600));
-q_down = table2array(iq_tbl(subset,601:800));
+i_up1 = table2array(iq_tbl(subset,1:Ns));
+i_dn1 = table2array(iq_tbl(subset,Ns + 1:2*Ns));
+q_up1 = table2array(iq_tbl(subset,2*Ns + 1:3*Ns));
+q_dn1 = table2array(iq_tbl(subset,3*Ns + 1:4*Ns));
 
-iq_up = i_up + 1i*q_up;
-iq_down = i_down + 1i*q_down;
+i_up2 = table2array(iq_tbl(subset,4*Ns + 1:4.75*Ns));
+i_dn2 = table2array(iq_tbl(subset,4.75*Ns+1:5.5*Ns));
+q_up2 = table2array(iq_tbl(subset,5.5*Ns+1:6.25*Ns));
+q_dn2 = table2array(iq_tbl(subset,6.25*Ns+1:7*Ns));
+
+iq_up1 = i_up1 + 1i*q_up1;
+iq_dn1 = i_dn1 + 1i*q_dn1;
+
+iq_up2 = i_up2 + 1i*q_up2;
+iq_dn2 = i_dn2 + 1i*q_dn2;
 
 %% CA-CFAR + Gaussian Window
 % Gaussian Window
 % remember to increase fft point size
-n_samples = size(i_up,2);
 n_sweeps = size(i_up,1);
 gwin = gausswin(n_samples);
 iq_up = iq_up.*gwin.';

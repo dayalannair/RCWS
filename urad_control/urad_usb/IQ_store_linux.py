@@ -132,6 +132,8 @@ try:
 				IQ_string += '%d ' % Q[sweep][sample]
 			#f.write(IQ_string + '%1.3f\n' % t_i[sweep])
 			f.write(IQ_string +'\n')
+	print("Sweeps stored: ", str(sweeps))
+	print("Samples per sweep: ", str(samples))
 	print("Complete.")
 	
 except KeyboardInterrupt:
