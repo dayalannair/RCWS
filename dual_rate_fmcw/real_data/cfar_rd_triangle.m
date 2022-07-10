@@ -13,7 +13,7 @@ subset = 1:512;%200:205;
 Ns = 200;
 %subset = 1:8192;%200:205;
 addpath('../../../OneDrive - University of Cape Town/RCWS_DATA/home_passage/');
-iq_tbl=readtable('iq_FMCW_dual_10-20-03.txt','Delimiter' ,' ');
+iq_tbl=readtable('IQ_dual_240_200_13-23-55.txt','Delimiter' ,' ');
 %iq_tbl=readtable('trig_fmcw_data\IQ_0_8192_sweeps.txt','Delimiter' ,' ');
 %iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
 % time = iq_tbl.Var801;
@@ -48,8 +48,17 @@ num_nul = round((n_fft/2)*nul_width_factor);
 nul_lower = round(n_fft/2 - num_nul);
 nul_upper = round(n_fft/2 + num_nul);
 
-IQ_UP = fftshift(fft(iq_up,n_fft,2));
-IQ_DOWN = fftshift(fft(iq_down,n_fft,2));
+IQ_UP1 = fft(iq_up1,n_fft,2);
+IQ_DN1 = fft(iq_dn1,n_fft,2);
+
+IQ_UP2 = fft(iq_up2,n_fft,2);
+IQ_DN2 = fft(iq_dn2,n_fft,2);
+
+IQ_UP1 = IQ_UP1(:, 1:Ns/2);
+IQ_UP2 = IQ_UP2(:, 1:Ns/2);
+
+IQ_DN1 = IQ_DN1(:, Ns/2+1:end);
+IQ_DN2 = IQ_DN2(:, Ns/2+1:end);
 
 % from 20/200 = 0.1
 train_factor = 0.1;
@@ -68,16 +77,34 @@ CFAR = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
-    'Method', 'SOCA');
+    'Method', 'SOCA', ...
+    'OutputFormat', 'Detection index', ...
+    'NumDetectionsSource','Property', ...
+    'NumDetections', 1);
 
 % modify CFAR code to simultaneously record beat frequencies
-up_detections = CFAR(abs(IQ_UP)', 1:n_fft);
-down_detections = CFAR(abs(IQ_DOWN)', 1:n_fft);
+% up_det1 = CFAR(abs(IQ_UP1)', 1:n_fft);
+% dn_det1 = CFAR(abs(IQ_DN1)', 1:n_fft);
+% 
+% up_det2 = CFAR(abs(IQ_UP2)', 1:n_fft);
+% dn_det2 = CFAR(abs(IQ_DN2)', 1:n_fft);
+
+IQ_UP1(:, 1:4) = 0;%IQ_UP1(:, 1:4);
+IQ_UP2(:, 1:4) = 0;%IQ_UP1(:, 1:4);
+
+IQ_DN1(:, end-4:end) = 0;%IQ_UP1(:, 1:4);
+IQ_DN2(:, end-4:end) = 0;%IQ_UP1(:, 1:4);
+
+up_idx1 = CFAR(abs(IQ_UP1)', 1:n_fft);
+dn_idx1 = CFAR(abs(IQ_DN1)', 1:n_fft);
+
+up_idx2 = CFAR(abs(IQ_UP2)', 1:n_fft);
+dn_idx2 = CFAR(abs(IQ_DN2)', 1:n_fft);
 
 fs = 200e3; %200 kHz
 f = f_ax(n_fft, fs);
-IQ_UP_peaks = abs(IQ_UP).*up_detections';
-IQ_DOWN_peaks = abs(IQ_DOWN).*down_detections';
+% IQ_UP_peaks = abs(IQ_UP).*up_detections';
+% IQ_DOWN_peaks = abs(IQ_DOWN).*down_detections';
 
 
 %%
@@ -100,8 +127,8 @@ for i = 1:n_sweeps
     
     % SINGLE TARG:
     % null feed through
-    IQ_UP_peaks(i,nul_lower:nul_upper) = 0;
-    IQ_DOWN_peaks(i,nul_lower:nul_upper) = 0;
+%     IQ_UP_peaks(i,nul_lower:nul_upper) = 0;
+%     IQ_DOWN_peaks(i,nul_lower:nul_upper) = 0;
     
     [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,round(n_fft/2 + 1):end));
     [highest_SNR_down, pk_idx_down] = max(IQ_DOWN_peaks(i,1:round(n_fft/2 + 1)));
