@@ -31,7 +31,7 @@ guard = 2;
 % too many training cells results in too many detections
 train = 30;
 % false alarm rate - sets sensitivity
-F = 0.0011; % see relevant papers
+F = 0.00005; % see relevant papers
 %% CFAR
 CA = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
@@ -59,7 +59,8 @@ OS = phased.CFARDetector('NumTrainingCells',train, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
     'Method', 'OS', ...
-    'ThresholdOutputPort', true);
+    'ThresholdOutputPort', true, ...
+    'Rank', 1);
 
 % modify CFAR code to simultaneously record beat frequencies
 % up_detections = CA(abs(IQ_UP)', 1:n_fft);
@@ -100,9 +101,9 @@ range_array = zeros(n_sweeps,1);
 fd_array = zeros(n_sweeps,1);
 speed_array = zeros(n_sweeps,1);
 
-close all
-fg = figure;
-movegui(fg,'east');
+% close all
+% fg = figure;
+% movegui(fg,'east');
 %%
 for i = 1:n_sweeps
     tiledlayout(2,1)

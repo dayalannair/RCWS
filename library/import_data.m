@@ -18,9 +18,10 @@ function [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps)
     q_down = table2array(iq_tbl(sweeps,601:800));
     
     % Square Law detector
-    
+    iq_u= i_up.^2 + q_up.^2;
+    iq_d = i_down.^2 + q_down.^2;
 
     % Normal
-    iq_u= i_up + 1i*q_up;
-    iq_d = i_down + 1i*q_down;
+%     iq_u= i_up + 1i*q_up;
+%     iq_d = i_down + 1i*q_down;
    return
