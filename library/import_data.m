@@ -9,6 +9,7 @@ function [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps)
     % Data
     % NOTE: Path must be added in the program calling this function
     % i.e. path is relative to the call function
+    addpath('../../../OneDrive - University of Cape Town/RCWS_DATA/trig_fmcw_data/');
     iq_tbl=readtable('IQ_0_1024_sweeps.txt','Delimiter' ,' ');
     t_stamps = iq_tbl.Var801;
     i_up = table2array(iq_tbl(sweeps,1:200));
@@ -16,6 +17,10 @@ function [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps)
     q_up = table2array(iq_tbl(sweeps,401:600));
     q_down = table2array(iq_tbl(sweeps,601:800));
     
+    % Square Law detector
+    
+
+    % Normal
     iq_u= i_up + 1i*q_up;
     iq_d = i_down + 1i*q_down;
    return
