@@ -41,20 +41,24 @@ gwinu2 = gausswin(150);
 gwind1 = gausswin(200);
 gwind2 = gausswin(150);
 
-iq_up1 = gwinu1.'.*iq_up1;
-iq_dn1 = gwind1.'.*iq_dn1;
-iq_up2 = gwinu2.'.*iq_up2;
-iq_dn2 = gwind2.'.*iq_dn2;
+% iq_up1 = gwinu1.'.*iq_up1;
+% iq_dn1 = gwind1.'.*iq_dn1;
+% iq_up2 = gwinu2.'.*iq_up2;
+% iq_dn2 = gwind2.'.*iq_dn2;
+
 
 % FFT
 n_sweeps = length(subset);
-n_fft1 = 256;%512;
-n_fft2 = 256;
+n_fft1 = 200;%512;
+n_fft2 = 150;
+iq_dn2 = padarray(iq_dn2,[(n_fft1-n_fft2) 0], 'post');
+iq_up2 = padarray(iq_up2,[(n_fft1-n_fft2) 0], 'post');
+n_fft2 = n_fft1;
 % factor of signal to be nulled. 4% determined experimentally
-nul_width_factor = 0.04;
-num_nul = round((n_fft/2)*nul_width_factor);
-nul_lower = round(n_fft/2 - num_nul);
-nul_upper = round(n_fft/2 + num_nul);
+% nul_width_factor = 0.04;
+% num_nul = round((n_fft/2)*nul_width_factor);
+% nul_lower = round(n_fft/2 - num_nul);
+% nul_upper = round(n_fft/2 + num_nul);
 
 % FFT
 IQ_UP1 = fft(iq_up1,n_fft1,2);
@@ -64,25 +68,22 @@ IQ_UP2 = fft(iq_up2,n_fft2,2);
 IQ_DN2 = fft(iq_dn2,n_fft2,2);
 
 % Halve FFTs
-% IQ_UP1 = IQ_UP1(:, 1:n_fft1/2);
-% IQ_UP2 = IQ_UP2(:, 1:n_fft2/2);
-% 
-% IQ_DN1 = IQ_DN1(:, n_fft1/2+1:end);
-% IQ_DN2 = IQ_DN2(:, n_fft2/2+1:end);
+IQ_UP1 = IQ_UP1(:, 1:n_fft1/2);
+IQ_UP2 = IQ_UP2(:, 1:n_fft2/2);
+
+IQ_DN1 = IQ_DN1(:, n_fft1/2+1:end);
+IQ_DN2 = IQ_DN2(:, n_fft2/2+1:end);
 
 % from 20/200 = 0.1
 train_factor = 0.1;
 % from 4/200 = 0.02;
 guard_factor = 0.02;
-guard = round(n_fft*guard_factor);
-train = round(n_fft*train_factor);
+guard = round(n_fft1*guard_factor);
+train = round(n_fft1*train_factor);
 % false alarm rate - sets sensitivity
 F = 0.011; % see relevant papers
 
 % Assumes AWGN
-% research options
-% 4 bins -> car is 2m, bin is 0.6
-% try with simulated data and noise & clutter
 CFAR = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
@@ -98,33 +99,34 @@ CFAR = phased.CFARDetector('NumTrainingCells',train, ...
 % 
 % up_det2 = CFAR(abs(IQ_UP2)', 1:n_fft);
 % dn_det2 = CFAR(abs(IQ_DN2)', 1:n_fft);
-%%
-IQ_UP1(:, 1:4) = 0;%IQ_UP1(:, 1:4);
-IQ_UP2(:, 1:4) = 0;%IQ_UP1(:, 1:4);
 
-IQ_DN1(:, end-4:end) = 0;%IQ_UP1(:, 1:4);
-IQ_DN2(:, end-4:end) = 0;%IQ_UP1(:, 1:4);
+% Nulling DC
+IQ_UP1(:, 1:2) = 0;%IQ_UP1(:, 1:4);
+IQ_UP2(:, 1:2) = 0;%IQ_UP1(:, 1:4);
+
+IQ_DN1(:, end-2:end) = 0;%IQ_UP1(:, 1:4);
+IQ_DN2(:, end-2:end) = 0;%IQ_UP1(:, 1:4);
 
 % GET APPROP TRAIN LENGTH FOR SHORTER TRIG
-% up_det1 = CFAR(abs(IQ_UP1)', 1:n_fft1/2);
-% dn_det1 = CFAR(abs(IQ_DN1)', 1:n_fft1/2);
-% 
-% up_det2 = CFAR(abs(IQ_UP2)', 1:n_fft2/2);
-% dn_det2 = CFAR(abs(IQ_DN2)', 1:n_fft2/2);
+up_det1 = CFAR(abs(IQ_UP1)', 1:n_fft1/2);
+dn_det1 = CFAR(abs(IQ_DN1)', 1:n_fft1/2);
+
+up_det2 = CFAR(abs(IQ_UP2)', 1:n_fft2/2);
+dn_det2 = CFAR(abs(IQ_DN2)', 1:n_fft2/2);
 
 fs = 200e3; %200 kHz
-f = f_ax(n_fft, fs);
-f_pos = f(1:n_fft/2);
-f_neg = f((n_fft/2 - 1):end);
+f = f_ax(n_fft1, fs);
+f_pos = f(1:n_fft1/2);
+f_neg = f((n_fft1/2 - 1):end);
 % since FFT shift is not used on input
 f_neg = flip(f_neg);
 
+% Get SNR of peaks
+IQ_UP_pks1 = abs(IQ_UP1).*up_det1';
+IQ_DN_pks1 = abs(IQ_DN1).*dn_det1';
 
-% IQ_UP_pks1 = abs(IQ_UP1).*up_det1';
-% IQ_DN_pks1 = abs(IQ_DN1).*dn_det1';
-% 
-% IQ_UP_pks2 = abs(IQ_UP2).*up_det2';
-% IQ_DN_pks2 = abs(IQ_DN2).*dn_det2';
+IQ_UP_pks2 = abs(IQ_UP2).*up_det2';
+IQ_DN_pks2 = abs(IQ_DN2).*dn_det2';
 
 %%
 % v_max = 60km/h , fd max = 2.7kHz approx 3kHz
@@ -132,38 +134,41 @@ v_max = 60/3.6;
 %fd_max = speed2dop(v_max, lambda)*2;
 fd_max = 3e3;
 fb = zeros(n_sweeps,4);
-%fbd = zeros(n_sweeps,2);
-% Each sample can return a detection - max number of targets is 200?
-% beat2range - expects a set of beat freqs up and down
-% NB: MATLAB makes square matrix by default
-range_array = zeros(n_sweeps,1);
-fd_array = zeros(n_sweeps,1);
-speed_array = zeros(n_sweeps,1);
+range1_array = zeros(n_sweeps,1);
+fd1_array = zeros(n_sweeps,1);
+speed1_array = zeros(n_sweeps,1);
+range2_array = zeros(n_sweeps,1);
+fd2_array = zeros(n_sweeps,1);
+speed2_array = zeros(n_sweeps,1);
 count = 0;
 close all
 figure
 for i = 1:n_sweeps
-    % SINGLE TARG:
-    % null feed through
-%     IQ_UP_peaks(i,nul_lower:nul_upper) = 0;
-%     IQ_DOWN_peaks(i,nul_lower:nul_upper) = 0;
     tiledlayout(4,1)
     nexttile
-    plot(sftmagdb(IQ_UP1(i,:)))
+    plot(absmagdb(IQ_UP1(i,:)))
+    hold on
+    stem(absmagdb(IQ_UP_pks1(i,:)))
+    hold off
     nexttile
-    plot(sftmagdb(IQ_DN1(i,:)))
+    plot(absmagdb(IQ_DN1(i,:)))
+    hold on
+    stem(absmagdb(IQ_DN_pks1(i,:)))
+    hold off
     nexttile
-    plot(sftmagdb(IQ_UP2(i,:)))
+    plot(absmagdb(IQ_UP2(i,:)))
+    hold on
+    stem(absmagdb(IQ_UP_pks2(i,:)))
+    hold off
     nexttile
-    plot(sftmagdb(IQ_DN2(i,:)))
+    plot(absmagdb(IQ_DN2(i,:)))
+    hold on
+    stem(absmagdb(IQ_DN_pks2(i,:)))
+    hold off
     pause(0.1)
 
-
-
-
-
-%     [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,round(n_fft/2 + 1):end));
-%     [highest_SNR_down, pk_idx_down] = max(IQ_DOWN_peaks(i,1:round(n_fft/2 + 1)));
+%     [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,:));
+%     [highest_SNR_down, pk_idx_down] = max(IQ_DOWN_peaks(i,:));
 %     plot(IQ_UP_peaks(i,round(n_fft/2 + 1):end))
 %     xline(pk_idx_up)
 %     drawnow;
@@ -181,27 +186,26 @@ for i = 1:n_sweeps
     
     [snru2, pk_idx_up2]= max(IQ_UP_pks2(i,:));
     [snrd2, pk_idx_dn2] = max(IQ_DN_pks2(i,:));
-
+% 
     fb(i, 1) = f_pos(pk_idx_up1);
     fb(i, 2) = f_neg(pk_idx_dn1);
     fb(i, 3) = f_pos(pk_idx_up2);
     fb(i, 4) = f_neg(pk_idx_dn2);
 %         count = count + 1;
 %     end
-%     fd = -fb(i,1)-fb(i,2);
-    % ensuring Doppler shift is within the maximum expected value also
-    % serves to eliminate incorrect pairing of beat frequencies, which
-    % affects both range and Doppler estimation
-    % implement MTI condition: fd ~= 0
-    % MTI + negative Doppler filter: fd > 0
-    % 100 is the new min after Gaussian windowing
-    % 200 is before the division by 2. carrying out division in
-    % conditional statement is more comp efficient
+    fd1 = -fb(i,1)-fb(i,2);
+    fd2 = -fb(i,3)-fb(i,4);
+
     % 400 used for 195 fd
 %     if and(abs(fd)<=fd_max, fd > 400)
-%         fd_array(i) = fd/2;
-%         speed_array(i) = dop2speed(fd/2,lambda)/2;
-%         range_array(i) = beat2range([fb(i,1) fb(i,2)], sweep_slope, c);
+        fd1_array(i) = fd/2;
+        speed1_array(i) = dop2speed(fd1/2,lambda)/2;
+        range1_array(i) = beat2range([fb(i,1) fb(i,2)], sweep_slope, c);
+
+    fd2_array(i) = fd/2;
+    speed2_array(i) = dop2speed(fd2/2,lambda)/2;
+    range2_array(i) = beat2range([fb(i,3) fb(i,4)], sweep_slope, c);
+       
 %     end
 end
 % Determine range
