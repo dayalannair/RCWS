@@ -6,7 +6,7 @@ c = physconst('LightSpeed');
 lambda = c/fc;
 tm = 1e-3;                      % Ramp duration
 bw = 240e6;                     % Bandwidth
-sweep_slope = bw/tm;
+k = bw/tm;
 addpath('../../library/');
 % Import data
 subset = 1:1024;%200:205;
@@ -51,8 +51,8 @@ gwind2 = gausswin(150);
 n_sweeps = length(subset);
 n_fft1 = 200;%512;
 n_fft2 = 150;
-iq_dn2 = padarray(iq_dn2,[(n_fft1-n_fft2) 0], 'post');
-iq_up2 = padarray(iq_up2,[(n_fft1-n_fft2) 0], 'post');
+iq_dn2 = padarray(iq_dn2,[0 (n_fft1-n_fft2)], 'post');
+iq_up2 = padarray(iq_up2,[0 (n_fft1-n_fft2)], 'post');
 n_fft2 = n_fft1;
 % factor of signal to be nulled. 4% determined experimentally
 % nul_width_factor = 0.04;
@@ -81,14 +81,15 @@ guard_factor = 0.02;
 guard = round(n_fft1*guard_factor);
 train = round(n_fft1*train_factor);
 % false alarm rate - sets sensitivity
-F = 0.011; % see relevant papers
+F = 0.00011; % see relevant papers
 
 % Assumes AWGN
 CFAR = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
-    'Method', 'SOCA');%, ...
+    'Method', 'OS', ...
+    'Rank',2);%, ...
 %     'OutputFormat', 'Detection index');%, ...
 %     'NumDetectionsSource','Property', ...
 %     'NumDetections', n_sweeps*n_fft);
@@ -116,10 +117,8 @@ dn_det2 = CFAR(abs(IQ_DN2)', 1:n_fft2/2);
 
 fs = 200e3; %200 kHz
 f = f_ax(n_fft1, fs);
-f_pos = f(1:n_fft1/2);
-f_neg = f((n_fft1/2 - 1):end);
-% since FFT shift is not used on input
-f_neg = flip(f_neg);
+f_neg = f(1:n_fft1/2);
+f_pos = f((n_fft1/2 - 1):end);
 
 % Get SNR of peaks
 IQ_UP_pks1 = abs(IQ_UP1).*up_det1';
@@ -129,85 +128,122 @@ IQ_UP_pks2 = abs(IQ_UP2).*up_det2';
 IQ_DN_pks2 = abs(IQ_DN2).*dn_det2';
 
 %%
+Ntgt = 4;
 % v_max = 60km/h , fd max = 2.7kHz approx 3kHz
 v_max = 60/3.6; 
 %fd_max = speed2dop(v_max, lambda)*2;
 fd_max = 3e3;
-fb = zeros(n_sweeps,4);
-range1_array = zeros(n_sweeps,1);
-fd1_array = zeros(n_sweeps,1);
-speed1_array = zeros(n_sweeps,1);
-range2_array = zeros(n_sweeps,1);
-fd2_array = zeros(n_sweeps,1);
-speed2_array = zeros(n_sweeps,1);
-count = 0;
-close all
-figure
-for i = 1:n_sweeps
-    tiledlayout(4,1)
-    nexttile
-    plot(absmagdb(IQ_UP1(i,:)))
-    hold on
-    stem(absmagdb(IQ_UP_pks1(i,:)))
-    hold off
-    nexttile
-    plot(absmagdb(IQ_DN1(i,:)))
-    hold on
-    stem(absmagdb(IQ_DN_pks1(i,:)))
-    hold off
-    nexttile
-    plot(absmagdb(IQ_UP2(i,:)))
-    hold on
-    stem(absmagdb(IQ_UP_pks2(i,:)))
-    hold off
-    nexttile
-    plot(absmagdb(IQ_DN2(i,:)))
-    hold on
-    stem(absmagdb(IQ_DN_pks2(i,:)))
-    hold off
-    pause(0.1)
+fbu1 = zeros(n_sweeps,Ntgt);
+fbd1 = zeros(n_sweeps,Ntgt);
+fbu2 = zeros(n_sweeps,Ntgt);
+fbd2 = zeros(n_sweeps,Ntgt);
+rg1_array = zeros(n_sweeps,Ntgt);
+fd1_array = zeros(n_sweeps,Ntgt);
+sp1_array = zeros(n_sweeps,Ntgt);
+rg2_array = zeros(n_sweeps,Ntgt);
+fd2_array = zeros(n_sweeps,Ntgt);
+sp2_array = zeros(n_sweeps,Ntgt);
 
-%     [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,:));
-%     [highest_SNR_down, pk_idx_down] = max(IQ_DOWN_peaks(i,:));
-%     plot(IQ_UP_peaks(i,round(n_fft/2 + 1):end))
-%     xline(pk_idx_up)
-%     drawnow;
-%     pause(1)
-%     pk_idx_up
-%     f(pk_idx_up)
-%     fb(i, 1) = f(512+up_idx1(i));
-%     fb(i, 2) = f(pk_idx_down);
-%     count = 0;
-%     while ((fb(i, 1)<0)||(fb(i, 2)>0))
-%         IQ_UP_peaks(i,pk_idx_up) = 0;
-%         IQ_DOWN_peaks(i,pk_idx_down) = 0;
-    [snru1, pk_idx_up1]= max(IQ_UP_pks1(i,:));
-    [snrd1, pk_idx_dn1] = max(IQ_DN_pks1(i,:));
-    
-    [snru2, pk_idx_up2]= max(IQ_UP_pks2(i,:));
-    [snrd2, pk_idx_dn2] = max(IQ_DN_pks2(i,:));
-% 
-    fb(i, 1) = f_pos(pk_idx_up1);
-    fb(i, 2) = f_neg(pk_idx_dn1);
-    fb(i, 3) = f_pos(pk_idx_up2);
-    fb(i, 4) = f_neg(pk_idx_dn2);
-%         count = count + 1;
-%     end
-    fd1 = -fb(i,1)-fb(i,2);
-    fd2 = -fb(i,3)-fb(i,4);
+true_rng = zeros(n_sweeps,Ntgt);
+true_spd = zeros(n_sweeps,Ntgt);
+count = 0;
+% close all
+% figure
+for i = 1:n_sweeps
+%    tiledlayout(4,1)
+%     nexttile
+%     plot(absmagdb(IQ_UP1(i,:)))
+%     hold on
+%     stem(absmagdb(IQ_UP_pks1(i,:)))
+%     hold off
+%     nexttile
+%     plot(absmagdb(IQ_DN1(i,:)))
+%     hold on
+%     stem(absmagdb(IQ_DN_pks1(i,:)))
+%     hold off
+%     nexttile
+%     plot(absmagdb(IQ_UP2(i,:)))
+%     hold on
+%     stem(absmagdb(IQ_UP_pks2(i,:)))
+%     hold off
+%     nexttile
+%     plot(absmagdb(IQ_DN2(i,:)))
+%     hold on
+%     stem(absmagdb(IQ_DN_pks2(i,:)))
+%     hold off
+%     pause(0.1)
+
+    % Obtain highest peak - not good for multi targ and clutter
+    [snru1, pk_idx_up1] = maxk(IQ_UP_pks1(i,:), Ntgt);
+    [snrd1, pk_idx_dn1] = maxk(IQ_DN_pks1(i,:), Ntgt);
+    [snru2, pk_idx_up2] = maxk(IQ_UP_pks2(i,:), Ntgt);
+    [snrd2, pk_idx_dn2] = maxk(IQ_DN_pks2(i,:), Ntgt); 
+
+    % Obtain beat frequencies
+    fbu1(i,:) = f_pos(pk_idx_up1);
+    fbd1(i,:) = f_neg(pk_idx_dn1);
+    fbu2(i,:) = f_pos(pk_idx_up2);
+    fbd2(i,:) = f_neg(pk_idx_dn2);
+
+    % Obtain Doppler shifts
+    fd1 = -fbu1(i,:) - fbd1(i,:);
+    fd2 = -fbu2(i,:) - fbd2(i,:);
 
     % 400 used for 195 fd
 %     if and(abs(fd)<=fd_max, fd > 400)
-        fd1_array(i) = fd/2;
-        speed1_array(i) = dop2speed(fd1/2,lambda)/2;
-        range1_array(i) = beat2range([fb(i,1) fb(i,2)], sweep_slope, c);
+    for tgt = 1:Ntgt
+        fd1_array(i,tgt) = fd1(tgt)/2;
+        if ((abs(fd1(tgt)/2) < fd_max) && (abs(fd1(tgt)/2) ~= 0))
+            sp1_array(i,tgt) = dop2speed(fd1(tgt)/2,lambda)/2;
+            rg1_array(i,tgt) = beat2range([fbu1(i,tgt) fbd1(i,tgt)], k, c);
+        end
+        fd2_array(i,tgt) = fd2(tgt)/2;
+        if ((abs(fd2(tgt)/2) < fd_max) && (abs(fd2(tgt)/2) ~= 0))
+            sp2_array(i,tgt) = dop2speed(fd2(tgt)/2,lambda)/2;
+            rg2_array(i,tgt) = beat2range([fbu2(i,tgt) fbd2(i,tgt)], k, c);
+        end
 
-    fd2_array(i) = fd/2;
-    speed2_array(i) = dop2speed(fd2/2,lambda)/2;
-    range2_array(i) = beat2range([fb(i,3) fb(i,4)], sweep_slope, c);
-       
-%     end
+        % What if there is Doppler shift which changes from one to 
+        % other? for now using Dopp of first triangle
+        if (rg1_array(i,tgt) == rg2_array(i,tgt))
+            true_rng(i,tgt) = rg1_array(i,tgt);
+            true_spd(i,tgt) = sp1_array(i,tgt);
+        end
+    end
 end
+
+%% Plots
+% tm + tm + 0.75tm + 0.75tm = 3.5
+t = linspace(0,3.5*n_fft1*tm, n_sweeps);
+% True results - Dual Rate ghost removal
+close all
+figure      
+tiledlayout(2,1)
+nexttile
+plot(t, true_rng)
+nexttile
+plot(t, true_spd.*3.6)
+%%
+
+% Results
+% close all
+figure
+tiledlayout(4,1)
+nexttile
+plot(rg1_array)
+title("Triangle 1 range estimates")
+nexttile
+plot(rg2_array)
+title("Triangle 2 range estimates")
+nexttile
+plot(sp1_array)
+title("Triangle 1 range estimates")
+nexttile
+plot(sp2_array)
+title("Triangle 2 speed estimates")
+
+
+
 % Determine range
 % range_array = beat2range([ ])
 
