@@ -57,7 +57,7 @@ os_pkd = abs(IQ_DN).*dn_os';
 fs = 200e3;
 f = f_ax(n_fft, fs);
 f_neg = f(1:n_fft/2);
-f_pos = f((n_fft/2 - 1):end);
+f_pos = f((n_fft/2 + 1):end);
 
 %%
 % v_max = 60km/h , fd max = 2.7kHz approx 3kHz

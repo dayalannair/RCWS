@@ -1,32 +1,39 @@
-%% Cell Averaging CFAR (Constant False Alarm Rate) peak detector
-% Most basic/common CFAR algorithm
-%% Parameters
+% Parameters
 fc = 24.005e9;
 c = physconst('LightSpeed');
 lambda = c/fc;
-tm = 1e-3;                      % Ramp duration
+Ns1 = 200;
+Ns2 = 0.75*Ns1;
+fs = 200e3;
+delta_t = 1/fs;
+
+tm1 = Ns1*delta_t;
+tm2 = Ns2*delta_t;
+
 bw = 240e6;                     % Bandwidth
-k = bw/tm;
+k1 = bw/tm1;
+k2 = bw/tm2;
+
+
 addpath('../../library/');
+
 % Import data
 subset = 1:1024;%200:205;
-Ns = 200;
-%subset = 1:8192;%200:205;
+
 addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/m3_dual_11_07_2022/');
 % iq_tbl=readtable('IQ_dual_240_200_06-24-54.txt','Delimiter' ,' ');
 iq_tbl=readtable('IQ_dual_240_200_06-34-00_GOOD.txt','Delimiter' ,' ');
-%iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
-% time = iq_tbl.Var801;
-i_up1 = table2array(iq_tbl(subset,1:Ns));
-i_dn1 = table2array(iq_tbl(subset,Ns + 1:2*Ns));
-q_up1 = table2array(iq_tbl(subset,2*Ns + 1:3*Ns));
-q_dn1 = table2array(iq_tbl(subset,3*Ns + 1:4*Ns));
+i_up1 = table2array(iq_tbl(subset,1:Ns1));
+i_dn1 = table2array(iq_tbl(subset,Ns1 + 1:2*Ns1));
+q_up1 = table2array(iq_tbl(subset,2*Ns1 + 1:3*Ns1));
+q_dn1 = table2array(iq_tbl(subset,3*Ns1 + 1:4*Ns1));
 
-i_up2 = table2array(iq_tbl(subset,4*Ns + 1:4.75*Ns));
-i_dn2 = table2array(iq_tbl(subset,4.75*Ns+1:5.5*Ns));
-q_up2 = table2array(iq_tbl(subset,5.5*Ns+1:6.25*Ns));
-q_dn2 = table2array(iq_tbl(subset,6.25*Ns+1:7*Ns));
+i_up2 = table2array(iq_tbl(subset,4*Ns1 + 1:4.75*Ns1));
+i_dn2 = table2array(iq_tbl(subset,4.75*Ns1+1:5.5*Ns1));
+q_up2 = table2array(iq_tbl(subset,5.5*Ns1+1:6.25*Ns1));
+q_dn2 = table2array(iq_tbl(subset,6.25*Ns1+1:7*Ns1));
 
+% Compare to square law detector
 iq_up1 = i_up1 + 1i*q_up1;
 iq_dn1 = i_dn1 + 1i*q_dn1;
 
@@ -48,10 +55,15 @@ iq_dn2 = i_dn2 + 1i*q_dn2;
 % Taylor Window
 nbar = 4;
 sll = -38;
-twinu = taylorwin(n_samples, nbar, sll);
-twind = taylorwin(n_samples, nbar, sll);
-iq_u = iq_u.*twinu.';
-iq_d = iq_d.*twind.';
+twinu = taylorwin(Ns1, nbar, sll);
+twind = taylorwin(Ns1, nbar, sll);
+iq_up1 = iq_up1.*twinu.';
+iq_dn1 = iq_dn1.*twind.';
+
+twinu = taylorwin(Ns2, nbar, sll);
+twind = taylorwin(Ns2, nbar, sll);
+iq_up2 = iq_up2.*twinu.';
+iq_dn2 = iq_dn2.*twind.';
 
 % FFT
 n_sweeps = length(subset);
@@ -59,17 +71,23 @@ n_fft1 = 1024;%512;
 % n_fft2 = 150;
 n_fft2 = n_fft1;
 % factor of signal to be nulled. 4% determined experimentally
-nul_width_factor = 0.04;
-num_nul = round((n_fft/2)*nul_width_factor);
-% nul_lower = round(n_fft/2 - num_nul);
-% nul_upper = round(n_fft/2 + num_nul);
-
+% nul_width_factor = 0.1;
+% num_nul1 = round((n_fft1/2)*nul_width_factor);
+% num_nul2 = round((n_fft2/2)*nul_width_factor);
 % FFT
 IQ_UP1 = fft(iq_up1,n_fft1,2);
 IQ_DN1 = fft(iq_dn1,n_fft1,2);
 
 IQ_UP2 = fft(iq_up2,n_fft2,2);
 IQ_DN2 = fft(iq_dn2,n_fft2,2);
+
+% Define axes
+f = f_ax(n_fft1, fs);
+f_neg = f(1:n_fft1/2);
+f_pos = f((n_fft1/2 + 1):end);
+
+rng_ax1 = beat2range(f_pos',k1,c);
+rng_ax2 = beat2range(f_pos',k2,c);
 
 % Halve FFTs
 IQ_UP1 = IQ_UP1(:, 1:n_fft1/2);
@@ -78,18 +96,36 @@ IQ_UP2 = IQ_UP2(:, 1:n_fft2/2);
 IQ_DN1 = IQ_DN1(:, n_fft1/2+1:end);
 IQ_DN2 = IQ_DN2(:, n_fft2/2+1:end);
 
-% Nulling DC
-IQ_UP1(:, 1:num_nul) = 0;%IQ_UP1(:, 1:4);
-IQ_UP2(:, 1:num_nul) = 0;%IQ_UP1(:, 1:4);
+% Nulling feedthrough
+r_min = 10;
+fb_min1 = range2beat(r_min, k1,c);
+fb_min2 = range2beat(r_min, k2,c);
 
-IQ_DN1(:, end-num_nul+1:end) = 0;%IQ_UP1(:, 1:4);
-IQ_DN2(:, end-num_nul+1:end) = 0;%IQ_UP1(:, 1:4);
+n_min = find(f_pos==fb_min1);
+
+% Because same size FFT
+% Otherwise need diff axes for diff sizes
+num_nul1 = n_min;
+num_nul2 = n_min;
+
+IQ_UP1(:, 1:num_nul1) = 0;
+IQ_UP2(:, 1:num_nul2) = 0;
+
+IQ_DN1(:, end-num_nul1+1:end) = 0;
+IQ_DN2(:, end-num_nul2+1:end) = 0;
+
+% Repmat is worse for CFAR
+% IQ_UP1(:, 1:num_nul1) = repmat(IQ_UP1(:,num_nul1+1),1,num_nul1);
+% IQ_UP2(:, 1:num_nul2) = repmat(IQ_UP2(:,num_nul2+1),1,num_nul2);
+% 
+% IQ_DN1(:, end-num_nul1+1:end) = repmat(IQ_DN1(:,end-num_nul1),1,num_nul1);
+% IQ_DN2(:, end-num_nul2+1:end) = repmat(IQ_DN2(:,end-num_nul2),1,num_nul2);
 
 % CFAR
-guard = 2*n_fft/n_samples;
+guard = 2*n_fft1/Ns1;
 guard = floor(guard/2)*2; % make even
 % too many training cells results in too many detections
-train = round(20*n_fft/n_samples);
+train = round(20*n_fft1/Ns1);
 train = floor(train/2)*2;
 % false alarm rate - sets sensitivity
 F = 10e-3; % see relevant papers
@@ -110,11 +146,11 @@ OS = phased.CFARDetector('NumTrainingCells',train, ...
 % dn_det2 = CFAR(abs(IQ_DN2)', 1:n_fft);
 
 % GET APPROP TRAIN LENGTH FOR SHORTER TRIG
-up_det1 = OS(abs(IQ_UP1)', 1:n_fft1/2);
-dn_det1 = OS(abs(IQ_DN1)', 1:n_fft1/2);
+[up_det1, up_th1] = OS(abs(IQ_UP1)', 1:n_fft1/2);
+[dn_det1, dn_th1] = OS(abs(IQ_DN1)', 1:n_fft1/2);
 
-up_det2 = OS(abs(IQ_UP2)', 1:n_fft2/2);
-dn_det2 = OS(abs(IQ_DN2)', 1:n_fft2/2);
+[up_det2, up_th2] = OS(abs(IQ_UP2)', 1:n_fft2/2);
+[dn_det2, dn_th2] = OS(abs(IQ_DN2)', 1:n_fft2/2);
 
 % Find peak magnitude/SNR
 IQ_UP_pks1 = abs(IQ_UP1).*up_det1';
@@ -123,10 +159,6 @@ IQ_DN_pks1 = abs(IQ_DN1).*dn_det1';
 IQ_UP_pks2 = abs(IQ_UP2).*up_det2';
 IQ_DN_pks2 = abs(IQ_DN2).*dn_det2';
 
-fs = 200e3; %200 kHz
-f = f_ax(n_fft1, fs);
-f_neg = f(1:n_fft1/2);
-f_pos = f((n_fft1/2 - 1):end);
 
 %%
 Ntgt = 4;
@@ -154,26 +186,34 @@ for i = 1:n_sweeps
    tiledlayout(2,2)
     nexttile
     
-    plot(absmagdb(IQ_DN1(i,:)))
+    plot(flip(rng_ax1),absmagdb(IQ_DN1(i,:)))
     hold on
-    stem(absmagdb(IQ_DN_pks1(i,:)))
+    stem(flip(rng_ax1),absmagdb(IQ_DN_pks1(i,:)))
+    hold on
+    plot(flip(rng_ax1),absmagdb(dn_th1(:,i)))
     hold off
     nexttile
-    plot(absmagdb(IQ_UP1(i,:)))
+    plot(rng_ax1, absmagdb(IQ_UP1(i,:)))
     hold on
-    stem(absmagdb(IQ_UP_pks1(i,:)))
+    stem(rng_ax1, absmagdb(IQ_UP_pks1(i,:)))
+    hold on
+    plot(rng_ax1, absmagdb(up_th1(:,i)))
     hold off
     nexttile
 
     
-    plot(absmagdb(IQ_DN2(i,:)))
+    plot(flip(rng_ax2), absmagdb(IQ_DN2(i,:)))
     hold on
-    stem(absmagdb(IQ_DN_pks2(i,:)))
+    stem(flip(rng_ax2), absmagdb(IQ_DN_pks2(i,:)))
+    hold on
+    plot(flip(rng_ax2), absmagdb(dn_th2(:,i)))
     hold off
     nexttile
-    plot(absmagdb(IQ_UP2(i,:)))
+    plot(rng_ax2, absmagdb(IQ_UP2(i,:)))
     hold on
-    stem(absmagdb(IQ_UP_pks2(i,:)))
+    stem(rng_ax2, absmagdb(IQ_UP_pks2(i,:)))
+    hold on
+    plot(rng_ax2, absmagdb(up_th2(:,i)))
     hold off
     pause(0.1)
 
