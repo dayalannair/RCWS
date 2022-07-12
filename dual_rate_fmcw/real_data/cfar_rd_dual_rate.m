@@ -97,22 +97,24 @@ IQ_DN1 = IQ_DN1(:, n_fft1/2+1:end);
 IQ_DN2 = IQ_DN2(:, n_fft2/2+1:end);
 
 % Nulling feedthrough
-r_min = 10;
-fb_min1 = range2beat(r_min, k1,c);
-fb_min2 = range2beat(r_min, k2,c);
-
-n_min = find(f_pos==fb_min1);
-
-% Because same size FFT
-% Otherwise need diff axes for diff sizes
-num_nul1 = n_min;
-num_nul2 = n_min;
-
-IQ_UP1(:, 1:num_nul1) = 0;
-IQ_UP2(:, 1:num_nul2) = 0;
-
-IQ_DN1(:, end-num_nul1+1:end) = 0;
-IQ_DN2(:, end-num_nul2+1:end) = 0;
+% NOTE: nulling affects CFAR. Rather 'null' CFAR i.e.
+% Take detections above R min/fb min
+% r_min = 10;
+% fb_min1 = range2beat(r_min, k1,c);
+% fb_min2 = range2beat(r_min, k2,c);
+% 
+% n_min = find(f_pos==fb_min1);
+% 
+% % Because same size FFT
+% % Otherwise need diff axes for diff sizes
+% num_nul1 = n_min;
+% num_nul2 = n_min;
+% 
+% IQ_UP1(:, 1:num_nul1) = 0;
+% IQ_UP2(:, 1:num_nul2) = 0;
+% 
+% IQ_DN1(:, end-num_nul1+1:end) = 0;
+% IQ_DN2(:, end-num_nul2+1:end) = 0;
 
 % Repmat is worse for CFAR
 % IQ_UP1(:, 1:num_nul1) = repmat(IQ_UP1(:,num_nul1+1),1,num_nul1);
@@ -159,7 +161,15 @@ IQ_DN_pks1 = abs(IQ_DN1).*dn_det1';
 IQ_UP_pks2 = abs(IQ_UP2).*up_det2';
 IQ_DN_pks2 = abs(IQ_DN2).*dn_det2';
 
+% Min range to elim CFAR feed through
+r_min = 10;
+% fb_min1 = range2beat(r_min, k1,c);
+% fb_min2 = range2beat(r_min, k2,c);
 
+% Using find needs exact values. Idx found manually and will be the same
+% for nfft = 1024. Can find from range axis.
+n_min1 = 83;
+n_min2 = 111;
 %%
 Ntgt = 4;
 % v_max = 60km/h , fd max = 2.7kHz approx 3kHz
@@ -183,45 +193,51 @@ count = 0;
 % close all
 % figure
 for i = 1:n_sweeps
-   tiledlayout(2,2)
-    nexttile
-    
-    plot(flip(rng_ax1),absmagdb(IQ_DN1(i,:)))
-    hold on
-    stem(flip(rng_ax1),absmagdb(IQ_DN_pks1(i,:)))
-    hold on
-    plot(flip(rng_ax1),absmagdb(dn_th1(:,i)))
-    hold off
-    nexttile
-    plot(rng_ax1, absmagdb(IQ_UP1(i,:)))
-    hold on
-    stem(rng_ax1, absmagdb(IQ_UP_pks1(i,:)))
-    hold on
-    plot(rng_ax1, absmagdb(up_th1(:,i)))
-    hold off
-    nexttile
-
-    
-    plot(flip(rng_ax2), absmagdb(IQ_DN2(i,:)))
-    hold on
-    stem(flip(rng_ax2), absmagdb(IQ_DN_pks2(i,:)))
-    hold on
-    plot(flip(rng_ax2), absmagdb(dn_th2(:,i)))
-    hold off
-    nexttile
-    plot(rng_ax2, absmagdb(IQ_UP2(i,:)))
-    hold on
-    stem(rng_ax2, absmagdb(IQ_UP_pks2(i,:)))
-    hold on
-    plot(rng_ax2, absmagdb(up_th2(:,i)))
-    hold off
-    pause(0.1)
+%    tiledlayout(2,2)
+%     nexttile
+%     plot(flip(rng_ax1(n_min1:end)),absmagdb(IQ_DN1(i,1:end-n_min1+1)))
+%     title("Down chirp flipped FFT: Triangle 1")
+%     xlabel("Range (m)")
+%     hold on
+%     stem(flip(rng_ax1(n_min1:end)),absmagdb(IQ_DN_pks1(i,1:end-n_min1+1)))
+%     hold on
+%     plot(flip(rng_ax1(n_min1:end)),absmagdb(dn_th1(1:end-n_min1+1,i)))
+%     hold off
+%     nexttile
+%     plot(rng_ax1(n_min1:end), absmagdb(IQ_UP1(i,n_min1:end)))
+%     title("Up chirp FFT: Triangle 1")
+%     xlabel("Range (m)")
+%     hold on
+%     stem(rng_ax1(n_min1:end), absmagdb(IQ_UP_pks1(i,n_min1:end)))
+%     hold on
+%     plot(rng_ax1(n_min1:end), absmagdb(up_th1(n_min1:end,i)))
+%     hold off
+% 
+%     nexttile
+%     plot(flip(rng_ax2(n_min2:end)), absmagdb(IQ_DN2(i,1:end-n_min2+1)))
+%     title("Down chirp flipped FFT: Triangle 2")
+%     xlabel("Range (m)")
+%     hold on
+%     stem(flip(rng_ax2(n_min2:end)), absmagdb(IQ_DN_pks2(i,1:end-n_min2+1)))
+%     hold on
+%     plot(flip(rng_ax2(n_min2:end)), absmagdb(dn_th2(1:end-n_min2+1,i)))
+%     hold off
+%     nexttile
+%     plot(rng_ax2(n_min2:end), absmagdb(IQ_UP2(i,n_min2:end)))
+%     title("Up chirp FFT: Triangle 2")
+%     xlabel("Range (m)")
+%     hold on
+%     stem(rng_ax2(n_min2:end), absmagdb(IQ_UP_pks2(i,n_min2:end)))
+%     hold on
+%     plot(rng_ax2(n_min2:end), absmagdb(up_th2(n_min2:end,i)))
+%     hold off
+%     pause(1)
 
     % Obtain highest peak - not good for multi targ and clutter
-    [snru1, pk_idx_up1] = maxk(IQ_UP_pks1(i,:), Ntgt);
-    [snrd1, pk_idx_dn1] = maxk(IQ_DN_pks1(i,:), Ntgt);
-    [snru2, pk_idx_up2] = maxk(IQ_UP_pks2(i,:), Ntgt);
-    [snrd2, pk_idx_dn2] = maxk(IQ_DN_pks2(i,:), Ntgt); 
+    [snru1, pk_idx_up1] = maxk(IQ_UP_pks1(i,n_min1:end), Ntgt);
+    [snrd1, pk_idx_dn1] = maxk(IQ_DN_pks1(i,1:end-n_min1+1), Ntgt);
+    [snru2, pk_idx_up2] = maxk(IQ_UP_pks2(i,n_min2:end), Ntgt);
+    [snrd2, pk_idx_dn2] = maxk(IQ_DN_pks2(i,1:end-n_min2+1), Ntgt); 
 
     % Obtain beat frequencies
     fbu1(i,:) = f_pos(pk_idx_up1);
@@ -230,30 +246,41 @@ for i = 1:n_sweeps
     fbd2(i,:) = f_neg(pk_idx_dn2);
 
     % Obtain Doppler shifts
-    fd1 = -fbu1(i,:) - fbd1(i,:);
-    fd2 = -fbu2(i,:) - fbd2(i,:);
+    fd1 = -fbd1(i,:) - fbu1(i,:);
+    fd2 = -fbd2(i,:) - fbu2(i,:);
 
     % 400 used for 195 fd
 %     if and(abs(fd)<=fd_max, fd > 400)
     for tgt = 1:Ntgt
         fd1_array(i,tgt) = fd1(tgt)/2;
-        if ((abs(fd1(tgt)/2) < fd_max) && (abs(fd1(tgt)/2) ~= 0))
-            sp1_array(i,tgt) = dop2speed(fd1(tgt)/2,lambda)/2;
-            rg1_array(i,tgt) = beat2range([fbu1(i,tgt) fbd1(i,tgt)], k, c);
+        if ((abs(fd1(tgt)/2) < fd_max))% && (abs(fd1(tgt)/2) ~= 0))
+            sp1_array(i,tgt) = round(dop2speed(fd1(tgt)/2,lambda)/2);
+            rg1_array(i,tgt) = round(beat2range([fbu1(i,tgt) fbd1(i,tgt)], k1, c));
         end
         fd2_array(i,tgt) = fd2(tgt)/2;
-        if ((abs(fd2(tgt)/2) < fd_max) && (abs(fd2(tgt)/2) ~= 0))
-            sp2_array(i,tgt) = dop2speed(fd2(tgt)/2,lambda)/2;
-            rg2_array(i,tgt) = beat2range([fbu2(i,tgt) fbd2(i,tgt)], k, c);
+        if ((abs(fd2(tgt)/2) < fd_max))% && (abs(fd2(tgt)/2) ~= 0))
+            sp2_array(i,tgt) = round(dop2speed(fd2(tgt)/2,lambda)/2);
+            rg2_array(i,tgt) = round(beat2range([fbu2(i,tgt) fbd2(i,tgt)], k2, c));
         end
-
+        
         % What if there is Doppler shift which changes from one to 
         % other? for now using Dopp of first triangle
-        if (rg1_array(i,tgt) == rg2_array(i,tgt))
+%         if (rg1_array(i,tgt) == rg2_array(i,tgt))
+%             true_rng(i,tgt) = rg1_array(i,tgt);
+%             true_spd(i,tgt) = sp1_array(i,tgt);
+%         end
+    end
+    for tgt = 1:Ntgt
+        % if target at range x from first trig is in the 
+        % set of targets from second trig
+        if (ismember(rg1_array(i,tgt),rg2_array(i,:)))
             true_rng(i,tgt) = rg1_array(i,tgt);
             true_spd(i,tgt) = sp1_array(i,tgt);
         end
+
     end
+
+
 end
 
 %% Plots
