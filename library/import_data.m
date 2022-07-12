@@ -8,8 +8,9 @@ function [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps)
     k = bw/tm;                      % Sweep slope
     % Data
     % NOTE: Path must be added in the program calling this function
-    % i.e. path is relative to the call function
-    addpath('../../../OneDrive - University of Cape Town/RCWS_DATA/trig_fmcw_data/');
+    % i.e. path is relative to the call function so may need more or less
+    % ../
+    addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/trig_fmcw_data/');
     iq_tbl=readtable('IQ_0_1024_sweeps.txt','Delimiter' ,' ');
     t_stamps = iq_tbl.Var801;
     i_up = table2array(iq_tbl(sweeps,1:200));

@@ -13,7 +13,8 @@ subset = 1:1024;%200:205;
 Ns = 200;
 %subset = 1:8192;%200:205;
 addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/m3_dual_11_07_2022/');
-iq_tbl=readtable('IQ_dual_240_200_06-24-54.txt','Delimiter' ,' ');
+% iq_tbl=readtable('IQ_dual_240_200_06-24-54.txt','Delimiter' ,' ');
+iq_tbl=readtable('IQ_dual_240_200_06-34-00_GOOD.txt','Delimiter' ,' ');
 %iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
 % time = iq_tbl.Var801;
 i_up1 = table2array(iq_tbl(subset,1:Ns));
@@ -32,31 +33,34 @@ iq_dn1 = i_dn1 + 1i*q_dn1;
 iq_up2 = i_up2 + 1i*q_up2;
 iq_dn2 = i_dn2 + 1i*q_dn2;
 
-%% CA-CFAR + Gaussian Window
 % Gaussian Window
 % remember to increase fft point size
 % n_sweeps = size(i_up,1);
-gwinu1 = gausswin(200);
-gwinu2 = gausswin(150);
-gwind1 = gausswin(200);
-gwind2 = gausswin(150);
+% gwinu1 = gausswin(200);
+% gwinu2 = gausswin(150);
+% gwind1 = gausswin(200);
+% gwind2 = gausswin(150);
+% % iq_up1 = gwinu1.'.*iq_up1;
+% % iq_dn1 = gwind1.'.*iq_dn1;
+% % iq_up2 = gwinu2.'.*iq_up2;
+% % iq_dn2 = gwind2.'.*iq_dn2;
 
-% iq_up1 = gwinu1.'.*iq_up1;
-% iq_dn1 = gwind1.'.*iq_dn1;
-% iq_up2 = gwinu2.'.*iq_up2;
-% iq_dn2 = gwind2.'.*iq_dn2;
-
+% Taylor Window
+nbar = 4;
+sll = -38;
+twinu = taylorwin(n_samples, nbar, sll);
+twind = taylorwin(n_samples, nbar, sll);
+iq_u = iq_u.*twinu.';
+iq_d = iq_d.*twind.';
 
 % FFT
 n_sweeps = length(subset);
-n_fft1 = 200;%512;
-n_fft2 = 150;
-iq_dn2 = padarray(iq_dn2,[0 (n_fft1-n_fft2)], 'post');
-iq_up2 = padarray(iq_up2,[0 (n_fft1-n_fft2)], 'post');
+n_fft1 = 1024;%512;
+% n_fft2 = 150;
 n_fft2 = n_fft1;
 % factor of signal to be nulled. 4% determined experimentally
-% nul_width_factor = 0.04;
-% num_nul = round((n_fft/2)*nul_width_factor);
+nul_width_factor = 0.04;
+num_nul = round((n_fft/2)*nul_width_factor);
 % nul_lower = round(n_fft/2 - num_nul);
 % nul_upper = round(n_fft/2 + num_nul);
 
@@ -74,25 +78,29 @@ IQ_UP2 = IQ_UP2(:, 1:n_fft2/2);
 IQ_DN1 = IQ_DN1(:, n_fft1/2+1:end);
 IQ_DN2 = IQ_DN2(:, n_fft2/2+1:end);
 
-% from 20/200 = 0.1
-train_factor = 0.1;
-% from 4/200 = 0.02;
-guard_factor = 0.02;
-guard = round(n_fft1*guard_factor);
-train = round(n_fft1*train_factor);
-% false alarm rate - sets sensitivity
-F = 0.00011; % see relevant papers
+% Nulling DC
+IQ_UP1(:, 1:num_nul) = 0;%IQ_UP1(:, 1:4);
+IQ_UP2(:, 1:num_nul) = 0;%IQ_UP1(:, 1:4);
 
-% Assumes AWGN
-CFAR = phased.CFARDetector('NumTrainingCells',train, ...
+IQ_DN1(:, end-num_nul+1:end) = 0;%IQ_UP1(:, 1:4);
+IQ_DN2(:, end-num_nul+1:end) = 0;%IQ_UP1(:, 1:4);
+
+% CFAR
+guard = 2*n_fft/n_samples;
+guard = floor(guard/2)*2; % make even
+% too many training cells results in too many detections
+train = round(20*n_fft/n_samples);
+train = floor(train/2)*2;
+% false alarm rate - sets sensitivity
+F = 10e-3; % see relevant papers
+
+OS = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
     'Method', 'OS', ...
-    'Rank',2);%, ...
-%     'OutputFormat', 'Detection index');%, ...
-%     'NumDetectionsSource','Property', ...
-%     'NumDetections', n_sweeps*n_fft);
+    'ThresholdOutputPort', true, ...
+    'Rank',train);
 
 % modify CFAR code to simultaneously record beat frequencies
 % up_det1 = CFAR(abs(IQ_UP1)', 1:n_fft);
@@ -101,31 +109,24 @@ CFAR = phased.CFARDetector('NumTrainingCells',train, ...
 % up_det2 = CFAR(abs(IQ_UP2)', 1:n_fft);
 % dn_det2 = CFAR(abs(IQ_DN2)', 1:n_fft);
 
-% Nulling DC
-IQ_UP1(:, 1:2) = 0;%IQ_UP1(:, 1:4);
-IQ_UP2(:, 1:2) = 0;%IQ_UP1(:, 1:4);
-
-IQ_DN1(:, end-2:end) = 0;%IQ_UP1(:, 1:4);
-IQ_DN2(:, end-2:end) = 0;%IQ_UP1(:, 1:4);
-
 % GET APPROP TRAIN LENGTH FOR SHORTER TRIG
-up_det1 = CFAR(abs(IQ_UP1)', 1:n_fft1/2);
-dn_det1 = CFAR(abs(IQ_DN1)', 1:n_fft1/2);
+up_det1 = OS(abs(IQ_UP1)', 1:n_fft1/2);
+dn_det1 = OS(abs(IQ_DN1)', 1:n_fft1/2);
 
-up_det2 = CFAR(abs(IQ_UP2)', 1:n_fft2/2);
-dn_det2 = CFAR(abs(IQ_DN2)', 1:n_fft2/2);
+up_det2 = OS(abs(IQ_UP2)', 1:n_fft2/2);
+dn_det2 = OS(abs(IQ_DN2)', 1:n_fft2/2);
 
-fs = 200e3; %200 kHz
-f = f_ax(n_fft1, fs);
-f_neg = f(1:n_fft1/2);
-f_pos = f((n_fft1/2 - 1):end);
-
-% Get SNR of peaks
+% Find peak magnitude/SNR
 IQ_UP_pks1 = abs(IQ_UP1).*up_det1';
 IQ_DN_pks1 = abs(IQ_DN1).*dn_det1';
 
 IQ_UP_pks2 = abs(IQ_UP2).*up_det2';
 IQ_DN_pks2 = abs(IQ_DN2).*dn_det2';
+
+fs = 200e3; %200 kHz
+f = f_ax(n_fft1, fs);
+f_neg = f(1:n_fft1/2);
+f_pos = f((n_fft1/2 - 1):end);
 
 %%
 Ntgt = 4;
@@ -150,28 +151,31 @@ count = 0;
 % close all
 % figure
 for i = 1:n_sweeps
-%    tiledlayout(4,1)
-%     nexttile
-%     plot(absmagdb(IQ_UP1(i,:)))
-%     hold on
-%     stem(absmagdb(IQ_UP_pks1(i,:)))
-%     hold off
-%     nexttile
-%     plot(absmagdb(IQ_DN1(i,:)))
-%     hold on
-%     stem(absmagdb(IQ_DN_pks1(i,:)))
-%     hold off
-%     nexttile
-%     plot(absmagdb(IQ_UP2(i,:)))
-%     hold on
-%     stem(absmagdb(IQ_UP_pks2(i,:)))
-%     hold off
-%     nexttile
-%     plot(absmagdb(IQ_DN2(i,:)))
-%     hold on
-%     stem(absmagdb(IQ_DN_pks2(i,:)))
-%     hold off
-%     pause(0.1)
+   tiledlayout(2,2)
+    nexttile
+    
+    plot(absmagdb(IQ_DN1(i,:)))
+    hold on
+    stem(absmagdb(IQ_DN_pks1(i,:)))
+    hold off
+    nexttile
+    plot(absmagdb(IQ_UP1(i,:)))
+    hold on
+    stem(absmagdb(IQ_UP_pks1(i,:)))
+    hold off
+    nexttile
+
+    
+    plot(absmagdb(IQ_DN2(i,:)))
+    hold on
+    stem(absmagdb(IQ_DN_pks2(i,:)))
+    hold off
+    nexttile
+    plot(absmagdb(IQ_UP2(i,:)))
+    hold on
+    stem(absmagdb(IQ_UP_pks2(i,:)))
+    hold off
+    pause(0.1)
 
     % Obtain highest peak - not good for multi targ and clutter
     [snru1, pk_idx_up1] = maxk(IQ_UP_pks1(i,:), Ntgt);
