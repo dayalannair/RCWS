@@ -1,76 +1,61 @@
-%% Cell Averaging CFAR (Constant False Alarm Rate) peak detector
-% Most basic/common CFAR algorithm
-%% Parameters
-fc = 24.005e9;
-c = physconst('LightSpeed');
-lambda = c/fc;
-tm = 1e-3;                      % Ramp duration
-bw = 240e6;                     % Bandwidth
-sweep_slope = bw/tm;
 
-%% Import data
 subset = 1:512;%200:205;
-%subset = 1:8192;%200:205;
-addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/m4_rustenberg/');
-% iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-17-09.txt','Delimiter' ,' ');
-iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-16-07.txt','Delimiter' ,' ');
-%iq_tbl=readtable('trig_fmcw_data\IQ_0_8192_sweeps.txt','Delimiter' ,' ');
-%iq_tbl=readtable('IQ.txt','Delimiter' ,' ');
-% time = iq_tbl.Var801;
-i_up = table2array(iq_tbl(subset,1:200));
-i_down = table2array(iq_tbl(subset,201:400));
-q_up = table2array(iq_tbl(subset,401:600));
-q_down = table2array(iq_tbl(subset,601:800));
-
-iq_up = i_up + 1i*q_up;
-iq_down = i_down + 1i*q_down;
-
-%% CA-CFAR + Gaussian Window
-% Gaussian Window
-% remember to increase fft point size
+[fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
 n_samples = size(i_up,2);
 n_sweeps = size(i_up,1);
-gwin = gausswin(n_samples);
-iq_up = iq_up.*gwin.';
-iq_down = iq_down.*gwin.';
+
+% Taylor Window
+nbar = 4;
+sll = -38;
+twinu = taylorwin(n_samples, nbar, sll);
+twind = taylorwin(n_samples, nbar, sll);
+iq_u = iq_u.*twinu.';
+iq_d = iq_d.*twind.';
+
 % FFT
 n_fft = 1024;%512;
-% factor of signal to be nulled. 4% determined experimentally
 nul_width_factor = 0.04;
 num_nul = round((n_fft/2)*nul_width_factor);
-nul_lower = round(n_fft/2 - num_nul);
-nul_upper = round(n_fft/2 + num_nul);
 
-IQ_UP = fftshift(fft(iq_up,n_fft,2));
-IQ_DOWN = fftshift(fft(iq_down,n_fft,2));
+IQ_UP = fft(iq_u,n_fft,2);
+IQ_DN = fft(iq_d,n_fft,2);
 
-% from 20/200 = 0.1
-train_factor = 0.1;
-% from 4/200 = 0.02;
-guard_factor = 0.02;
-guard = round(n_fft*guard_factor);
-train = round(n_fft*train_factor);
+% Halve FFTs
+IQ_UP = IQ_UP(:, 1:n_fft/2);
+IQ_DN = IQ_DN(:, n_fft/2+1:end);
+
+% Null feedthrough
+IQ_UP(:, 1:num_nul) = 0;
+IQ_DN(:, end-num_nul+1:end) = 0;
+
+% CFAR
+guard = 2*n_fft/n_samples;
+guard = floor(guard/2)*2; % make even
+% too many training cells results in too many detections
+train = round(20*n_fft/n_samples);
+train = floor(train/2)*2;
 % false alarm rate - sets sensitivity
-F = 0.011; % see relevant papers
+F = 10e-3; 
 
-% Assumes AWGN
-% research options
-% 4 bins -> car is 2m, bin is 0.6
-% try with simulated data and noise & clutter
-CFAR = phased.CFARDetector('NumTrainingCells',train, ...
+OS = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
-    'Method', 'SOCA');
+    'Method', 'OS', ...
+    'ThresholdOutputPort', true, ...
+    'Rank',train);
 
-% modify CFAR code to simultaneously record beat frequencies
-up_detections = CFAR(abs(IQ_UP)', 1:n_fft);
-down_detections = CFAR(abs(IQ_DOWN)', 1:n_fft);
+% Filter peaks/ peak detection
+[up_os, os_thu] = OS(abs(IQ_UP)', 1:n_fft/2);
+[dn_os, os_thd] = OS(abs(IQ_DN)', 1:n_fft/2);
 
-fs = 200e3; %200 kHz
+% Find peak magnitude/SNR
+os_pku = abs(IQ_UP).*up_os';
+os_pkd = abs(IQ_DN).*dn_os';
+
+% Define frequency axis
+fs = 200e3;
 f = f_ax(n_fft, fs);
-IQ_UP_peaks = abs(IQ_UP).*up_detections';
-IQ_DOWN_peaks = abs(IQ_DOWN).*down_detections';
 
 
 %%
@@ -79,10 +64,6 @@ v_max = 60/3.6;
 %fd_max = speed2dop(v_max, lambda)*2;
 fd_max = 3e3;
 fb = zeros(n_sweeps,2);
-%fbd = zeros(n_sweeps,2);
-% Each sample can return a detection - max number of targets is 200?
-% beat2range - expects a set of beat freqs up and down
-% NB: MATLAB makes square matrix by default
 range_array = zeros(n_sweeps,1);
 fd_array = zeros(n_sweeps,1);
 speed_array = zeros(n_sweeps,1);
@@ -91,13 +72,8 @@ count = 0;
 % figure
 for i = 1:n_sweeps
     
-    % SINGLE TARG:
-    % null feed through
-    IQ_UP_peaks(i,nul_lower:nul_upper) = 0;
-    IQ_DOWN_peaks(i,nul_lower:nul_upper) = 0;
-    
-    [highest_SNR_up, pk_idx_up]= max(IQ_UP_peaks(i,round(n_fft/2 + 1):end));
-    [highest_SNR_down, pk_idx_down] = max(IQ_DOWN_peaks(i,1:round(n_fft/2 + 1)));
+    [magu, idx_u]= max(os_pku(i,:));
+    [magd, idx_d] = max(os_pkd(i,:));
 %     plot(IQ_UP_peaks(i,round(n_fft/2 + 1):end))
 %     xline(pk_idx_up)
 %     drawnow;
