@@ -75,6 +75,9 @@ sp_array = zeros(n_sweeps,Ntgt);
 
 % Minimum sample number for 1024 point FFT corresponding to min range = 10m
 n_min = 83;
+% Divide into range bins of width 64
+nbins = 16;
+bin_width = n_fft/nbins;
 %%
 % close all
 % figure
@@ -100,9 +103,10 @@ for i = 1:n_sweeps
     hold off
     pause(0.1)
 
-    [magu, idx_u]= maxk(os_pku(i,:),Ntgt);
-    [magd, idx_d] = maxk(os_pkd(i,:),Ntgt);
-
+    for bin = 0:nbins
+        [magu, idx_u]= maxk(os_pku(i,bin*bin_width+1:2*bin*bin_width),Ntgt);
+        [magd, idx_d] = maxk(os_pkd(i,:),Ntgt);
+    end
     fbu(i,:) = f_pos(idx_u);
     fbd(i,:) = f_neg(idx_d);
 

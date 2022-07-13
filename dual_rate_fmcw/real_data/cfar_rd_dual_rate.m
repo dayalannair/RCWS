@@ -124,11 +124,18 @@ IQ_DN2 = IQ_DN2(:, n_fft2/2+1:end);
 % IQ_DN2(:, end-num_nul2+1:end) = repmat(IQ_DN2(:,end-num_nul2),1,num_nul2);
 
 % CFAR
-guard = 2*n_fft1/Ns1;
-guard = floor(guard/2)*2; % make even
+guard1 = 2*n_fft1/Ns1;
+guard1 = floor(guard1/2)*2; % make even
+
+% guard2 = 2*n_fft2/Ns1;
+% guard2 = floor(guard2/2)*2; % make even
 % too many training cells results in too many detections
+% train1 = round(20*n_fft1/Ns1);
+% train1 = floor(train1/2)*2;
+
 train = round(20*n_fft1/Ns1);
 train = floor(train/2)*2;
+
 % false alarm rate - sets sensitivity
 F = 10e-3; % see relevant papers
 
@@ -171,11 +178,11 @@ r_min = 10;
 n_min1 = 83;
 n_min2 = 111;
 %%
-Ntgt = 4;
+Ntgt = 3;
 % v_max = 60km/h , fd max = 2.7kHz approx 3kHz
 v_max = 60/3.6; 
 %fd_max = speed2dop(v_max, lambda)*2;
-fd_max = 3e3;
+fd_max = 3e4;
 fbu1 = zeros(n_sweeps,Ntgt);
 fbd1 = zeros(n_sweeps,Ntgt);
 fbu2 = zeros(n_sweeps,Ntgt);
@@ -270,22 +277,22 @@ for i = 1:n_sweeps
 %             true_spd(i,tgt) = sp1_array(i,tgt);
 %         end
     end
-    for tgt = 1:Ntgt
-        % if target at range x from first trig is in the 
-        % set of targets from second trig
-        if (ismember(rg1_array(i,tgt),rg2_array(i,:)))
-            true_rng(i,tgt) = rg1_array(i,tgt);
-            true_spd(i,tgt) = sp1_array(i,tgt);
-        end
-
-    end
-
+%     for tgt = 1:Ntgt
+%         % if target at range x from first trig is in the 
+%         % set of targets from second trig
+%         if (ismember(rg1_array(i,tgt),rg2_array(i,:)))
+%             true_rng(i,tgt) = rg1_array(i,tgt);
+%             true_spd(i,tgt) = sp1_array(i,tgt);
+%         end
+%     end
+    true_rng(i,:) = ismember(rg1_array(i,:),rg2_array(i,:)).*rg1_array(i,:);
+    true_spd(i,:) = ismember(sp1_array(i,:),sp2_array(i,:)).*sp1_array(i,:);
 
 end
 
 %% Plots
 % tm + tm + 0.75tm + 0.75tm = 3.5
-t = linspace(0,3.5*n_fft1*tm, n_sweeps);
+t = linspace(0,3.5*n_fft1*tm1, n_sweeps);
 % True results - Dual Rate ghost removal
 close all
 figure      
