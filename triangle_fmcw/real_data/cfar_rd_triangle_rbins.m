@@ -1,5 +1,6 @@
 % Import data and parameters
 subset = 1:512;%200:205;
+addpath('../../library/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
 n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
@@ -13,7 +14,7 @@ iq_u = iq_u.*twinu.';
 iq_d = iq_d.*twind.';
 
 % FFT
-n_fft = 1024;%512;
+n_fft = 512;%512;
 nul_width_factor = 0.04;
 num_nul = round((n_fft/2)*nul_width_factor);
 
@@ -35,7 +36,7 @@ guard = floor(guard/2)*2; % make even
 train = round(20*n_fft/n_samples);
 train = floor(train/2)*2;
 % false alarm rate - sets sensitivity
-F = 10e-3; 
+F = 15e-3; 
 
 OS = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
@@ -65,59 +66,91 @@ rng_ax = beat2range(f_pos',k,c);
 % v_max = 60km/h , fd max = 2.7kHz approx 3kHz
 v_max = 60/3.6; 
 %fd_max = speed2dop(v_max, lambda)*2;
-fd_max = 3e3;
+fd_max = 10e3;
 Ntgt = 4;
-fbu = zeros(n_sweeps,Ntgt);
-fbd = zeros(n_sweeps,Ntgt);
-rg_array = zeros(n_sweeps,Ntgt);
-fd_array = zeros(n_sweeps,Ntgt);
-sp_array = zeros(n_sweeps,Ntgt);
 
 % Minimum sample number for 1024 point FFT corresponding to min range = 10m
-n_min = 83;
+% n_min = 83;
+% for 512 point FFT:
+n_min = 42;
 % Divide into range bins of width 64
 nbins = 16;
-bin_width = n_fft/nbins;
+bin_width = (n_fft/2)/nbins;
+fbu = zeros(n_sweeps,nbins);
+fbd = zeros(n_sweeps,nbins);
+
+rg_array = zeros(n_sweeps,nbins);
+fd_array = zeros(n_sweeps,nbins);
+sp_array = zeros(n_sweeps,nbins);
+
+% magsu = zeros(n_sweeps,nbins);
+% magsd = zeros(n_sweeps,nbins);
+% 
+% magsu = zeros(n_sweeps,nbins);
+% magsd = zeros(n_sweeps,nbins);
+
+osu_pk_clean = zeros(n_sweeps,n_fft/2);
+osd_pk_clean = zeros(n_sweeps,n_fft/2);
 %%
 % close all
 % figure
 for i = 1:n_sweeps
-    tiledlayout(2,1)
-    nexttile
-    plot(flip(rng_ax(n_min:end)),absmagdb(IQ_DN(i,1:end-n_min+1)))
-    title("Down chirp flipped FFT")
-    xlabel("Range (m)")
-    hold on
-    stem(flip(rng_ax(n_min:end)),absmagdb(os_pkd(i,1:end-n_min+1)))
-    hold on
-    plot(flip(rng_ax(n_min:end)),absmagdb(os_thd(1:end-n_min+1,i)))
-    hold off
-    nexttile
-    plot(rng_ax(n_min:end), absmagdb(IQ_UP(i,n_min:end)))
-    title("Up chirp FFT")
-    xlabel("Range (m)")
-    hold on
-    stem(rng_ax(n_min:end), absmagdb(os_pku(i,n_min:end)))
-    hold on
-    plot(rng_ax(n_min:end), absmagdb(os_thu(n_min:end,i)))
-    hold off
-    pause(0.1)
-
-    for bin = 0:nbins
-        [magu, idx_u]= maxk(os_pku(i,bin*bin_width+1:2*bin*bin_width),Ntgt);
-        [magd, idx_d] = maxk(os_pkd(i,:),Ntgt);
-    end
-    fbu(i,:) = f_pos(idx_u);
-    fbd(i,:) = f_neg(idx_d);
-
-    fd = -fbu(i,:) - fbd(i,:);
-    for tgt = 1:Ntgt
-        fd_array(i,tgt) = fd(tgt)/2;
-        if ((abs(fd(tgt)/2) < fd_max) && (abs(fd(tgt)/2) ~= 0))
-            sp_array(i,tgt) = dop2speed(fd(tgt)/2,lambda)/2;
-            rg_array(i,tgt) = beat2range([fbu(i,tgt) fbd(i,tgt)], k, c);
+   for bin = 0:(nbins-1)
+        % Only want one target per bin
+        bin_slice_u = os_pku(i,bin*bin_width+1:(bin+1)*bin_width);
+        bin_slice_d = os_pkd(i,bin*bin_width+1:(bin+1)*bin_width);
+        % Note: max will return index of first 0 if array of zeros
+        % for now, check if mag is zero then skip
+        [magu, idx_u] = max(bin_slice_u);
+        [magd, idx_d] = max(bin_slice_d);
+        % need to see what happens if a peak not found
+        if magu ~= 0
+            fbu(i,bin+1) = f_pos(bin*bin_width + idx_u);
         end
+        if magd ~= 0
+            fbd(i,bin+1) = f_neg(bin*bin_width + idx_d);
+        end
+        
+        fd = -fbu(i,bin+1) - fbd(i,bin+1);
+        fd_array(i,bin+1) = fd/2;
+        if ((abs(fd/2) < fd_max) && (abs(fd/2) ~= 0))
+            sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
+            rg_array(i,bin+1) = beat2range([fbu(i,bin+1) fbd(i,bin+1)], k, c);
+        end
+        % for plot
+%         osu_pk_clean(i, bin*bin_width + idx_u) = magu;
+%         osd_pk_clean(i, bin*bin_width + idx_d) = magd;
     end
+%     tiledlayout(2,1)
+%     nexttile
+%     plot(flip(rng_ax(n_min:end)),absmagdb(IQ_DN(i,1:end-n_min+1))')
+%     title("Down chirp flipped FFT")
+%     xlabel("Range (m)")
+%     hold on
+% %     stem(flip(rng_ax(n_min:end)),absmagdb(os_pkd(i,1:end-n_min+1))')
+% %     hold on
+%     plot(flip(rng_ax(n_min:end)),absmagdb(os_thd(1:end-n_min+1,i))')
+%     hold on
+%     stem(flip(rng_ax(n_min:end)), ...
+%         absmagdb(osd_pk_clean(i,1:end-n_min+1))', ...
+%         'Marker','diamond')
+%     hold off
+%     nexttile
+%     plot(rng_ax(n_min:end), absmagdb(IQ_UP(i,n_min:end))')
+%     title("Up chirp FFT")
+%     xlabel("Range (m)")
+%     hold on
+% %     stem(rng_ax(n_min:end), absmagdb(os_pku(i,n_min:end))')
+% %     hold on
+%     plot(rng_ax(n_min:end), absmagdb(os_thu(n_min:end,i))')
+%     hold on
+%     stem(rng_ax(n_min:end), ...
+%         absmagdb(osu_pk_clean(i,n_min:end))', ...
+%         'Marker', 'diamond')
+%     hold off
+%     pause(0.1)
+
+    
 end
 
 %% Previous Hold zero filter
@@ -132,14 +165,22 @@ end
 %         end
 %     end
 % end
+%% Rebuild ranges
+ranges = zeros(n_sweeps,n_fft/2);
+speeds = zeros(n_sweeps,n_fft/2);
+for bin = 1:(nbins-1)
+    ranges(:,bin*bin_width+1:(bin+1)*bin_width) = repmat(rg_array(:,bin), 1,bin_width);
+    speeds(:,bin*bin_width+1:(bin+1)*bin_width) = repmat(sp_array(:,bin), 1,bin_width);
+end
+
+
 %% Plots
 t = linspace(0,n_sweeps*tm, n_sweeps);
-% True results - Dual Rate ghost removal
 close all
 figure      
 tiledlayout(2,1)
 nexttile
-plot(t, rg_array(:,3))
+plot(ranges)
 nexttile
-plot(t, sp_array(:,3).*3.6)
+plot(speeds.*3.6)
 
