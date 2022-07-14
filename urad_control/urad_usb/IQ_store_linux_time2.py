@@ -94,7 +94,7 @@ if (not usb_communication):
 	sleep(timeSleep)
 
 # loadConfiguration uRAD
-return_code = uRAD_USB_SDK11.loadConfiguration(ser, mode, f0, BW, Ns, Ntar, Rmax, MTI, Mth, Alpha, distance_true, velocity_true, SNR_true, I_true, Q_true, movement_true)
+return_code = uRAD_USB_SDK11.loadConfiguration(ser, mode, f0, BW, Ns, 0, 0, 0, 0, 0, distance_true, velocity_true, SNR_true, I_true, Q_true, movement_true)
 if (return_code != 0):
 	print("uRAD configuration failed")
 	closeProgram()
@@ -103,27 +103,36 @@ if (not usb_communication):
 	sleep(timeSleep)
 
 t_0 = time_ns()
+t_02 = time()
 t_i = []
+t_i2 = []
 i = 0
 I = []
 Q = []
+periods = []
 print("Loop running\n")
-print(str(t_0/10e9))
+#print(str(t_0/10e9))
 try:
 	for i in range(sweeps):
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 		I.append(raw_results[0])
-		Q.append(raw_results[1])
-		t_i.append(time_ns())
+		# Do WE NEED Q DATA?
+		Q.append(raw_results[1]) ## size of raw results?
+		t_i.append(time_ns()) # research.
+		# check if decimation by holding at fixed obj ofor fixed time
+		t_i2.append(time())
 
 		# Signal period
-		period = t_i[len(t_i)-1]-t_i[len(t_i)-2]
-		
-		# Elapsed time
-		# period = t_i[len(t_i)-1] - t_0
+		# periods.append(t_i[len(t_i)-1]-t_i[len(t_i)-2])
+		# t_sum = 
+	# Elapsed time
+	t_tot = t_i[len(t_i)-1] - t_0
+	print(str(t_tot/10e9))
 
-		print(str(period/10e9))
-
+	t_tot = t_i2[len(t_i2)-1] - t_02
+	print(str(t_tot))
+	# t_period = 
+	
 	print("Ending. Writing data to textfile...\n")
 	uRAD_USB_SDK11.turnOFF(ser)
 	sweeps = len(I)
