@@ -11,8 +11,23 @@ function [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps)
     % i.e. path is relative to the call function so may need more or less
     % ../
     addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/trig_fmcw_data/');
-    iq_tbl=readtable('IQ_0_8192_sweeps.txt','Delimiter' ,' ');
-    t_stamps = iq_tbl.Var801;
+    addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/trolley_test/');
+    addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/m4_rustenberg/');
+%     iq_tbl=readtable('IQ_0_8192_sweeps.txt','Delimiter' ,' ');
+    iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-16-07.txt','Delimiter' ,' ');
+%     iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-17-09.txt','Delimiter' ,' ');
+
+% iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-18-14.txt','Delimiter' ,' ');
+% iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-19-11.txt','Delimiter' ,' ');
+% iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-20-05.txt','Delimiter' ,' ');
+% iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-20-57.txt','Delimiter' ,' ');
+
+
+
+
+
+%     t_stamps = iq_tbl.Var801;
+    t_stamps = [];
     i_up = table2array(iq_tbl(sweeps,1:200));
     i_down = table2array(iq_tbl(sweeps,201:400));
     q_up = table2array(iq_tbl(sweeps,401:600));

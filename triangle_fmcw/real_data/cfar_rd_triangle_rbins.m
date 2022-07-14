@@ -1,5 +1,5 @@
 % Import data and parameters
-subset = 1:8192;%200:205;
+subset = 1:4096;%200:205;
 addpath('../../library/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
 n_samples = size(iq_u,2);
@@ -258,6 +258,7 @@ imagesc(sp_array.*3.6)
 set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl) % 10 ticks 
 % set(gca, 'YTick', [0:0.05:1]*512, 'YTickLabel', [0:0.05:1]) % 20 ticks
 grid
+title("M4 data near Rustenberg Junior: Set 2")
 xlabel("Range bin (meters)")
 ylabel("Sweep number/time")
 a = colorbar;
