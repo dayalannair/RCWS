@@ -1,5 +1,5 @@
 % Import data and parameters
-subset = 1:512;%200:205;
+subset = 1:8192;%200:205;
 addpath('../../library/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
 n_samples = size(iq_u,2);
@@ -66,7 +66,7 @@ rng_ax = beat2range(f_pos',k,c);
 % v_max = 60km/h , fd max = 2.7kHz approx 3kHz
 v_max = 60/3.6; 
 %fd_max = speed2dop(v_max, lambda)*2;
-fd_max = 10e3;
+fd_max = 3e3;
 Ntgt = 4;
 
 % Minimum sample number for 1024 point FFT corresponding to min range = 10m
@@ -82,15 +82,16 @@ fbd = zeros(n_sweeps,nbins);
 rg_array = zeros(n_sweeps,nbins);
 fd_array = zeros(n_sweeps,nbins);
 sp_array = zeros(n_sweeps,nbins);
-
+beat_arr = zeros(n_sweeps,nbins);
 % magsu = zeros(n_sweeps,nbins);
 % magsd = zeros(n_sweeps,nbins);
 % 
 % magsu = zeros(n_sweeps,nbins);
 % magsd = zeros(n_sweeps,nbins);
-
 osu_pk_clean = zeros(n_sweeps,n_fft/2);
 osd_pk_clean = zeros(n_sweeps,n_fft/2);
+
+
 %%
 % close all
 % figure
@@ -110,16 +111,26 @@ for i = 1:n_sweeps
         if magd ~= 0
             fbd(i,bin+1) = f_neg(bin*bin_width + idx_d);
         end
-        
-        fd = -fbu(i,bin+1) - fbd(i,bin+1);
-        fd_array(i,bin+1) = fd/2;
-        if ((abs(fd/2) < fd_max) && (abs(fd/2) ~= 0))
-            sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
-            rg_array(i,bin+1) = beat2range([fbu(i,bin+1) fbd(i,bin+1)], k, c);
+   end
+   fbd = flip(fbd,2);
+
+   for bin = 0:(nbins-1)
+        % if both not DC
+        if and(fbu(i,bin+1) ~= 0, fbd(i,bin+1)~= 0)
+            fd = -fbu(i,bin+1) - fbd(i,bin+1);
+            fd_array(i,bin+1) = fd/2;
+            
+            % if less than max expected and filter clutter doppler
+            if ((abs(fd/2) < fd_max) && (fd/2 > 400))
+                sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
+                % negative factored in for down chirp
+                rg_array(i,bin+1) = beat2range([fbu(i,bin+1) fbd(i,bin+1)], k, c);
+                beat_arr(i,bin+1) = (fbu(i,bin+1) -fbd(i,bin+1))/2;
+            end
         end
         % for plot
-%         osu_pk_clean(i, bin*bin_width + idx_u) = magu;
-%         osd_pk_clean(i, bin*bin_width + idx_d) = magd;
+        osu_pk_clean(i, bin*bin_width + idx_u) = magu;
+        osd_pk_clean(i, bin*bin_width + idx_d) = magd;
     end
 %     tiledlayout(2,1)
 %     nexttile
@@ -134,6 +145,8 @@ for i = 1:n_sweeps
 %     stem(flip(rng_ax(n_min:end)), ...
 %         absmagdb(osd_pk_clean(i,1:end-n_min+1))', ...
 %         'Marker','diamond')
+% %     lbls = compose('%.2f', osd_pk_clean(i,1:end-n_min+1)');
+% %     text(osd_pk_clean(i,1:end-n_min+1)', lbls, 'HorizontalAlignment','center', 'VerticalAlignment','top', 'FontSize',8)
 %     hold off
 %     nexttile
 %     plot(rng_ax(n_min:end), absmagdb(IQ_UP(i,n_min:end))')
@@ -148,7 +161,7 @@ for i = 1:n_sweeps
 %         absmagdb(osu_pk_clean(i,n_min:end))', ...
 %         'Marker', 'diamond')
 %     hold off
-%     pause(0.1)
+%     pause(1)
 
     
 end
@@ -165,22 +178,87 @@ end
 %         end
 %     end
 % end
-%% Rebuild ranges
-ranges = zeros(n_sweeps,n_fft/2);
-speeds = zeros(n_sweeps,n_fft/2);
-for bin = 1:(nbins-1)
-    ranges(:,bin*bin_width+1:(bin+1)*bin_width) = repmat(rg_array(:,bin), 1,bin_width);
-    speeds(:,bin*bin_width+1:(bin+1)*bin_width) = repmat(sp_array(:,bin), 1,bin_width);
+%% 
+% lightBLUE = [0.356862745098039,0.811764705882353,0.956862745098039];
+% darkBLUE = [0.0196078431372549,0.0745098039215686,0.670588235294118];
+%  
+% blueGRADIENTflexible = @(i,n_sweeps) lightBLUE + (darkBLUE-lightBLUE)*((i-1)/(n_sweeps-1));
+
+%%
+% close all
+% figure
+% tiledlayout(2,1)
+% nexttile
+% % for sweep = 1:1000
+% % plot(rg_array(sweep,:))%, 'Color',blueGRADIENTflexible(sweep,1000));
+% % hold on
+% % end
+% 
+% 
+% plot(rg_array);
+% % legend("bin 1", ...
+% %     "bin 2", ...
+% %     "bin 3", ...
+% %     "bin 4", ...
+% %     "bin 5", ...
+% %     "bin 6", ...
+% %     "bin 7", ...
+% %     "bin 8", ...
+% %     "bin 9", ...
+% %     "bin 10", ...
+% %     "bin 11", ...
+% %     "bin 12", ...
+% %     "bin 13", ...
+% %     "bin 14", ...
+% %     "bin 15", ...
+% %     "bin 16");
+% nexttile
+% plot(sp_array.*3.6)
+
+% %% Rebuild ranges
+% ranges = zeros(n_sweeps,n_fft/2);
+% speeds = zeros(n_sweeps,n_fft/2);
+% for bin = 1:(nbins-1)
+%     ranges(:,bin*bin_width+1:(bin+1)*bin_width) = repmat(rg_array(:,bin), 1,bin_width);
+%     speeds(:,bin*bin_width+1:(bin+1)*bin_width) = repmat(sp_array(:,bin), 1,bin_width);
+% end
+% 
+% 
+% %% Plots
+% t = linspace(0,n_sweeps*tm, n_sweeps);
+% close all
+% figure      
+% tiledlayout(2,1)
+% nexttile
+% plot(ranges)
+% nexttile
+% plot(speeds.*3.6)
+
+%% Image plot
+% Sweeps vs bins
+rg_bin_lbl = strings(1,nbins);
+rax = linspace(0,62,32);
+for bin = 0:(nbins-1)
+    first = round(rng_ax(bin*bin_width+1));
+    last = round(rng_ax((bin+1)*bin_width));
+    rg_bin_lbl(bin+1) = strcat(num2str(first), " to ", num2str(last));
 end
 
-
-%% Plots
-t = linspace(0,n_sweeps*tm, n_sweeps);
+%%
 close all
-figure      
-tiledlayout(2,1)
-nexttile
-plot(ranges)
-nexttile
-plot(speeds.*3.6)
-
+figure
+% tiledlayout(1,2)
+% nexttile
+% imagesc(rg_array)
+% grid
+% xlabel("Range bin")
+% ylabel("Sweep number/time")
+% nexttile
+imagesc(sp_array.*3.6)
+set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl) % 10 ticks 
+% set(gca, 'YTick', [0:0.05:1]*512, 'YTickLabel', [0:0.05:1]) % 20 ticks
+grid
+xlabel("Range bin (meters)")
+ylabel("Sweep number/time")
+a = colorbar;
+a.Label.String = 'Radial velocity (km/h)';
