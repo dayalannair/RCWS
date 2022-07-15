@@ -68,6 +68,7 @@ t_tot = t_trig + t_min + t_proc;
 
 speeds = linspace(1,v_max, 60);
 
+% therefore d/v = const. Use this to determine safety
 distances = speeds.*t_tot;
 
 % close all
