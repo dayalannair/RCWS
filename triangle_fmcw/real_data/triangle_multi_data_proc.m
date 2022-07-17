@@ -161,7 +161,7 @@ for sweep = 1:65:(n_sweeps-sweep_window)
     nexttile
     imagesc(safe_sweeps(sweep:sweep+sweep_window))
     drawnow;
-%     pause(0.01)
+    pause(0.5)
 end
 toc
 % times 2 for triangle modulation
