@@ -13,9 +13,9 @@ function [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps)
     addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/trig_fmcw_data/');
     addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/trolley_test/');
     addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/m4_rustenberg/');
-%     iq_tbl=readtable('IQ_0_8192_sweeps.txt','Delimiter' ,' ');
+   iq_tbl=readtable('IQ_0_8192_sweeps.txt','Delimiter' ,' ');
 %     iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-16-07.txt','Delimiter' ,' ');
-    iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-17-09.txt','Delimiter' ,' ');
+%     iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-17-09.txt','Delimiter' ,' ');
 
 % iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-18-14.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-19-11.txt','Delimiter' ,' ');

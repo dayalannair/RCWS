@@ -4,7 +4,18 @@ addpath('../../library/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
 n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
+%%
+% Import video
+addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
+vidObj = VideoReader('uct_road_iq_25.mp4');
+% 776 frames
+% while hasFrame(vidObj)
+%     vidFrame = readFrame(vidObj);
+%     imshow(vidFrame)
+%     pause(1/vidObj.FrameRate);
+% end
 
+%%
 % Taylor Window
 nbar = 4;
 sll = -38;
@@ -145,26 +156,34 @@ end
 close all
 figure
 sweep_window = 200;
-tic;
-for sweep = 1:65:(n_sweeps-sweep_window)
-    tiledlayout(1,2)
-    nexttile
-    imagesc(sp_array(sweep:sweep+sweep_window,:).*3.6)
-    set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl)
-    grid
-    title("M4 data near Rustenberg Junior: Set 2")
-    xlabel("Range bin (meters)")
-    ylabel("Sweep number/time")
-    a = colorbar;
-    a.Label.String = 'Radial velocity (km/h)';
+% Loop for fast sampled data
+% tic;
+% for sweep = 1:65:(n_sweeps-sweep_window)
+%     tiledlayout(1,3)
+%     nexttile
+%     imagesc(sp_array(sweep:sweep+sweep_window,:).*3.6)
+%     set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl)
+%     grid
+%     title("M4 data near Rustenberg Junior: Set 2")
+%     xlabel("Range bin (meters)")
+%     ylabel("Sweep number/time")
+%     a = colorbar;
+%     a.Label.String = 'Radial velocity (km/h)';
+% %     drawnow;
+%     nexttile
+%     imagesc(safe_sweeps(sweep:sweep+sweep_window))
+%     nexttile
+%     for w = 1:10
+%         vidFrame = readFrame(vidObj);
+%     end
+%     imshow(vidFrame)
 %     drawnow;
-    nexttile
-    imagesc(safe_sweeps(sweep:sweep+sweep_window))
-    drawnow;
-    pause(0.5)
-end
-toc
+% % pause(0.5)
+% end
+% toc
 % times 2 for triangle modulation
+
+% Loop for slow sampling - just get new data smh
 expected_time = length(subset)*tm*2
 %%
 % close all
