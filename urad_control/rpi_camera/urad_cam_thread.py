@@ -1,5 +1,7 @@
 import uRAD_USB_SDK11
 import serial
+import threading
+from picamera import PiCamera
 from time import time, sleep, strftime,localtime
 import sys
 from datetime import datetime
@@ -111,14 +113,35 @@ t_0 = time()
 i = 0
 I = []
 Q = []
-print("Loop running\n")
+
+camera = PiCamera()
+# THREADED VIDEO 
+def record_video():
+	print("Video recording started...")
+	camera.resolution = (640, 480)
+	vidFile = "urad_vid" + str(now) + ".h264"
+	camera.start_recording(vidFile)
+	# camera.wait_recording(10)
+	# camera.stop_recording()
+	# print("Video recording complete.")
+
+
+
 try:
+	# Start video thread
+	print("Starting thread...")
+	vid = threading.Thread(target=record_video)
+	vid.start()
+
+	print("Capturing radar data...\n")
 	for i in range(sweeps):
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 		I.append(raw_results[0])
 		Q.append(raw_results[1])
 
-	print("Ending. Writing data to textfile...\n")
+	vid.join()
+	camera.stop_recording()
+	print("Video and radar data captured. Writing data to textfile...\n")
 	uRAD_USB_SDK11.turnOFF(ser)
 	sweeps = len(I)
 	samples = len(I[1])

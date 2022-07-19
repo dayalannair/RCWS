@@ -1,2 +1,4 @@
 *.h264
 *.jpg
+*.txt
+__pycache__
