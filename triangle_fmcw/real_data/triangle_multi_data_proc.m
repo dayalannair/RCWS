@@ -139,7 +139,7 @@ for bin = 0:(nbins-1)
     last = round(rng_ax((bin+1)*bin_width));
     rg_bin_lbl(bin+1) = strcat(num2str(first), " to ", num2str(last));
 end
-%% Turn safety
+%% *** Turn safety algorithm ***
 % takes 3 seconds to turn. target must be 3 sec away.
 t_safe = 3;
 safe_sweeps = zeros(n_sweeps,1);
@@ -147,7 +147,9 @@ for sweep = 1:n_sweeps
     ratio = rg_array(sweep,:)./sp_array(sweep,:);
     if (any(ratio<t_safe))
         % 1 indicates sweep contained target at unsafe distance
-        safe_sweeps(sweep) = 1;
+        % UPDATE: put the ratio/time into array to scale how
+        % safe the turn is
+        safe_sweeps(sweep) = 4-min(ratio);
     end
 end
 
@@ -157,42 +159,42 @@ close all
 figure
 sweep_window = 200;
 % Loop for fast sampled data
-% tic;
-% for sweep = 1:65:(n_sweeps-sweep_window)
-%     tiledlayout(1,3)
-%     nexttile
-%     imagesc(sp_array(sweep:sweep+sweep_window,:).*3.6)
-%     set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl)
-%     grid
-%     title("M4 data near Rustenberg Junior: Set 2")
-%     xlabel("Range bin (meters)")
-%     ylabel("Sweep number/time")
-%     a = colorbar;
-%     a.Label.String = 'Radial velocity (km/h)';
-% %     drawnow;
-%     nexttile
-%     imagesc(safe_sweeps(sweep:sweep+sweep_window))
+tic;
+for sweep = 1:65:(n_sweeps-sweep_window)
+    tiledlayout(1,2)
+    nexttile
+    imagesc(sp_array(sweep:sweep+sweep_window,:).*3.6)
+    set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl)
+    grid
+    title("M4 data near Rustenberg Junior: Set 2")
+    xlabel("Range bin (meters)")
+    ylabel("Sweep number/time")
+    a = colorbar;
+    a.Label.String = 'Radial velocity (km/h)';
+%     drawnow;
+    nexttile
+    imagesc(safe_sweeps(sweep:sweep+sweep_window))
 %     nexttile
 %     for w = 1:10
 %         vidFrame = readFrame(vidObj);
 %     end
 %     imshow(vidFrame)
-%     drawnow;
-% % pause(0.5)
-% end
-% toc
+    drawnow;
+% pause(0.5)
+end
+toc
 % times 2 for triangle modulation
 
 % Loop for slow sampling - just get new data smh
 expected_time = length(subset)*tm*2
 %%
-% close all
-% figure
-% imagesc(sp_array.*3.6)
-% set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl)
-% grid
-% title("M4 data near Rustenberg Junior: Set 2")
-% xlabel("Range bin (meters)")
-% ylabel("Sweep number/time")
-% a = colorbar;
-% a.Label.String = 'Radial velocity (km/h)';
+close all
+figure
+imagesc(sp_array.*3.6)
+set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl)
+grid
+title("M4 data near Rustenberg Junior: Set 2")
+xlabel("Range bin (meters)")
+ylabel("Sweep number/time")
+a = colorbar;
+a.Label.String = 'Radial velocity (km/h)';
