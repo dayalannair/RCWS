@@ -27,13 +27,20 @@ import threading
 camera = PiCamera()
 # THREADED VIDEO 
 def record_video():
+    print("Video recording...")
     camera.resolution = (640, 480)
     camera.start_recording('threadvid.h264')
     camera.wait_recording(10)
     camera.stop_recording()
+    print("Video recording complete.")
 
 try:
-    threading.Thread(target=record_video)
-
+    print("Starting thread...")
+    x = threading.Thread(target=record_video)
+    x.start()
+    print("Hello")
+    print("Im still active")
+    # JOIN blocks current thread/program until specified thread has completed
+    #x.join()
 except: 
     print("Thread failed") 
