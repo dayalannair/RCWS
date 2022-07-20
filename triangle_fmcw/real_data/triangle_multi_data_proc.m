@@ -6,7 +6,7 @@ n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
 %%
 % Import video
-addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
+% addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
 %%
 % 776 frames
 % close all
@@ -164,12 +164,12 @@ figure
 sweep_window = 200;
 loop_cnt = 0;
 % Need here to restart video
-vidObj = VideoReader('of_test2.mp4');
+% vidObj = VideoReader('of_test2.mp4');
 % Loop for fast sampled data
 tic;
-for sweep = 1:15:(n_sweeps-sweep_window)
+for sweep = 1:65:(n_sweeps-sweep_window)
     loop_cnt = loop_cnt +1;
-    tiledlayout(1,3)
+    tiledlayout(1,2)
     nexttile
     imagesc(sp_array(sweep:sweep+sweep_window,:).*3.6)
     set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl)
@@ -182,12 +182,12 @@ for sweep = 1:15:(n_sweeps-sweep_window)
 %     drawnow;
     nexttile
     imagesc(safe_sweeps(sweep:sweep+sweep_window))
-    nexttile
+%     nexttile
 %   take every 5th frame based on num vid frames and num radar frames
-    for w = 1:6
-        vidFrame = readFrame(vidObj);
-    end
-    imshow(vidFrame)
+%     for w = 1:6
+%         vidFrame = readFrame(vidObj);
+%     end
+%     imshow(vidFrame)
 %     vidFrame = readFrame(vidObj);
 %     imshow(vidFrame)
     drawnow;
