@@ -1,5 +1,5 @@
 % Import data and parameters
-subset = 1:4096;
+subset = 1:2000;
 addpath('../../library/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
 n_samples = size(iq_u,2);
@@ -7,12 +7,16 @@ n_sweeps = size(iq_u,1);
 %%
 % Import video
 addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
-vidObj = VideoReader('uct_road_iq_25.mp4');
+%%
 % 776 frames
+% close all
+% figure
+% vidObj = VideoReader('office_test_rot.mp4');
 % while hasFrame(vidObj)
 %     vidFrame = readFrame(vidObj);
 %     imshow(vidFrame)
-%     pause(1/vidObj.FrameRate);
+% %     pause(1/vidObj.FrameRate);
+% %     pause(0.01)
 % end
 
 %%
@@ -158,10 +162,14 @@ end
 close all
 figure
 sweep_window = 200;
+loop_cnt = 0;
+% Need here to restart video
+vidObj = VideoReader('of_test2.mp4');
 % Loop for fast sampled data
 tic;
-for sweep = 1:65:(n_sweeps-sweep_window)
-    tiledlayout(1,2)
+for sweep = 1:15:(n_sweeps-sweep_window)
+    loop_cnt = loop_cnt +1;
+    tiledlayout(1,3)
     nexttile
     imagesc(sp_array(sweep:sweep+sweep_window,:).*3.6)
     set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl)
@@ -174,10 +182,13 @@ for sweep = 1:65:(n_sweeps-sweep_window)
 %     drawnow;
     nexttile
     imagesc(safe_sweeps(sweep:sweep+sweep_window))
-%     nexttile
-%     for w = 1:10
-%         vidFrame = readFrame(vidObj);
-%     end
+    nexttile
+%   take every 5th frame based on num vid frames and num radar frames
+    for w = 1:6
+        vidFrame = readFrame(vidObj);
+    end
+    imshow(vidFrame)
+%     vidFrame = readFrame(vidObj);
 %     imshow(vidFrame)
     drawnow;
 % pause(0.5)
@@ -188,13 +199,13 @@ toc
 % Loop for slow sampling - just get new data smh
 expected_time = length(subset)*tm*2
 %%
-close all
-figure
-imagesc(sp_array.*3.6)
-set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl)
-grid
-title("M4 data near Rustenberg Junior: Set 2")
-xlabel("Range bin (meters)")
-ylabel("Sweep number/time")
-a = colorbar;
-a.Label.String = 'Radial velocity (km/h)';
+% close all
+% figure
+% imagesc(sp_array.*3.6)
+% set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl)
+% grid
+% title("M4 data near Rustenberg Junior: Set 2")
+% xlabel("Range bin (meters)")
+% ylabel("Sweep number/time")
+% a = colorbar;
+% a.Label.String = 'Radial velocity (km/h)';
