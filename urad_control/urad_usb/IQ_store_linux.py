@@ -45,8 +45,8 @@ I_true = True 				# In-Phase Component (RAW data) requested
 Q_true = True 				# Quadrature Component (RAW data) requested
 
 # UNUSED FOR RAW DATA OUTPUT
-Ntar = 1					# Don't apply as only raw data is desired
-Rmax = 62					# Don't apply as only raw data is desired
+Ntar = 0					# Don't apply as only raw data is desired
+Rmax = 0					# Don't apply as only raw data is desired
 MTI = 0						# MTI mode disable because we want information of static and moving targets
 Mth = 0						# Don't apply as only raw data is desired
 Alpha = 0				    # Don't apply to raw signals
@@ -62,8 +62,10 @@ if (usb_communication):
 	ser.port = '/dev/ttyACM0'
 	ser.baudrate = 1e6
 else:
-	ser.port = '/dev/serial0'
-	ser.baudrate = 115200
+	print("Could not find USB connection.")
+	exit()
+	# ser.port = '/dev/serial0'
+	# ser.baudrate = 115200
 
 # Sleep Time (seconds) between iterations
 timeSleep = 5e-3
@@ -79,7 +81,7 @@ def closeProgram():
 	# switch OFF uRAD
 	return_code = uRAD_USB_SDK11.turnOFF(ser)
 	if (return_code != 0):
-		print("Ending")
+		print("ERROR: Ending")
 		exit()
 
 # Open serial port
@@ -115,9 +117,12 @@ print("Loop running\n")
 try:
 	for i in range(sweeps):
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
+		if (return_code != 0):
+			closeProgram()
 		I.append(raw_results[0])
 		Q.append(raw_results[1])
 
+	print("Elapsed time: ", str(time()-t_0))
 	print("Ending. Writing data to textfile...\n")
 	uRAD_USB_SDK11.turnOFF(ser)
 	sweeps = len(I)
