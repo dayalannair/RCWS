@@ -6,7 +6,7 @@ n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
 %%
 % Import video
-% addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
+addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
 %%
 % 776 frames
 % close all
@@ -153,43 +153,50 @@ for sweep = 1:n_sweeps
         % 1 indicates sweep contained target at unsafe distance
         % UPDATE: put the ratio/time into array to scale how
         % safe the turn is
-        safe_sweeps(sweep) = 4-min(ratio);
+        safe_sweeps(sweep) = t_safe-min(ratio);
     end
 end
 
 
 %%
 close all
-figure
+fig1 = figure('WindowState','maximized');
+movegui(fig1,'west')
 sweep_window = 200;
 loop_cnt = 0;
 % Need here to restart video
-% vidObj = VideoReader('of_test2.mp4');
+vidObj = VideoReader('20kmhx.mp4');
+% vidObj = VideoReader('30kmhx.mp4');
+% vidObj = VideoReader('40kmhxq.mp4');
+% vidObj = VideoReader('50kmhx.mp4');
+% vidObj = VideoReader('60kmhx.mp4');
 % Loop for fast sampled data
 tic;
-for sweep = 1:65:(n_sweeps-sweep_window)
+for sweep = 1:15:(n_sweeps-sweep_window)
     loop_cnt = loop_cnt +1;
-    tiledlayout(1,2)
+    tiledlayout(1,3)
     nexttile
     imagesc(sp_array(sweep:sweep+sweep_window,:).*3.6)
-    set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl)
+    set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl, 'CLim', [0 60])
     grid
-    title("M4 data near Rustenberg Junior: Set 2")
+    title("Speed v. Time v. Range")
     xlabel("Range bin (meters)")
-    ylabel("Sweep number/time")
+    ylabel("Sweep number in window (represents time)")
     a = colorbar;
     a.Label.String = 'Radial velocity (km/h)';
-%     drawnow;
     nexttile
     imagesc(safe_sweeps(sweep:sweep+sweep_window))
-%     nexttile
-%   take every 5th frame based on num vid frames and num radar frames
-%     for w = 1:6
-%         vidFrame = readFrame(vidObj);
-%     end
-%     imshow(vidFrame)
-%     vidFrame = readFrame(vidObj);
-%     imshow(vidFrame)
+    title("Safety Meter")
+    ylabel("Sweep number in window  (represents time)")
+    b = colorbar;
+    b.Label.String = 'Degree of safety (4 - t_{arrival})';
+    set(gca,'CLim', [0 1])
+    nexttile
+%   take every 6th frame based on num vid frames and num radar frames
+    for w = 1:6
+        vidFrame = readFrame(vidObj);
+    end
+    imshow(vidFrame)
     drawnow;
 % pause(0.5)
 end

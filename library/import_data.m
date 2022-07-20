@@ -14,21 +14,24 @@ function [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps)
 %     addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/trolley_test/');
 %     addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/m4_rustenberg/');
 %     addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/office/');
-iq_tbl=readtable('IQ_tri_240_200_11-55-08.txt','Delimiter' ,' ');
+
+addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
+iq_tbl=readtable('IQ_tri_20kmh.txt','Delimiter' ,' ');
+% iq_tbl=readtable('IQ_tri_30kmh.txt','Delimiter' ,' ');
+% iq_tbl=readtable('IQ_tri_40kmh.txt','Delimiter' ,' ');
+% iq_tbl=readtable('IQ_tri_50kmh.txt','Delimiter' ,' ');
+% iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
+% iq_tbl=readtable('IQ_tri_70kmh.txt','Delimiter' ,' ');
+
 % iq_tbl=readtable('IQ_tri_240_200_12-02-23.txt','Delimiter' ,' ');
     %     iq_tbl=readtable('IQ_tri_240_200_07-31-53.txt','Delimiter' ,' ');
 %    iq_tbl=readtable('IQ_0_8192_sweeps.txt','Delimiter' ,' ');
 %     iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-16-07.txt','Delimiter' ,' ');
 %     iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-17-09.txt','Delimiter' ,' ');
-
 % iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-18-14.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-19-11.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-20-05.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_240_200_2022-07-08 11-20-57.txt','Delimiter' ,' ');
-
-
-
-
 
 %     t_stamps = iq_tbl.Var801;
     t_stamps = [];
