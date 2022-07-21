@@ -109,8 +109,10 @@ for i = 1:n_sweeps
             fbd(i,bin+1) = f_neg(bin*bin_width + idx_d);
         end
    end
+    % flipping whole array after all bins processed
+%    fbd = flip(fbd,2);
 
-   fbd = flip(fbd,2);
+   fbd = abs(fbd);
 
    for bin = 0:(nbins-1)
         % if both not DC
@@ -156,7 +158,7 @@ for sweep = 1:n_sweeps
         safe_sweeps(sweep) = t_safe-min(ratio);
     end
 end
-
+return;
 
 %%
 close all
