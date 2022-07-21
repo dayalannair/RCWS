@@ -19,14 +19,14 @@ safety1 = zeros(length(subset),1);
 % rg_array = zeros(n_sweeps,nbins);
 % fd_array = zeros(n_sweeps,nbins);
 % sp_array = zeros(n_sweeps,nbins);
-for s = 1:2%length(subset)
-    tic
+for s = 1:length(subset)
+%     tic
     safety1(s) = process_trig_sweep(i_data(s, :), q_data(s, :));
-    toc
+%     toc
 end
-
+%%
 % Compare plot below to the matrix version in triangle_multi_data_proc.m
-% close all
+close all
 figure
 plot(safety1)
 % tiledlayout(2,1)

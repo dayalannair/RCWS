@@ -45,8 +45,8 @@ function safety = process_trig_sweep(i_data,q_data)
     nul_width_factor = 0.04;
     num_nul = round((n_fft/2)*nul_width_factor);
     
-    IQ_UP = fft(iq_u,n_fft,2);
-    IQ_DN = fft(iq_d,n_fft,2);
+    IQ_UP = fft(iq_u,n_fft);
+    IQ_DN = fft(iq_d,n_fft);
     
     % Halve FFTs
     IQ_UP = IQ_UP(1:n_fft/2);
