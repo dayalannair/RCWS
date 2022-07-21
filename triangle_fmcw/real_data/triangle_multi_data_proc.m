@@ -110,9 +110,9 @@ for i = 1:n_sweeps
         end
    end
     % flipping whole array after all bins processed
-%    fbd = flip(fbd,2);
+   fbd = flip(fbd,2);
 
-   fbd = abs(fbd);
+%    fbd = abs(fbd);
 
    for bin = 0:(nbins-1)
         % if both not DC
@@ -149,15 +149,22 @@ end
 % takes 3 seconds to turn. target must be 3 sec away.
 t_safe = 3;
 safe_sweeps = zeros(n_sweeps,1);
+safety = zeros(n_sweeps,1);
 for sweep = 1:n_sweeps
     ratio = rg_array(sweep,:)./sp_array(sweep,:);
     if (any(ratio<t_safe))
         % 1 indicates sweep contained target at unsafe distance
         % UPDATE: put the ratio/time into array to scale how
         % safe the turn is
+        safety(sweep) = min(ratio);
+        % for colour map:
         safe_sweeps(sweep) = t_safe-min(ratio);
     end
 end
+close all
+figure
+plot(safety)
+
 return;
 
 %%

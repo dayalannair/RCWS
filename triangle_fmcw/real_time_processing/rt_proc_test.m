@@ -4,13 +4,13 @@ iq_tbl=readtable('IQ_tri_20kmh.txt','Delimiter' ,' ');
 
 %% 
 % reform data to the uRAD output
-subset = 1;
+subset = 1:2000;
 i_data = table2array(iq_tbl(subset,1:400));
 q_data = table2array(iq_tbl(subset,401:800));
 
 %%
 % call function
-safety = zeros(length(subset),1);
+safety1 = zeros(length(subset),1);
 % nbins = 16;
 % bin_width = (n_fft/2)/nbins;
 % fbu = zeros(n_sweeps,nbins);
@@ -19,17 +19,21 @@ safety = zeros(length(subset),1);
 % rg_array = zeros(n_sweeps,nbins);
 % fd_array = zeros(n_sweeps,nbins);
 % sp_array = zeros(n_sweeps,nbins);
-for s = 1:length(subset)
-    [safety(s), IQ_UP1, IQ_DN1, rg_array1, sp_array1, fbu1, fbd1, os_pku1, os_pkd1] = process_trig_sweep(i_data(s, :), q_data(s, :));
+for s = 1:2%length(subset)
+    tic
+    safety1(s) = process_trig_sweep(i_data(s, :), q_data(s, :));
+    toc
 end
 
-close all
+% Compare plot below to the matrix version in triangle_multi_data_proc.m
+% close all
 figure
-tiledlayout(2,1)
-nexttile
-plot(rg_array)
-nexttile
-plot(sp_array)
+plot(safety1)
+% tiledlayout(2,1)
+% nexttile
+% plot(rg_array1)
+% nexttile
+% plot(sp_array1)
 % nexttile
 % plot(abs(IQ_UP))
 % nexttile

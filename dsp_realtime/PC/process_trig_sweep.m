@@ -27,11 +27,18 @@ function safety = process_trig_sweep(i_data,q_data)
     bw = 240e6;                     % Bandwidth
     k = bw/tm;                      % Sweep slope
     Ns = 200;
-
+%     disp(i_data)
+    % Convert format
+    i_data = double(cell2mat(i_data));
+    q_data = double(cell2mat(q_data));
+    
+%     i_data = str2double(i_data);
+%     q_data = str2double(q_data);
+%     disp(i_data)
     % Extract and combine IQ - square law detector
     iq_u = i_data(1:200).^2 + q_data(1:200).^2;
     iq_d = i_data(201:400).^2 + q_data(201:400).^2;
-
+%     disp(iq_d)
     % Taylor Window
     nbar = 4;
     sll = -38;
@@ -52,6 +59,7 @@ function safety = process_trig_sweep(i_data,q_data)
     IQ_UP = IQ_UP(1:n_fft/2);
     IQ_DN = IQ_DN(n_fft/2+1:end);
     
+%     disp(IQ_DN)
     % Null feedthrough
     IQ_UP(1:num_nul) = 0;
     IQ_DN(end-num_nul+1:end) = 0;
@@ -150,6 +158,6 @@ function safety = process_trig_sweep(i_data,q_data)
        safety = min(TOA);
    else
        % else if safe, return number higher than t_safe
-       safety =  0;
+       safety =  10;
    end
 end
