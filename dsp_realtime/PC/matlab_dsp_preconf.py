@@ -105,49 +105,9 @@ Q = []
 
 print("Initialising MATLAB engine...")
 eng = matlab.engine.start_matlab()
-print("Configuring system parameters and MATLAB workspace...")
-# Radar parameters
-c = 3e8
-fc = 24.005e9
-lda = c/fc
-tm = 1e-3
-bw = 240e6
-sweep_slope = bw/tm
-Ns = 200
-# Taylor window parameters
-nbar = 4
-sll = -38
-# FFT parameters
-nfft = 512
-nul_width_factor = 0.04
-num_nul = round((nfft/2)*nul_width_factor)
-# OS CFAR parameters
-guard = 2*nfft/Ns
-guard = int(np.floor(guard/2)*2) # make even
-train = round(20*nfft/Ns)
-train = int(np.floor(train/2)*2)
-rank = train
-Pfa = 15e-3
-# bin method
-nbins = 16
-bin_width = (nfft/2)/nbins
-eng.workspace['lambda'] = lda
-eng.workspace['k'] = sweep_slope
-eng.workspace['Ns'] = Ns
-eng.workspace['c'] = c
-
-# twinu, twind = np.array(eng.proc_twin(nbar, sll, Ns, nargout=2))
-# print(np.size(twinu), np.size(twind))
-eng.workspace['twinu'], eng.workspace['twind'] = eng.proc_twin(nbar, sll, Ns, nargout=2)
-eng.workspace['OS'] = eng.proc_oscfar(train, guard, rank, Pfa)
-eng.workspace['f_pos'] = eng.proc_faxis(nfft, nargout=1)
-
-eng.workspace['n_fft'] = nfft
-eng.workspace['nbins'] = nbins
-eng.workspace['bin_width'] = bin_width
-eng.workspace['t_safe'] = 3
-eng.workspace['num_nul'] = num_nul
-eng.workspace['fd_max'] = 3e3
+print("Loading preconfigured MATLAB workspace...")
+eng.load("urad_trig_proc_config.mat", nargout=0)
+# eng.eval("load(\'urad_trig_proc_config.mat\')")
 print("System running...")
 try:
 	for i in range(sweeps):
@@ -162,7 +122,7 @@ try:
 		t0_proc = time()
 		eng.proc_triang_script(nargout=0)
 		t1_proc = time()-t0_proc
-		print("Processing time: ", t1_proc)
+		# print("Processing time: ", t1_proc)
 		# if eng.workspace['safety']<10:
 		# 	print("Range of hazardous target: ", eng.workspace['targ_rng'])
 		# 	print("Speed of hazardous target: ", eng.workspace['targ_vel'])

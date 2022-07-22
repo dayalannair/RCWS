@@ -60,10 +60,29 @@ OS = phased.CFARDetector('NumTrainingCells',train, ...
     'ThresholdOutputPort', true, ...
     'Rank',train);
 
+% flip
+IQ_DN = flip(IQ_DN,2);
+
 % Filter peaks/ peak detection
 [up_os, os_thu] = OS(abs(IQ_UP)', 1:n_fft/2);
 [dn_os, os_thd] = OS(abs(IQ_DN)', 1:n_fft/2);
-
+%% ADD TO REPORT
+close all
+figure
+tiledlayout(2,1)
+nexttile
+plot(absmagdb(IQ_UP(400,:)))
+hold on
+plot(absmagdb(os_thu(:,400)))
+title("Up chirp half spectrum and OS-CFAR threshold")
+hold off
+nexttile
+plot(absmagdb(IQ_DN(400,:)))
+hold on
+plot(absmagdb(os_thd(:,400)))
+title("Flipped down chirp half spectrum and OS-CFAR threshold")
+hold off
+% return;
 % Find peak magnitude
 os_pku = abs(IQ_UP).*up_os';
 os_pkd = abs(IQ_DN).*dn_os';
@@ -106,25 +125,18 @@ for i = 1:n_sweeps
             fbu(i,bin+1) = f_pos(bin*bin_width + idx_u);
         end
         if magd ~= 0
-            fbd(i,bin+1) = f_neg(bin*bin_width + idx_d);
+            fbd(i,bin+1) = f_pos(bin*bin_width + idx_d);
         end
-   end
-    % flipping whole array after all bins processed
-   fbd = flip(fbd,2);
-
-%    fbd = abs(fbd);
-
-   for bin = 0:(nbins-1)
         % if both not DC
         if and(fbu(i,bin+1) ~= 0, fbd(i,bin+1)~= 0)
-            fd = -fbu(i,bin+1) - fbd(i,bin+1);
+            fd = -fbu(i,bin+1) + fbd(i,bin+1);
             fd_array(i,bin+1) = fd/2;
             
             % if less than max expected and filter clutter doppler
             if ((abs(fd/2) < fd_max) && (fd/2 > 400))
                 sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
                 rg_array(i,bin+1) = beat2range( ...
-                    [fbu(i,bin+1) fbd(i,bin+1)], k, c);
+                    [fbu(i,bin+1) -fbd(i,bin+1)], k, c);
             end
         end
         % for plot

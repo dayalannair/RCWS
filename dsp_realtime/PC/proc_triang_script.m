@@ -44,6 +44,9 @@ IQ_DN = IQ_DN(n_fft/2+1:end);
 IQ_UP(1:num_nul) = 0;
 IQ_DN(end-num_nul+1:end) = 0;
 
+% flip
+IQ_DN = flip(IQ_DN,2);
+
 % Filter peaks/ peak detection
 up_os = OS(abs(IQ_UP)', double(1:n_fft/2));
 dn_os = OS(abs(IQ_DN)', double(1:n_fft/2));
@@ -79,27 +82,19 @@ for bin = 0:(nbins-1)
     end
 
     if magd ~= 0
-        fbd(bin+1) = f_neg(bin*bin_width + idx_d);
+        fbd(bin+1) = f_pos(bin*bin_width + idx_d);
     end
 
-    % Make down chirp beat frequencies positive
-    % NOTE: CHECK IF using ABS is faster and valid
-    % NOTE: Found that flipping can only be done if separate loops used
-    % i.e. once all bins processed
-end
-    fbd = flip(fbd);
-%         fbd = abs(fbd);
-for bin = 0:(nbins-1)
     % ensure both not DC
     if and(fbu(bin+1) ~= 0, fbd(bin+1)~= 0)
-        fd = -fbu(bin+1) - fbd(bin+1);
+        fd = -fbu(bin+1) + fbd(bin+1);
         fd_array(bin+1) = fd/2;
         
         % if less than max expected and filter clutter doppler
         if ((abs(fd/2) < fd_max) && (fd/2 > 400))
             sp_array(bin+1) = dop2speed(fd/2,lambda)/2;
             rg_array(bin+1) = beat2range( ...
-                [fbu(bin+1) fbd(bin+1)], k, c);
+                [fbu(bin+1) -fbd(bin+1)], k, c);
         end
     end
 end
@@ -110,7 +105,11 @@ TOA = rg_array./sp_array;
 % if any unsafe. Faster than min as it stops once found
 if (any(TOA<t_safe))
    % return a scaled value of safety. Min is most unsafe.
-   safety = min(TOA);
+%    safety = min(TOA);
+   % OPTIONAL: RETURN SPEED AND RANGE OF DANGEROUS TARG
+   [safety, idx] = min(TOA);
+   targ_rng = rg_array(idx);
+   targ_vel = sp_array(idx);
 else
    % else if safe, return number higher than t_safe
    safety =  10;
