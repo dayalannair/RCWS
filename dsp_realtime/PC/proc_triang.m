@@ -17,17 +17,7 @@
 % expected speed and host vehicle turn + acceleration time.
 
 %
-function safety = process_trig_sweep(i_data,q_data)
-    
-    % Parameters
-    fc = 24.005e9;
-    c = physconst('LightSpeed');
-    lambda = c/fc;
-    tm = 1e-3;                      % Ramp duration
-    bw = 240e6;                     % Bandwidth
-    k = bw/tm;                      % Sweep slope
-    Ns = 200;
-%     disp(i_data)
+function safety = proc_triang(i_data,q_data)
     % Convert format
     i_data = double(cell2mat(i_data));
     q_data = double(cell2mat(q_data));
@@ -39,19 +29,11 @@ function safety = process_trig_sweep(i_data,q_data)
     iq_u = i_data(1:200).^2 + q_data(1:200).^2;
     iq_d = i_data(201:400).^2 + q_data(201:400).^2;
 %     disp(iq_d)
-    % Taylor Window
-    nbar = 4;
-    sll = -38;
-    twinu = taylorwin(Ns, nbar, sll);
-    twind = taylorwin(Ns, nbar, sll);
+    % Taylor Window 
     iq_u = iq_u.*twinu.';
     iq_d = iq_d.*twind.';
     
-    % FFT
-    n_fft = 512;
-    nul_width_factor = 0.04;
-    num_nul = round((n_fft/2)*nul_width_factor);
-    
+    % FFT    
     IQ_UP = fft(iq_u,n_fft);
     IQ_DN = fft(iq_d,n_fft);
     
@@ -64,20 +46,6 @@ function safety = process_trig_sweep(i_data,q_data)
     IQ_UP(1:num_nul) = 0;
     IQ_DN(end-num_nul+1:end) = 0;
     
-    % CFAR
-    guard = 2*n_fft/Ns;
-    guard = floor(guard/2)*2;
-    train = round(20*n_fft/Ns);
-    train = floor(train/2)*2;
-    F = 15e-3; 
-    OS = phased.CFARDetector('NumTrainingCells',train, ...
-        'NumGuardCells',guard, ...
-        'ThresholdFactor', 'Auto', ...
-        'ProbabilityFalseAlarm', F, ...
-        'Method', 'OS', ...
-        'ThresholdOutputPort', true, ...
-        'Rank',train);
-    
     % Filter peaks/ peak detection
     up_os = OS(abs(IQ_UP)', 1:n_fft/2);
     dn_os = OS(abs(IQ_DN)', 1:n_fft/2);
@@ -86,28 +54,17 @@ function safety = process_trig_sweep(i_data,q_data)
     os_pku = abs(IQ_UP).*up_os';
     os_pkd = abs(IQ_DN).*dn_os';
     
-    % Define frequency axis
-    fs = 200e3;
-    f = f_ax(n_fft, fs);
-    f_neg = f(1:n_fft/2);
-    f_pos = f((n_fft/2 + 1):end);
-    
-    v_max = 60/3.6; 
-    fd_max = speed2dop(v_max, lambda)*2;
+    % Set as fd_max = 3 kHz externally
+%     v_max = 60/3.6; 
+%     fd_max = speed2dop(v_max, lambda)*2;
 
     % Divide into range bins of width 64
-    nbins = 16;
-    bin_width = (n_fft/2)/nbins;
     fbu = zeros(1, nbins);
     fbd = zeros(1, nbins);
     
     rg_array = zeros(1, nbins);
     fd_array = zeros(1, nbins);
     sp_array = zeros(1, nbins);
-
-     % *** Turn safety algorithm ***
-    % takes 3 seconds to turn. target must be 3 sec away.
-    t_safe = 3;
        
    for bin = 0:(nbins-1)
         % extract bin

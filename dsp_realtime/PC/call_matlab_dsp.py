@@ -4,7 +4,7 @@ from time import time, sleep, strftime,localtime
 import sys
 from datetime import datetime
 import matlab.engine
-
+import numpy as np
 # True if USB, False if UART
 usb_communication = True
 
@@ -103,7 +103,43 @@ t_0 = time()
 i = 0
 I = []
 Q = []
-print("Loop running\n")
+
+print("Configuring system parameters and MATLAB workspace...")
+# Radar parameters
+c = 3e8
+fc = 24.005e9
+lda = c/fc
+tm = 1e-3
+bw = 240e6
+sweep_slope = bw/tm
+num_samples = 200
+# Taylor window parameters
+nbar = 4
+sll = -38
+# FFT parameters
+nfft = 512
+nul_width_factor = 0.04
+num_nul = round((nfft/2)*nul_width_factor)
+# OS CFAR parameters
+guard = 2*nfft/num_samples
+guard = int(np.floor(guard/2)*2) # make even
+train = round(20*nfft/num_samples)
+train = int(np.floor(train/2)*2)
+rank = train
+Pfa = 15e-3
+# bin method
+nbins = 16
+bin_width = (nfft/2)/nbins
+t_safe = 3
+eng.workspace['lambda'] = lda
+eng.workspace['k'] = sweep_slope
+eng.workspace['Ns'] = num_samples
+eng.workspace['c'] = c
+
+eng.workspace['nbar'] =
+eng.workspace['y'] =
+
+print("System running...")
 try:
 	for i in range(sweeps):
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
