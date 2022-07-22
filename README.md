@@ -1,6 +1,10 @@
 ## Note: 
 - add data and library folders to MATLAB path after clone not needed if addpath() is called in each script
 - Data collection/radar programs are in data/urad_usb
+- make sure textfiles/data is never committed - deletion will not remove data from version history and so increase repo size
+- in the event a repo gets too large, use filter-repo (3rd party program) to filter *.txt etc and push to a new repo
+
+
 
 Link to data storage:
 https://uctcloud-my.sharepoint.com/:f:/g/personal/nrxday001_myuct_ac_za/EjFL7omlg09PrdxWb3c22k4BgLi7pwkYM-8y16FP6_n1MA?e=45jsQ6
