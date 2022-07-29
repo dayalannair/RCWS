@@ -42,9 +42,11 @@ IQ_UP = IQ_UP(:, 1:n_fft/2);
 IQ_DN = IQ_DN(:, n_fft/2+1:end);
 
 % Null feedthrough
-IQ_UP(:, 1:num_nul) = 0;
-IQ_DN(:, end-num_nul+1:end) = 0;
+% IQ_UP(:, 1:num_nul) = 0;
+% IQ_DN(:, end-num_nul+1:end) = 0;
 
+IQ_UP = IQ_UP - mean(IQ_UP);
+IQ_DN = IQ_DN - mean(IQ_DN);
 % CFAR
 guard = 2*n_fft/n_samples;
 guard = floor(guard/2)*2; % make even
@@ -52,7 +54,7 @@ guard = floor(guard/2)*2; % make even
 train = round(20*n_fft/n_samples);
 train = floor(train/2)*2;
 % false alarm rate - sets sensitivity
-F = 15e-3; 
+F = 8e-4; 
 OS = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
@@ -149,29 +151,32 @@ for i = 1:n_sweeps
         osd_pk_clean(i, bin*bin_width + idx_d) = magd;
    end
    % If nothing detected
-    if (~any(rg_array(i,:)) && i>1)
-       fd_array(i,:) = fd_array(i-1,:);
-       sp_array(i,:) = sp_array(i-1,:);
-       rg_array(i,:) = rg_array(i-1,:);
-%        for bin = 1:(nbins-1)
-%              % if nothing detected but target was present in previous sweep
-%         % will propagate/hold until new detection
-%         % Compares outer bin to inner bin!
-%         % Start from second sweep
-%         if (rg_array(i-1,bin))
-% 
-%             fd_array(i,bin) = fd_array(i-1,bin);
-%             sp_array(i,bin) = sp_array(i-1,bin);
-%             rg_array(i,bin) = rg_array(i-1,bin);
-%         end
-% %        elseif (hold_pos)
+   % Issue - if another target detected, will not trigger
+   % Issue - if no new target, will hold closest last target
+   % Maintaining that turn is unsafe
+%     if (~any(rg_array(i,:)) && i>1)
+%        fd_array(i,:) = fd_array(i-1,:);
+%        sp_array(i,:) = sp_array(i-1,:);
+%        rg_array(i,:) = rg_array(i-1,:);
+% %        for bin = 1:(nbins-1)
+% %              % if nothing detected but target was present in previous sweep
+% %         % will propagate/hold until new detection
+% %         % Compares outer bin to inner bin!
+% %         % Start from second sweep
+% %         if (rg_array(i-1,bin))
+% % 
 % %             fd_array(i,bin) = fd_array(i-1,bin);
 % %             sp_array(i,bin) = sp_array(i-1,bin);
 % %             rg_array(i,bin) = rg_array(i-1,bin);
-% %             hold_pos = false;
+% %         end
+% % %        elseif (hold_pos)
+% % %             fd_array(i,bin) = fd_array(i-1,bin);
+% % %             sp_array(i,bin) = sp_array(i-1,bin);
+% % %             rg_array(i,bin) = rg_array(i-1,bin);
+% % %             hold_pos = false;
+% % %        end
 % %        end
-%        end
-   end
+%    end
 end
 
 %%
@@ -215,11 +220,11 @@ movegui(fig1,'west')
 sweep_window = 200;
 loop_cnt = 0;
 % Need here to restart video
-vidObj = VideoReader('20kmhx.mp4');
+% vidObj = VideoReader('20kmhx.mp4');
 % vidObj = VideoReader('30kmhx.mp4');
 % vidObj = VideoReader('40kmhxq.mp4');
 % vidObj = VideoReader('50kmhx.mp4');
-% vidObj = VideoReader('60kmhx.mp4');
+vidObj = VideoReader('60kmhx.mp4');
 % Loop for fast sampled data
 tic;
 for sweep = 1:15:(n_sweeps-sweep_window)
