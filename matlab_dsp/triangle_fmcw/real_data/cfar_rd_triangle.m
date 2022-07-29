@@ -5,12 +5,12 @@ n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
 
 % Taylor Window
-nbar = 4;
-sll = -38;
-twinu = taylorwin(n_samples, nbar, sll);
-twind = taylorwin(n_samples, nbar, sll);
-iq_u = iq_u.*twinu.';
-iq_d = iq_d.*twind.';
+% nbar = 4;
+% sll = -38;
+% twinu = taylorwin(n_samples, nbar, sll);
+% twind = taylorwin(n_samples, nbar, sll);
+% iq_u = iq_u.*twinu.';
+% iq_d = iq_d.*twind.';
 
 % FFT
 n_fft = 1024;%512;
@@ -36,14 +36,15 @@ train = round(20*n_fft/n_samples);
 train = floor(train/2)*2;
 % false alarm rate - sets sensitivity
 F = 10e-3; 
-
+N = train - guard;
+rank = round(3*N/4);
 OS = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
     'Method', 'OS', ...
     'ThresholdOutputPort', true, ...
-    'Rank',train);
+    'Rank',rank);
 
 % Filter peaks/ peak detection
 [up_os, os_thu] = OS(abs(IQ_UP)', 1:n_fft/2);
