@@ -124,18 +124,35 @@ f_bin_edges_idx = size(f_pos(),2)/nbins;
 %%
 for i = 1:n_sweeps
    for bin = 0:(nbins-1)
-        bin_slice_u = os_pku(i,bin*bin_width+1:(bin+1)*bin_width);
         bin_slice_d = os_pkd(i,bin*bin_width+1:(bin+1)*bin_width);
-
-        [magu, idx_u] = max(bin_slice_u);
         [magd, idx_d] = max(bin_slice_d);
 
-        if magu ~= 0
-            fbu(i,bin+1) = f_pos(bin*bin_width + idx_u);
-        end
         if magd ~= 0
             fbd(i,bin+1) = f_pos(bin*bin_width + idx_d);
         end
+        % if near bin edge
+        % specifically if within 0 - vmax of the bin edge, then
+        % down beat may be in next bin
+        % max remainder = fdmax. use 4 for safety
+        % 60 km/h corresponds to fd = 2.7 kHz
+        % 80 km/h corresponds to fd = 3.6 kHz
+        % 4 kHz ===> 90 km/h
+        bin_slice_u = os_pku(i,bin*bin_width+1:(bin+1)*bin_width);
+        [magu, idx_u] = max(bin_slice_u);
+
+        if magu ~= 0
+            fbu(i,bin+1) = f_pos(bin*bin_width + idx_u);
+
+        elseif  ((f_pos(bin*bin_width +1) - fbd(i,bin+1)) < 3600)
+            disp("Edge beat")
+            bin_slice_u = os_pku(i,bin*bin_width+1:(bin+1)*bin_width);
+            [magu, idx_u] = max(bin_slice_u);
+            if magu ~= 0
+                % ito the next bin
+                fbu(i,bin+1) = f_pos((bin+1)*bin_width + idx_u);
+            end
+        end
+        
         % if both not DC
         if and(fbu(i,bin+1) ~= 0, fbd(i,bin+1)~= 0)
             fd = -fbu(i,bin+1) + fbd(i,bin+1);
@@ -146,16 +163,11 @@ for i = 1:n_sweeps
                 sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
                 rg_array(i,bin+1) = beat2range( ...
                     [fbu(i,bin+1) -fbd(i,bin+1)], k, c);
-%             end
-            % if near bin edge
-            % specifically if within 0 - vmax of the bin edge, then
-            % down beat may be in next bin
-            % max remainder = fdmax. use 4 for safety
-            % 60 km/h corresponds to fd = 2.7 kHz
-            % 80 km/h corresponds to fd = 3.6 kHz
-            % 4 kHz ===> 90 km/h
-            elseif (mod(fbu(i,bin+1, f_bin_edges_idx))<4)
             end
+           
+%             elseif (mod(fbu(i,bin+1, f_bin_edges_idx))<4)
+%                 
+%             end
        end
         % for plot
         osu_pk_clean(i, bin*bin_width + idx_u) = magu;
