@@ -1,12 +1,16 @@
-function [xr,xr_d] = simulate_sweeps(Nsweep,waveform,...
-    radarmotion,carmotion,transmitter,channel,cartarget,receiver, Dn, Ns)
+function [xr,xr_unmixed] = simulate_sweeps2(Nsweep,waveform,...
+    radarmotion,carmotion,transmitter,channel,cartarget,receiver)
+
+%   The rows of RSWEEP represent fast time and its columns represent slow
+%   time (pulses). When the pulse transmitter uses staggered PRFs, the
+%   length of the fast time sequences is determined by the highest PRF.
 
 sweeptime = waveform.SweepTime;
 
 Nsamp = round(waveform.SampleRate*sweeptime);
 
 xr = complex(zeros(Nsamp,Nsweep));
-xr_d = complex(zeros(Ns,Nsweep));
+xr_unmixed = xr;
 
 Ntgt = numel(cartarget.MeanRCS);
 for m = 1:Nsweep
@@ -34,6 +38,6 @@ for m = 1:Nsweep
     % Get intermediate frequency
     xd = dechirp(rxsig,sig);
 
+    xr_unmixed(:,m) = rxsig;
     xr(:,m) = xd;
-    xr_d(:,m) = decimate(xr(:,m),Dn);
 end

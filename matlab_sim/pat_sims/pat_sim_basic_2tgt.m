@@ -11,23 +11,24 @@ tm = 1e-3;
 % bw2 = rangeres2bw(range_res,c);
 bw = 240e6;
 sweep_slope = bw/tm;
-
+addpath('../../matlab_lib/');
 fr_max = range2beat(range_max,sweep_slope,c);
 v_max = 230*1000/3600;
 fd_max = speed2dop(2*v_max,lambda);
 fb_max = fr_max+fd_max;
-fs = max(2*fb_max,bw);
-%fs = 200e3; % kills range est
+fs_wav = max(2*fb_max,bw);
+fs_adc = 200e3;
+%fs_wav = 200e3; % kills range est
 rng(2012);
 waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
-    'SampleRate',fs, 'SweepDirection','Triangle');
+    'SampleRate',fs_wav, 'SweepDirection','Triangle');
 % close all
 % figure
 % sig = waveform();
-% subplot(211); plot(0:1/fs:tm-1/fs,real(sig));
+% subplot(211); plot(0:1/fs_wav:tm-1/fs_wav,real(sig));
 % xlabel('Time (s)'); ylabel('Amplitude (v)');
 % title('FMCW signal'); axis tight;
-% subplot(212); spectrogram(sig,32,16,32,fs,'yaxis');
+% subplot(212); spectrogram(sig,32,16,32,fs_wav,'yaxis');
 % title('FMCW signal spectrogram');
 
 %%
@@ -43,17 +44,17 @@ rx_nf = 4.5;                                    % in dB
 
 transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
 receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
-    'SampleRate',fs);
+    'SampleRate',fs_wav);
 
 %% Scenario
 
 % Target parameters
 car1_x_dist = 50;
 car1_y_dist = 2;
-car1_speed = 80/3.6;
+car1_speed = 0/3.6;
 car2_x_dist = 50;
-car2_y_dist = -2;
-car2_speed = 80/3.6;
+car2_y_dist = -1000;
+car2_speed = 0/3.6;
 
 car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
 car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
@@ -71,7 +72,7 @@ carmotion = phased.Platform('InitialPosition',[car1_x_dist car2_x_dist;car1_y_di
 
 % Define propagation medium
 channel = phased.FreeSpace('PropagationSpeed',c,...
-    'OperatingFrequency',fc,'SampleRate',fs,'TwoWayPropagation',true);
+    'OperatingFrequency',fc,'SampleRate',fs_wav,'TwoWayPropagation',true);
 
 % Define radar motion
 radar_speed = 0;
@@ -81,23 +82,23 @@ radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
 %% Simulation Loop
 close all
 
-t_total = 1;
-t_step = 0.1;
-Nsweep = 1;
+t_total = 5;
+t_step = 0.05;
+Nsweep = 2;
 n_steps = t_total/t_step;
 % Generate visuals
-% sceneview = phased.ScenarioViewer('BeamRange',62.5,...
-%     'BeamWidth',[30; 30], ...
-%     'ShowBeam', 'All', ...
-%     'CameraPerspective', 'Custom', ...
-%     'CameraPosition', [2101.04 -1094.5 644.77], ...
-%     'CameraOrientation', [-152 -15.48 0]', ...
-%     'CameraViewAngle', 1.45, ...
-%     'ShowName',true,...
-%     'ShowPosition', true,...
-%     'ShowSpeed', true,...
-%     'ShowRadialSpeed',false,...
-%     'UpdateRate',1/t_step);
+sceneview = phased.ScenarioViewer('BeamRange',62.5,...
+    'BeamWidth',[30; 30], ...
+    'ShowBeam', 'All', ...
+    'CameraPerspective', 'Custom', ...
+    'CameraPosition', [2101.04 -1094.5 644.77], ...
+    'CameraOrientation', [-152 -15.48 0]', ...
+    'CameraViewAngle', 1.45, ...
+    'ShowName',true,...
+    'ShowPosition', true,...
+    'ShowSpeed', true,...
+    'ShowRadialSpeed',false,...
+    'UpdateRate',1/t_step);
 
 [rdr_pos,rdr_vel] = radarmotion(1);
 
@@ -106,6 +107,33 @@ fbu = zeros(n_steps, 2);
 fbd = zeros(n_steps, 2);
 r = zeros(n_steps, 2);
 v = zeros(n_steps, 2);
+
+Dn = fix(fs_wav/fs_adc);
+Ns = 200;
+nfft = 512;
+faxis_kHz = f_ax(nfft, fs_adc)/1000;
+close all
+f1 = figure('WindowState','normal');
+movegui(f1, "west")
+
+% Taylor window
+nbar = 4;
+sll = -38;
+twinu = taylorwin(n_samples, nbar, sll);
+twind = taylorwin(n_samples, nbar, sll);
+
+%%
+ref = waveform();
+REF0 = fft(ref);
+sampled_ref = decimate(ref,Dn);
+REF = fft(sampled_ref, nfft);
+close all
+figure
+% plot(real(sampled_ref))
+% plot(absmagdb(REF0))
+plot(real(ref))
+
+%%
 
 for t = 1:n_steps
     %disp(t)
@@ -117,26 +145,57 @@ for t = 1:n_steps
 %     % issue: helper updates target position and velocity within each
 %     sweep. Resolved --> issue was releasing waveforms?
 
-    xr = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
-        transmitter,channel,cartarget,receiver);
+%     xr = simulate_sweeps2(Nsweep,waveform,radarmotion,carmotion,...
+%         transmitter,channel,cartarget,receiver);
+
+    % At sampling rate
+    [~,xr] = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
+        transmitter,channel,cartarget,receiver, Dn, Ns);
     
-    fbu_rng = rootmusic(pulsint(xr(:,1:2:end),'coherent'),2,fs);
-    fbd_rng = rootmusic(pulsint(xr(:,2:2:end),'coherent'),2,fs);
+    xru_int = pulsint(xr(:,1:2:end),'coherent');
+    xrd_int = pulsint(xr(:,2:2:end),'coherent');
     
-    r(t, 1) = beat2range([fbu_rng(1) fbd_rng(1)],sweep_slope,c);
-    r(t, 2) = beat2range([fbu_rng(2) fbd_rng(2)],sweep_slope,c);
+    % Window
+    xru_int = xru_int.*twinu;
+    xrd_int = xrd_int.*twind;
 
-    fd = -(fbu_rng(1)+fbd_rng(1))/2;
-    v(t, 1) = dop2speed(fd,lambda)/2;
-
-    fd = -(fbu_rng(2)+fbd_rng(2))/2;
-    v(t, 2) = dop2speed(fd,lambda)/2;
-
-    fbu(t,:) = fbu_rng;
-    fbd(t,:) = fbd_rng;
+%     fbu_rng = rootmusic(xru_int,2,fs_wav);
+%     fbd_rng = rootmusic(xrd_int,2,fs_wav);
+%     
+%     r(t, 1) = beat2range([fbu_rng(1) fbd_rng(1)],sweep_slope,c);
+%     r(t, 2) = beat2range([fbu_rng(2) fbd_rng(2)],sweep_slope,c);
+% 
+%     fd = -(fbu_rng(1)+fbd_rng(1))/2;
+%     v(t, 1) = dop2speed(fd,lambda)/2;
+% 
+%     fd = -(fbu_rng(2)+fbd_rng(2))/2;
+%     v(t, 2) = dop2speed(fd,lambda)/2;
+%
+%     fbu(t,:) = fbu_rng;
+%     fbd(t,:) = fbd_rng;
+    XRU = fft(xru_int, nfft);
+    XRD = fft(xrd_int, nfft);
+    tiledlayout(2, 1)
+%     nexttile
+%     plot(real(xru_int))
+    nexttile
+    plot(faxis_kHz,sftmagdb(XRU))
+    title("Dechirped up sweep spectrum")
+    xlabel("Frequency (kHz)")
+    ylabel("Magnitude (dB)")
+    sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
+%     nexttile
+%     plot(real(xrd_int))
+    nexttile
+    plot(faxis_kHz,sftmagdb(XRD))
+    title("Dechirped down sweep spectrum")
+    xlabel("Frequency (kHz)")
+    ylabel("Magnitude (dB)")
+    drawnow;
+%     pause(0.5)
 end
 
-
+return
 %% Plots
 
 XR = fft(xr);
