@@ -1,5 +1,5 @@
 sweeps = 1:1024;% 200:205;
-addpath('../library/');
+addpath('../matlab_lib/');
 addpath('../../../OneDrive - University of Cape Town/RCWS_DATA/trig_fmcw_data/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps);
 %F = 0.015; % see relevant papers

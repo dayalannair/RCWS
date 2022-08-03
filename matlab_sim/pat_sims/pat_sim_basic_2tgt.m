@@ -83,7 +83,7 @@ close all
 
 t_total = 1;
 t_step = 0.1;
-Nsweep = 16;
+Nsweep = 1;
 n_steps = t_total/t_step;
 % Generate visuals
 % sceneview = phased.ScenarioViewer('BeamRange',62.5,...
@@ -139,16 +139,16 @@ end
 
 %% Plots
 
-XR = fft(xr(:,8));
+XR = fft(xr);
 Fs = 200e3;
 f = f_ax(size(XR,1),Fs);
 close all
 figure
-% tiledlayout(2,1)
-% nexttile
-% plot(real(xr))
-% nexttile
-plot(f, fftshift(10*log(abs(XR))))
+tiledlayout(2,1)
+nexttile
+plot(real(xr))
+nexttile
+plot(f, fftshift(20*log(abs(XR))))
 % plot(fbu(:,1))
 % nexttile
 % plot(r(:,1))
