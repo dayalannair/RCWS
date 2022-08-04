@@ -49,12 +49,40 @@ receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
 %% Scenario
 
 % Target parameters
-car1_x_dist = 50;
+
+% CASE 1: Static target at 50m
+% car1_x_dist = 50;
+% car1_y_dist = 2;
+% car1_speed = 0/3.6;
+% car2_x_dist = 50;
+% car2_y_dist = -1000;
+% car2_speed = 0/3.6;
+
+% CASE 2: Static targets at 50 and 51m
+% Test range resolution
+% car1_x_dist = 50;
+% car1_y_dist = 2;
+% car1_speed = 0/3.6;
+% car2_x_dist = 51;
+% car2_y_dist = 2;
+% car2_speed = 0/3.6;
+
+% CASE 3: Static targets at 50m separated by 2m
+% Test cross range resolution
+% car1_x_dist = 50;
+% car1_y_dist = 4;
+% car1_speed = 0/3.6;
+% car2_x_dist = 50;
+% car2_y_dist = -4;
+% car2_speed = 0/3.6;
+
+% CASE 4: Target overtake
+car1_x_dist = 40;
 car1_y_dist = 2;
-car1_speed = 0/3.6;
-car2_x_dist = 50;
-car2_y_dist = -1000;
-car2_speed = 0/3.6;
+car1_speed = 20/3.6;
+car2_x_dist = 60;
+car2_y_dist = -2;
+car2_speed = 80/3.6;
 
 car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
 car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
@@ -63,11 +91,12 @@ car1_rcs = db2pow(min(10*log10(car1_dist)+5,20));
 car2_rcs = db2pow(min(10*log10(car2_dist)+5,20));
 
 % Define reflected signal
-cartarget = phased.RadarTarget('MeanRCS',[car1_rcs car2_rcs],'PropagationSpeed',c,...
-    'OperatingFrequency',fc);
+cartarget = phased.RadarTarget('MeanRCS',[car1_rcs car2_rcs], ...
+    'PropagationSpeed',c,'OperatingFrequency',fc);
 
 % Define target motion - 2 targets
-carmotion = phased.Platform('InitialPosition',[car1_x_dist car2_x_dist;car1_y_dist car2_y_dist;0.5 0.5],...
+carmotion = phased.Platform('InitialPosition',[car1_x_dist car2_x_dist; ...
+    car1_y_dist car2_y_dist;0.5 0.5],...
     'Velocity',[-car1_speed -car2_speed;0 0;0 0]);
 
 % Define propagation medium
@@ -82,7 +111,7 @@ radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
 %% Simulation Loop
 close all
 
-t_total = 5;
+t_total = 3;
 t_step = 0.05;
 Nsweep = 2;
 n_steps = t_total/t_step;
@@ -98,7 +127,8 @@ sceneview = phased.ScenarioViewer('BeamRange',62.5,...
     'ShowPosition', true,...
     'ShowSpeed', true,...
     'ShowRadialSpeed',false,...
-    'UpdateRate',1/t_step);
+    'UpdateRate',1/t_step, ...
+    'Position',[1000 100 1000 900]);
 
 [rdr_pos,rdr_vel] = radarmotion(1);
 
@@ -112,35 +142,31 @@ Dn = fix(fs_wav/fs_adc);
 Ns = 200;
 nfft = 512;
 faxis_kHz = f_ax(nfft, fs_adc)/1000;
-close all
-f1 = figure('WindowState','normal');
-movegui(f1, "west")
+
 
 % Taylor window
 nbar = 4;
 sll = -38;
-twinu = taylorwin(n_samples, nbar, sll);
-twind = taylorwin(n_samples, nbar, sll);
+twin = taylorwin(Ns, nbar, sll);
+% wind = taylorwin(n_samples, nbar, sll);
+% Gaussian
+% win = gausswin(n_samples);
+% Blackmann 
+bwin = blackman(Ns);
+% % Kaiser
+% kbeta = 5;
+% win = kaiser(n_samples, kbeta);
+
+% Range axis
+rng_ax = beat2range((faxis_kHz*1000)', sweep_slope, c);
 
 %%
-ref = waveform();
-REF0 = fft(ref);
-sampled_ref = decimate(ref,Dn);
-REF = fft(sampled_ref, nfft);
 close all
-figure
-% plot(real(sampled_ref))
-% plot(absmagdb(REF0))
-plot(real(ref))
-
-%%
-
+f1 = figure('WindowState','normal', 'Position',[0 100 1000 900]);
+movegui(f1, "west")
 for t = 1:n_steps
     %disp(t)
     [tgt_pos,tgt_vel] = carmotion(t_step);
-    
-%     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
-%     drawnow;
 
 %     % issue: helper updates target position and velocity within each
 %     sweep. Resolved --> issue was releasing waveforms?
@@ -148,16 +174,22 @@ for t = 1:n_steps
 %     xr = simulate_sweeps2(Nsweep,waveform,radarmotion,carmotion,...
 %         transmitter,channel,cartarget,receiver);
 
-    % At sampling rate
+    % Output at sampling rate (decimation)
     [~,xr] = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
         transmitter,channel,cartarget,receiver, Dn, Ns);
     
+    % NOTE: Up and Down are reversed for some reason in F domain
+    % find out why. For now set one to the other
+    % NOTE: Somehow resolved using range axis
     xru_int = pulsint(xr(:,1:2:end),'coherent');
     xrd_int = pulsint(xr(:,2:2:end),'coherent');
     
     % Window
-    xru_int = xru_int.*twinu;
-    xrd_int = xrd_int.*twind;
+    xru_twin = xru_int.*twin;
+    xrd_twin = xrd_int.*twin;
+    
+    xru_bwin = xru_int.*bwin;
+    xrd_bwin = xrd_int.*bwin;
 
 %     fbu_rng = rootmusic(xru_int,2,fs_wav);
 %     fbd_rng = rootmusic(xrd_int,2,fs_wav);
@@ -175,23 +207,48 @@ for t = 1:n_steps
 %     fbd(t,:) = fbd_rng;
     XRU = fft(xru_int, nfft);
     XRD = fft(xrd_int, nfft);
-    tiledlayout(2, 1)
-%     nexttile
-%     plot(real(xru_int))
-    nexttile
-    plot(faxis_kHz,sftmagdb(XRU))
+    
+    XRU_twin = fft(xru_twin, nfft);
+    XRD_win = fft(xrd_win, nfft);
+    
+    XRU_bwin = fft(xru_bwin, nfft);
+
+    subplot(3,1,1)
+    plot(rng_ax,sftmagdb(XRU))
     title("Dechirped up sweep spectrum")
-    xlabel("Frequency (kHz)")
+    xlabel("Range (m)")
     ylabel("Magnitude (dB)")
+    grid on
+%     axis([-62.5 62.5 -90 -20])
+%     subplot(2,2,2)
+%     plot(faxis_kHz,sftmagdb(XRD))
+%     title("Dechirped down sweep spectrum")
+%     xlabel("Frequency (kHz)")
+%     ylabel("Magnitude (dB)")
+    
+    subplot(3,1,2)
+    plot(rng_ax,sftmagdb(XRU_twin))
+    title("Dechirped and Taylor windowed up sweep spectrum")
+    xlabel("Range (m)")
+    ylabel("Magnitude (dB)")
+%     axis([-62.5 62.5 -110 -20])
+    grid on
+
+    subplot(3,1,3)
+    plot(rng_ax,sftmagdb(XRU_bwin))
+    title("Dechirped and Blackmann windowed up sweep spectrum")
+    xlabel("Range (m)")
+    ylabel("Magnitude (dB)")
+%     axis([-62.5 62.5 -200 -20])
+    grid on
     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
-%     nexttile
-%     plot(real(xrd_int))
-    nexttile
-    plot(faxis_kHz,sftmagdb(XRD))
-    title("Dechirped down sweep spectrum")
-    xlabel("Frequency (kHz)")
-    ylabel("Magnitude (dB)")
-    drawnow;
+    
+%     subplot(2,2,4)
+%     plot(faxis_kHz,sftmagdb(XRD_win))
+%     title("Dechirped down sweep spectrum")
+%     xlabel("Frequency (kHz)")
+%     ylabel("Magnitude (dB)")
+%     drawnow;
 %     pause(0.5)
 end
 
