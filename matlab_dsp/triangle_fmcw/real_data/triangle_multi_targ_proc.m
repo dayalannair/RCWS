@@ -144,7 +144,8 @@ for i = 1:n_sweeps
         osd_pk_clean(i, bin*bin_width + idx_d) = magd;
    end
 end
-
+sp_array_kmh = sp_array.*3.6;
+return
 %%
 % Define range axis
 rng_ax = beat2range(f_pos',k,c);

@@ -1,28 +1,25 @@
 % Import data and parameters
-subset = 800:1200;
+% 60kmh subset
+% subset = 900:1200;
+% 50 kmh subset - same
+% 40 kmh subset
+
+subset = 1:4000;
 addpath('../../../matlab_lib/');
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
 n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
-
+% Import video
+addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
 %%
 % Taylor Window
 nbar = 4;
-sll = -38;
+sll = -50;
 twinu = taylorwin(n_samples, nbar, sll);
 twind = taylorwin(n_samples, nbar, sll);
 iq_u = iq_u.*twinu.';
 iq_d = iq_d.*twind.';
-
-hmwin = hamming(n_samples);
-
-iq_u = iq_u.*hmwin.';
-iq_d = iq_d.*hmwin.';
-
-% bwin = blackman(n_samples);
-% iq_u = iq_u.*bwin.';
-% iq_d = iq_d.*bwin.';
 
 % FFT
 n_fft = 512;
@@ -39,19 +36,17 @@ IQ_DN = IQ_DN(:, n_fft/2+1:end);
 % Null feedthrough
 IQ_UP(:, 1:num_nul) = 0;
 IQ_DN(:, end-num_nul+1:end) = 0;
-% Mean nulling
-% IQ_UP = IQ_UP - mean(IQ_UP, 2);
-% IQ_DN = IQ_DN - mean(IQ_DN, 2);
+
+% IQ_UP = IQ_UP - mean(IQ_UP);
+% IQ_DN = IQ_DN - mean(IQ_DN);
 % CFAR
 guard = 2*n_fft/n_samples;
 guard = floor(guard/2)*2; % make even
-% too many training cells results in too many detections- NOT always!
+% too many training cells results in too many detections
 train = round(20*n_fft/n_samples);
 train = floor(train/2)*2;
-train = 50
-guard = 6
 % false alarm rate - sets sensitivity
-F = 7e-4; 
+F = 18e-4; 
 OS = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
@@ -86,7 +81,6 @@ n_min = 42;
 % Divide into range bins of width 64
 nbins = 16;
 bin_width = (n_fft/2)/nbins;
-lines = linspace(1,256,bin_width);
 fbu = zeros(n_sweeps,nbins);
 fbd = zeros(n_sweeps,nbins);
 
@@ -97,80 +91,79 @@ beat_arr = zeros(n_sweeps,nbins);
 
 osu_pk_clean = zeros(n_sweeps,n_fft/2);
 osd_pk_clean = zeros(n_sweeps,n_fft/2);
+
+% Make slightly larger to allow for holding previous
+% >16 will always be 0 and not influence results
+% previous_det = zeros(nbins+2, 1);
+
+f_bin_edges_idx = size(f_pos(),2)/nbins;
 %%
-% ax_dims = [0 256 60 160];
-close all
-fig1 = figure('WindowState','maximized');
 for i = 1:n_sweeps
    for bin = 0:(nbins-1)
-        bin_slice_u = os_pku(i,bin*bin_width+1:(bin+1)*bin_width);
+        % find beat in bin
         bin_slice_d = os_pkd(i,bin*bin_width+1:(bin+1)*bin_width);
-
-        [magu, idx_u] = max(bin_slice_u);
         [magd, idx_d] = max(bin_slice_d);
-
-        if magu ~= 0
-            fbu(i,bin+1) = f_pos(bin*bin_width + idx_u);
-        end
-        if magd ~= 0
-            fbd(i,bin+1) = f_pos(bin*bin_width + idx_d);
-        end
-        % if both not DC
-        if and(fbu(i,bin+1) ~= 0, fbd(i,bin+1)~= 0)
-            fd = -fbu(i,bin+1) + fbd(i,bin+1);
-            fd_array(i,bin+1) = fd/2;
-            
-            % if less than max expected and filter clutter doppler
-            if ((abs(fd/2) < fd_max) && (fd/2 > 400))
-                sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
-                rg_array(i,bin+1) = beat2range( ...
-                    [fbu(i,bin+1) -fbd(i,bin+1)], k, c);
+        
+        beat_index = bin*bin_width + idx_d;
+        if (magd ~= 0 && beat_index>15)
+            fbd(i,bin+1) = f_pos(beat_index);
+            % set up bin slice to range of expected beats
+            % See freqs from 0 to index 8
+            bin_slice_u = os_pku(i,beat_index - 15:beat_index);
+            % index is index in the subset
+            [magu, idx_u] = max(bin_slice_u);
+            if magu ~= 0
+                fbu(i,bin+1) = f_pos(beat_index - 15 + idx_u);
             end
+            
+            % if both not DC
+            if and(fbu(i,bin+1) ~= 0, fbd(i,bin+1)~= 0)
+                fd = -fbu(i,bin+1) + fbd(i,bin+1);
+                fd_array(i,bin+1) = fd/2;
+                
+                % if less than max expected and filter clutter doppler
+                if ((abs(fd/2) < fd_max) && (fd/2 > 400))
+                    sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
+                    rg_array(i,bin+1) = beat2range( ...
+                        [fbu(i,bin+1) -fbd(i,bin+1)], k, c);
+                end
+           
+            end
+            % for plot
+            osu_pk_clean(i, bin*bin_width + idx_u) = magu;
+            osd_pk_clean(i, bin*bin_width + idx_d) = magd;
         end
-        % for plot
-        osu_pk_clean(i, bin*bin_width + idx_u) = magu;
-        osd_pk_clean(i, bin*bin_width + idx_d) = magd;
    end
-      tiledlayout(2,1)
-%     nexttile
-%     plot(absmagdb(IQ_UP(sweep,:)))
-%     title("UP chirp positive half slice nulling")
-%     axis(ax_dims)
-%     nexttile
-%     plot(absmagdb(IQ_DN(sweep,:)))
-%     title("DOWN chirp flipped negative half slice nulling")
-%     axis(ax_dims)
-
-    nexttile
-    plot(absmagdb(IQ_DN(i,:)))
-    title("DOWN chirp flipped negative half average nulling")
-%     axis(ax_dims)
-    hold on
-    plot(absmagdb(os_thd(:,i)))
-    hold on
-    stem(absmagdb(os_pkd(i,:)))
-    hold on
-%     xline(lines)
-    hold off
-
-    nexttile
-    plot(absmagdb(IQ_UP(i,:)))
-    title("UP chirp positive half average nulling")
-%     axis(ax_dims)
-    hold on
-    plot(absmagdb(os_thu(:,i)))
-    hold on
-    stem(absmagdb(os_pku(i,:)))
-    hold on
-%     xline(lines)
-    hold off
-    
-    
-    
-    drawnow;
-%     pause(0.1)
+  
+   % If nothing detected
+   % Issue - if another target detected, will not trigger
+   % Issue - if no new target, will hold closest last target
+   % Maintaining that turn is unsafe
+%     if (~any(rg_array(i,:)) && i>1)
+%        fd_array(i,:) = fd_array(i-1,:);
+%        sp_array(i,:) = sp_array(i-1,:);
+%        rg_array(i,:) = rg_array(i-1,:);
+% %        for bin = 1:(nbins-1)
+% %              % if nothing detected but target was present in previous sweep
+% %         % will propagate/hold until new detection
+% %         % Compares outer bin to inner bin!
+% %         % Start from second sweep
+% %         if (rg_array(i-1,bin))
+% % 
+% %             fd_array(i,bin) = fd_array(i-1,bin);
+% %             sp_array(i,bin) = sp_array(i-1,bin);
+% %             rg_array(i,bin) = rg_array(i-1,bin);
+% %         end
+% % %        elseif (hold_pos)
+% % %             fd_array(i,bin) = fd_array(i-1,bin);
+% % %             sp_array(i,bin) = sp_array(i-1,bin);
+% % %             rg_array(i,bin) = rg_array(i-1,bin);
+% % %             hold_pos = false;
+% % %        end
+% %        end
+%    end
 end
-
+sp_array_kmh = sp_array.*3.6;
 return;
 %%
 % Define range axis
@@ -200,11 +193,11 @@ for sweep = 1:n_sweeps
         safe_sweeps(sweep) = t_safe-min(ratio);
     end
 end
-close all
-figure
-plot(safety)
-
-return;
+% close all
+% figure
+% plot(safety)
+% 
+% return;
 
 %%
 close all
@@ -213,11 +206,11 @@ movegui(fig1,'west')
 sweep_window = 200;
 loop_cnt = 0;
 % Need here to restart video
-vidObj = VideoReader('20kmhx.mp4');
+% vidObj = VideoReader('20kmhx.mp4');
 % vidObj = VideoReader('30kmhx.mp4');
 % vidObj = VideoReader('40kmhxq.mp4');
 % vidObj = VideoReader('50kmhx.mp4');
-% vidObj = VideoReader('60kmhx.mp4');
+vidObj = VideoReader('60kmhx.mp4');
 % Loop for fast sampled data
 tic;
 for sweep = 1:15:(n_sweeps-sweep_window)
