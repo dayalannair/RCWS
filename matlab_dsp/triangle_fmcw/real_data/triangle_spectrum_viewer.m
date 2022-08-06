@@ -31,12 +31,12 @@ IQ_DN = IQ_DN(:, n_fft/2+1:end);
 
 % Null feedthrough
 % METHOD 1: slice
-IQ_UP(:, 1:num_nul) = 0;
-IQ_DN(:, end-num_nul+1:end) = 0;
+% IQ_UP(:, 1:num_nul) = 0;
+% IQ_DN(:, end-num_nul+1:end) = 0;
 
 % METHOD 2: Remove average
-IQ_UP2 = IQ_UP - mean(IQ_UP);
-IQ_DN2 = IQ_DN - mean(IQ_DN);
+IQ_UP2 = IQ_UP - mean(IQ_UP,2);
+IQ_DN2 = IQ_DN - mean(IQ_DN,2);
 
 % flip
 IQ_DN = flip(IQ_DN,2);
@@ -48,34 +48,32 @@ fig1 = figure('WindowState','maximized');
 movegui(fig1,'west')
 for sweep = 1:n_sweeps
     tiledlayout(2,2)
-%     nexttile
-%     plot(absmagdb(IQ_UP(sweep,:)))
-%     title("UP chirp positive half slice nulling")
-%     axis(ax_dims)
-%     nexttile
-%     plot(absmagdb(IQ_DN(sweep,:)))
-%     title("DOWN chirp flipped negative half slice nulling")
-%     axis(ax_dims)
+    nexttile
+    plot(absmagdb(IQ_UP(sweep,:)))
+    title("UP chirp positive half slice nulling")
+    axis(ax_dims)
+    nexttile
+    plot(absmagdb(IQ_DN(sweep,:)))
+    title("DOWN chirp flipped negative half slice nulling")
+    axis(ax_dims)
     nexttile
     plot(absmagdb(IQ_UP2(sweep,:)))
     title("UP chirp positive half average nulling")
     axis(ax_dims)
-    yline(125)
     nexttile
     plot(absmagdb(IQ_DN2(sweep,:)))
     title("DOWN chirp flipped negative half average nulling")
     axis(ax_dims)
-    yline(125)
-    nexttile
-    plot(abs(IQ_UP2(sweep,:)))
-    title("UP chirp positive half average nulling")
-    axis([0 256 0 7e6])
-%     yline(125)
-    nexttile
-    plot(abs(IQ_DN2(sweep,:)))
-    title("DOWN chirp flipped negative half average nulling")
-    axis([0 256 0 7e6])
-%     yline(125)
+%     nexttile
+%     plot(abs(IQ_UP2(sweep,:)))
+%     title("UP chirp positive half average nulling")
+%     axis([0 256 0 7e6])
+% %     yline(125)
+%     nexttile
+%     plot(abs(IQ_DN2(sweep,:)))
+%     title("DOWN chirp flipped negative half average nulling")
+%     axis([0 256 0 7e6])
+% %     yline(125)
     drawnow;
 %     pause(0.1)
 end

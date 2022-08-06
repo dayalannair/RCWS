@@ -1,4 +1,4 @@
-sweeps = 1:1024;% 200:205;
+sweeps = 800:1200;% 200:205;
 addpath('../matlab_lib/');
 addpath('../../../OneDrive - University of Cape Town/RCWS_DATA/trig_fmcw_data/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps);
@@ -8,7 +8,7 @@ n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
 
 %%
-u = iq_u(200,:).';
+u = iq_u(116,:).';
 % Taylor
 nbar = 4;
 sll = -38;
@@ -54,19 +54,20 @@ title("Effect of windowing on signal spectrum for 1024 point FFT")
 ylabel("Magnitude (dB)")
 xlabel("Freqeuncy (kHz)")
 hold on
-% plot(f, 10*log10(fftshift(abs(UWIN(:,1)))),'DisplayName','Guassian Window')
-% hold on
-% plot(f, 10*log10(fftshift(abs(UWIN(:,2)))),'DisplayName','Blackmann Window')
-% hold on
-% plot(f, 10*log10(fftshift(abs(UWIN(:,3)))),'DisplayName','Kaiser Window')
-% hold on
-% plot(f, 10*log10(fftshift(abs(UWIN(:,4)))),'DisplayName','Nutall Window')
-% hold on
-% plot(f, 10*log10(fftshift(abs(UWIN(:,5)))),'DisplayName','Hamming Window')
-% hold on
-% plot(f, 10*log10(fftshift(abs(UWIN(:,6)))),'DisplayName','Hanning Window')
-% hold on
+plot(f, 10*log10(fftshift(abs(UWIN(:,1)))),'DisplayName','Guassian Window')
+hold on
+plot(f, 10*log10(fftshift(abs(UWIN(:,2)))),'DisplayName','Blackmann Window')
+hold on
+plot(f, 10*log10(fftshift(abs(UWIN(:,3)))),'DisplayName','Kaiser Window')
+hold on
+plot(f, 10*log10(fftshift(abs(UWIN(:,4)))),'DisplayName','Nutall Window')
+hold on
+plot(f, 10*log10(fftshift(abs(UWIN(:,5)))),'DisplayName','Hamming Window')
+hold on
+plot(f, 10*log10(fftshift(abs(UWIN(:,6)))),'DisplayName','Hanning Window')
+hold on
 plot(f, 10*log10(fftshift(abs(UWIN(:,7)))),'DisplayName','Taylor Window')
+hold off
 legend
 
 

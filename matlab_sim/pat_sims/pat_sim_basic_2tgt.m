@@ -22,14 +22,14 @@ fs_adc = 200e3;
 rng(2012);
 waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
     'SampleRate',fs_wav, 'SweepDirection','Triangle');
-% close all
-% figure
-% sig = waveform();
-% subplot(211); plot(0:1/fs_wav:tm-1/fs_wav,real(sig));
-% xlabel('Time (s)'); ylabel('Amplitude (v)');
-% title('FMCW signal'); axis tight;
-% subplot(212); spectrogram(sig,32,16,32,fs_wav,'yaxis');
-% title('FMCW signal spectrogram');
+close all
+figure
+sig = waveform();
+subplot(211); plot(0:1/fs_wav:tm-1/fs_wav,real(sig));
+xlabel('Time (s)'); ylabel('Amplitude (v)');
+title('First 10 \mus of the FMCW signal'); axis([0 1e-5 -1 1]);
+subplot(212); spectrogram(sig,32,16,32,fs_wav,'yaxis');
+title('FMCW signal spectrogram');
 
 %%
 
@@ -70,10 +70,10 @@ receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
 % CASE 3: Static targets at 50m separated by 2m
 % Test cross range resolution
 % car1_x_dist = 50;
-% car1_y_dist = 4;
+% car1_y_dist = 10;
 % car1_speed = 0/3.6;
 % car2_x_dist = 50;
-% car2_y_dist = -4;
+% car2_y_dist = -10;
 % car2_speed = 0/3.6;
 
 % CASE 4: Target overtake
@@ -209,7 +209,7 @@ for t = 1:n_steps
     XRD = fft(xrd_int, nfft);
     
     XRU_twin = fft(xru_twin, nfft);
-    XRD_win = fft(xrd_win, nfft);
+%     XRD_win = fft(xrd_win, nfft);
     
     XRU_bwin = fft(xru_bwin, nfft);
 

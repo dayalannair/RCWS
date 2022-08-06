@@ -1,23 +1,10 @@
 % Import data and parameters
-subset = 1:2000;
-addpath('../../library/');
+subset = 800:1200;
+addpath('../../../matlab_lib/');
+addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
 n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
-%%
-% Import video
-addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
-%%
-% 776 frames
-% close all
-% figure
-% vidObj = VideoReader('office_test_rot.mp4');
-% while hasFrame(vidObj)
-%     vidFrame = readFrame(vidObj);
-%     imshow(vidFrame)
-% %     pause(1/vidObj.FrameRate);
-% %     pause(0.01)
-% end
 
 %%
 % Taylor Window
@@ -27,6 +14,15 @@ twinu = taylorwin(n_samples, nbar, sll);
 twind = taylorwin(n_samples, nbar, sll);
 iq_u = iq_u.*twinu.';
 iq_d = iq_d.*twind.';
+
+hmwin = hamming(n_samples);
+
+iq_u = iq_u.*hmwin.';
+iq_d = iq_d.*hmwin.';
+
+% bwin = blackman(n_samples);
+% iq_u = iq_u.*bwin.';
+% iq_d = iq_d.*bwin.';
 
 % FFT
 n_fft = 512;
@@ -43,15 +39,19 @@ IQ_DN = IQ_DN(:, n_fft/2+1:end);
 % Null feedthrough
 IQ_UP(:, 1:num_nul) = 0;
 IQ_DN(:, end-num_nul+1:end) = 0;
-
+% Mean nulling
+% IQ_UP = IQ_UP - mean(IQ_UP, 2);
+% IQ_DN = IQ_DN - mean(IQ_DN, 2);
 % CFAR
 guard = 2*n_fft/n_samples;
 guard = floor(guard/2)*2; % make even
-% too many training cells results in too many detections
+% too many training cells results in too many detections- NOT always!
 train = round(20*n_fft/n_samples);
 train = floor(train/2)*2;
+train = 50
+guard = 6
 % false alarm rate - sets sensitivity
-F = 15e-3; 
+F = 7e-4; 
 OS = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
@@ -66,23 +66,7 @@ IQ_DN = flip(IQ_DN,2);
 % Filter peaks/ peak detection
 [up_os, os_thu] = OS(abs(IQ_UP)', 1:n_fft/2);
 [dn_os, os_thd] = OS(abs(IQ_DN)', 1:n_fft/2);
-%% ADD TO REPORT
-close all
-figure
-tiledlayout(2,1)
-nexttile
-plot(absmagdb(IQ_UP(400,:)))
-hold on
-plot(absmagdb(os_thu(:,400)))
-title("Up chirp half spectrum and OS-CFAR threshold")
-hold off
-nexttile
-plot(absmagdb(IQ_DN(400,:)))
-hold on
-plot(absmagdb(os_thd(:,400)))
-title("Flipped down chirp half spectrum and OS-CFAR threshold")
-hold off
-% return;
+
 % Find peak magnitude
 os_pku = abs(IQ_UP).*up_os';
 os_pkd = abs(IQ_DN).*dn_os';
@@ -102,6 +86,7 @@ n_min = 42;
 % Divide into range bins of width 64
 nbins = 16;
 bin_width = (n_fft/2)/nbins;
+lines = linspace(1,256,bin_width);
 fbu = zeros(n_sweeps,nbins);
 fbd = zeros(n_sweeps,nbins);
 
@@ -113,6 +98,9 @@ beat_arr = zeros(n_sweeps,nbins);
 osu_pk_clean = zeros(n_sweeps,n_fft/2);
 osd_pk_clean = zeros(n_sweeps,n_fft/2);
 %%
+% ax_dims = [0 256 60 160];
+close all
+fig1 = figure('WindowState','maximized');
 for i = 1:n_sweeps
    for bin = 0:(nbins-1)
         bin_slice_u = os_pku(i,bin*bin_width+1:(bin+1)*bin_width);
@@ -143,8 +131,44 @@ for i = 1:n_sweeps
         osu_pk_clean(i, bin*bin_width + idx_u) = magu;
         osd_pk_clean(i, bin*bin_width + idx_d) = magd;
    end
+      tiledlayout(2,1)
+%     nexttile
+%     plot(absmagdb(IQ_UP(sweep,:)))
+%     title("UP chirp positive half slice nulling")
+%     axis(ax_dims)
+%     nexttile
+%     plot(absmagdb(IQ_DN(sweep,:)))
+%     title("DOWN chirp flipped negative half slice nulling")
+%     axis(ax_dims)
+    nexttile
+    plot(absmagdb(IQ_UP(i,:)))
+    title("UP chirp positive half average nulling")
+%     axis(ax_dims)
+    hold on
+    plot(absmagdb(os_thu(:,i)))
+    hold on
+    stem(absmagdb(os_pku(i,:)))
+    hold on
+    xline(lines)
+    hold off
+    
+    nexttile
+    plot(absmagdb(IQ_DN(i,:)))
+    title("DOWN chirp flipped negative half average nulling")
+%     axis(ax_dims)
+    hold on
+    plot(absmagdb(os_thd(:,i)))
+    hold on
+    stem(absmagdb(os_pkd(i,:)))
+    hold on
+    xline(lines)
+    hold off
+    
+    drawnow;
+%     pause(0.1)
 end
 
+return;
 %%
 % Define range axis
 rng_ax = beat2range(f_pos',k,c);
@@ -227,11 +251,6 @@ toc
 % Loop for slow sampling - just get new data smh
 expected_time = length(subset)*tm*2
 %%
-close all
-figure
-imagesc(sp_array.*3.6)
-
-
 % close all
 % figure
 % imagesc(sp_array.*3.6)
