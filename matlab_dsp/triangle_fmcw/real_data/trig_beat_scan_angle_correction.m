@@ -97,6 +97,7 @@ osd_pk_clean = zeros(n_sweeps,n_fft/2);
 % previous_det = zeros(nbins+2, 1);
 
 f_bin_edges_idx = size(f_pos(),2)/nbins;
+road_width = 2;
 %%
 for i = 1:n_sweeps
    for bin = 0:(nbins-1)
@@ -105,11 +106,17 @@ for i = 1:n_sweeps
         [magd, idx_d] = max(bin_slice_d);
         
         beat_index = bin*bin_width + idx_d;
-        if (magd ~= 0 && beat_index>15)
+        if magd ~= 0
             fbd(i,bin+1) = f_pos(beat_index);
             % set up bin slice to range of expected beats
-            % See freqs from 0 to index 8
-            bin_slice_u = os_pku(i,beat_index - 15:beat_index);
+            % See freqs from 0 to index 15 - determined from 60kmh (VERIFY)
+            % check if far enough from center
+            if (beat_index>15)
+                bin_slice_u = os_pku(i,beat_index - 15:beat_index);
+            % if not, start from center
+            else
+                bin_slice_u = os_pku(i,1:beat_index);
+            end
             % index is index in the subset
             [magu, idx_u] = max(bin_slice_u);
             if magu ~= 0
@@ -126,6 +133,14 @@ for i = 1:n_sweeps
                     sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
                     rg_array(i,bin+1) = beat2range( ...
                         [fbu(i,bin+1) -fbd(i,bin+1)], k, c);
+
+                    % Angle correction
+                   
+%                     theta = asind(road_width/rg_array(i,bin+1));
+% 
+%                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
+%                     sp_array(i,bin+1) = real_v;
+                    
                 end
            
             end

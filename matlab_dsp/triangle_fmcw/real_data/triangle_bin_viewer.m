@@ -9,16 +9,16 @@ n_sweeps = size(iq_u,1);
 %%
 % Taylor Window
 nbar = 4;
-sll = -38;
+sll = -50;
 twinu = taylorwin(n_samples, nbar, sll);
 twind = taylorwin(n_samples, nbar, sll);
 iq_u = iq_u.*twinu.';
 iq_d = iq_d.*twind.';
 
-hmwin = hamming(n_samples);
-
-iq_u = iq_u.*hmwin.';
-iq_d = iq_d.*hmwin.';
+% hmwin = hamming(n_samples);
+% 
+% iq_u = iq_u.*hmwin.';
+% iq_d = iq_d.*hmwin.';
 
 % bwin = blackman(n_samples);
 % iq_u = iq_u.*bwin.';

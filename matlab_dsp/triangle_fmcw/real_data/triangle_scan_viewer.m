@@ -1,5 +1,5 @@
 % Import data and parameters
-subset = 900:4000;
+subset = 700:1100;
 addpath('../../../matlab_lib/');
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);

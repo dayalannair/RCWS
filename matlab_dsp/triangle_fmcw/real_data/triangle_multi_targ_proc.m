@@ -1,6 +1,7 @@
 % Import data and parameters
-subset = 1:2000;
-addpath('../../library/');
+subset = 700:1100;
+addpath('../../../matlab_lib/');
+addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
 n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
@@ -145,7 +146,7 @@ for i = 1:n_sweeps
    end
 end
 sp_array_kmh = sp_array.*3.6;
-return
+% return
 %%
 % Define range axis
 rng_ax = beat2range(f_pos',k,c);
@@ -178,8 +179,27 @@ close all
 figure
 plot(safety)
 
+% return;
+close all
+figure
+tiledlayout(1,2)
+nexttile
+imagesc(sp_array.*3.6)
+set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl, 'CLim', [0 60])
+grid
+title("Speed v. Time v. Range")
+xlabel("Range bin (meters)")
+ylabel("Sweep number in window (represents time)")
+a = colorbar;
+a.Label.String = 'Radial velocity (km/h)';
+nexttile
+imagesc(safe_sweeps)
+title("Safety Meter")
+ylabel("Sweep number in window  (represents time)")
+b = colorbar;
+b.Label.String = 'Degree of safety (4 - t_{arrival})';
+set(gca,'CLim', [0 1])
 return;
-
 %%
 close all
 fig1 = figure('WindowState','maximized');
