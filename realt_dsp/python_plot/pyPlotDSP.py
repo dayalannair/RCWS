@@ -103,6 +103,13 @@ t_0 = time()
 i = 0
 I = []
 Q = []
+
+# ------------------------ Frequency axis -----------------
+fs = 200e3
+nfft = 512
+# kHz Axis
+fax = np.linspace(0, round(fs/2000), round(nfft/2))
+
 return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 if (return_code != 0):
 	closeProgram()
@@ -116,10 +123,13 @@ plt.ion()
 # x = np.zeros(100, 100)
 # y = np.zeros(100, 100)
 figure, ax = plt.subplots(nrows=2, ncols=1, figsize=(10, 8))
-line1, = ax[0].plot(fftu)
-line2, = ax[0].plot(upth)
-line3, = ax[1].plot(fftd)
-line4, = ax[1].plot(dnth)
+line1, = ax[0].plot(fax, fftu)
+line2, = ax[0].plot(fax, upth)
+line3, = ax[1].plot(fax, fftd)
+line4, = ax[1].plot(fax, dnth)
+# CFAR stems
+# line5, = ax[0].stem([],cfar_res_up)
+# line6, = ax[1].stem([],cfar_res_dn)
 # eng.eval("load(\'urad_trig_proc_config.mat\')")
 print("System running...")
 try:
@@ -139,6 +149,9 @@ try:
 		line2.set_ydata(upth)
 		line3.set_ydata(fftd)
 		line4.set_ydata(dnth)
+		# line5.set_ydata(cfar_res_up)
+		# line6.set_ydata(cfar_res_dn)
+
 		figure.canvas.draw()
 
 		figure.canvas.flush_events()

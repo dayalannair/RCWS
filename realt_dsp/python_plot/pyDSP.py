@@ -15,10 +15,9 @@ def py_trig_dsp(i_data, q_data):
 
     # TAYLOR WINDOW
     # SLL specified as positive
-    twinu = signal.windows.taylor(200, nbar=4, sll=38, norm=False)
-    twind = signal.windows.taylor(200, nbar=4, sll=38, norm=False)
-    iq_u = np.multiply(iq_u, twinu)
-    iq_d = np.multiply(iq_u, twind)
+    twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
+    iq_u = np.multiply(iq_u, twin)
+    iq_d = np.multiply(iq_d, twin)
 
     # 512-point FFT
     n_fft = 512 
@@ -59,7 +58,7 @@ def py_trig_dsp(i_data, q_data):
     np.log(dnth, out=dnth)
     np.log(abs(IQ_UP), out=IQ_UP)
     np.log(abs(IQ_DN), out=IQ_DN)
-
+    # print(Pfa)
 
 
     # log scale for display purposes
