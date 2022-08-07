@@ -32,7 +32,7 @@ def os_cfar(half_train, half_guard, rank, SOS, data):
     # Pfa = Pfa_numer/Pfa_denom
     Pfa = k*mt.factorial(N)/(mt.factorial(k)*mt.factorial(N-k)) \
         * mt.factorial(k-1)*mt.factorial(SOS+N-k)/mt.factorial(SOS+N)
-
+    # result = np.zeros(256)
     for cutidx in range(ns): #cutidx = index of cell under test
         if (lead<cutidx<lag):
             # print("In range. Cutidx = ", cutidx)

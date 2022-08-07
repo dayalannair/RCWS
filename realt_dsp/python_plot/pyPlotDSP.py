@@ -105,11 +105,15 @@ I = []
 Q = []
 
 # ------------------------ Frequency axis -----------------
-fs = 200e3
 nfft = 512
 # kHz Axis
-fax = np.linspace(0, round(fs/2000), round(nfft/2))
-
+fax = np.linspace(0, round(fs/2), round(nfft/2))
+# c*fb/(2*slope)
+tsweep = 1e-3
+bw = 240e6
+slope = bw/tsweep
+c = 3e8
+rng_ax = c*fax/(2*slope)
 return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 if (return_code != 0):
 	closeProgram()
@@ -123,13 +127,18 @@ plt.ion()
 # x = np.zeros(100, 100)
 # y = np.zeros(100, 100)
 figure, ax = plt.subplots(nrows=2, ncols=1, figsize=(10, 8))
-line1, = ax[0].plot(fax, fftu)
-line2, = ax[0].plot(fax, upth)
-line3, = ax[1].plot(fax, fftd)
-line4, = ax[1].plot(fax, dnth)
+line1, = ax[0].plot(rng_ax, fftu)
+line2, = ax[0].plot(rng_ax, upth)
+line3, = ax[1].plot(rng_ax, fftd)
+line4, = ax[1].plot(rng_ax, dnth)
 # CFAR stems
 # line5, = ax[0].stem([],cfar_res_up)
 # line6, = ax[1].stem([],cfar_res_dn)
+print(len(rng_ax))
+line5, = ax[0].plot(rng_ax, cfar_res_up, markersize=20)
+line6, = ax[1].plot(rng_ax, cfar_res_dn, markersize=20)
+
+print(cfar_res_dn)
 # eng.eval("load(\'urad_trig_proc_config.mat\')")
 print("System running...")
 try:
@@ -145,15 +154,16 @@ try:
 		t0_proc = time()
 		cfar_res_up, cfar_res_dn, upth, dnth, fftu, fftd = py_trig_dsp(I,Q)
 		t1_proc = time()-t0_proc
+		# print(len(cfar_res_up))
 		line1.set_ydata(fftu)
 		line2.set_ydata(upth)
 		line3.set_ydata(fftd)
 		line4.set_ydata(dnth)
-		# line5.set_ydata(cfar_res_up)
-		# line6.set_ydata(cfar_res_dn)
-
+		line5.set_ydata(cfar_res_up)
+		line6.set_ydata(cfar_res_dn)
+		# print(cfar_res_dn)
 		figure.canvas.draw()
-
+		# sleep(0.5)
 		figure.canvas.flush_events()
 		# plt.plot(fftu)
 		# plt.show()

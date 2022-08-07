@@ -52,6 +52,7 @@ def py_trig_dsp(i_data, q_data):
     SOS = 2
     # note the abs
 
+    # -------------------- CFAR detection ---------------------------
     Pfa, cfar_res_up, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP))
     Pfa, cfar_res_dn, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN))
 
@@ -67,6 +68,60 @@ def py_trig_dsp(i_data, q_data):
     cfar_res_up = 20*np.log(abs(cfar_res_up))
     cfar_res_dn = 20*np.log(abs(cfar_res_dn))
 
+    nbins = 16
+    bin_width = (n_fft/2)/nbins
+    fbu = np.zeros(n_sweeps,nbins)
+    fbd = np.zeros(n_sweeps,nbins)
+
+    rg_array = np.zeros(n_sweeps,nbins)
+    fd_array = np.zeros(n_sweeps,nbins)
+    sp_array = np.zeros(n_sweeps,nbins)
+    sp_array_corrected = np.zeros(n_sweeps,nbins)
+    beat_arr = np.zeros(n_sweeps,nbins)
+
+    # ------------- beat extraction for multiple targets ----------
+    for bin = 0:(nbins-1):
+        # find beat in bin
+        bin_slice_d = os_pkd(i,bin*bin_width+1:(bin+1)*bin_width)
+        [magd, idx_d] = max(bin_slice_d)
+        
+        beat_index = bin*bin_width + idx_d
+        if magd ~= 0:
+            fbd(i,bin+1) = f_pos(beat_index)
+            # set up bin slice to range of expected beats
+            # See freqs from 0 to index 15 - determined from 60kmh (VERIFY)
+            # check if far enough from center
+            if (beat_index>15):
+                bin_slice_u = os_pku(i,beat_index - 15:beat_index)
+            # if not, start from center
+            else:
+                bin_slice_u = os_pku(i,1:beat_index)
+            end
+            # index is index in the subset
+            [magu, idx_u] = max(bin_slice_u)
+            if magu ~= 0:
+                fbu(i,bin+1) = f_pos(beat_index - 15 + idx_u)
+            end
+            
+            # if both not DC
+            if and(fbu(i,bin+1) ~= 0, fbd(i,bin+1)~= 0):
+                fd = -fbu(i,bin+1) + fbd(i,bin+1)
+                fd_array(i,bin+1) = fd/2
+                
+                # if less than max expected and filter clutter doppler
+                if ((abs(fd/2) < fd_max) && (fd/2 > 400)):
+                    sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2
+                    rg_array(i,bin+1) = beat2range( ...
+                        [fbu(i,bin+1) -fbd(i,bin+1)], k, c)
+
+                    # Angle correction
+                   
+                    # Theta in radians
+                    theta = asin(road_width/rg_array(i,bin+1))*correction_factor
+
+                    real_v = dop2speed(fd/2,lambda)/(2*cos(theta))
+                    sp_array_corrected(i,bin+1) = real_v
+                
     # print(Pfa)
 
 
