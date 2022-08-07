@@ -3,8 +3,8 @@
 % subset = 900:1200;
 % 50 kmh subset - same
 % 40 kmh subset
-
 subset = 700:1100;
+subset = 1:4000;
 addpath('../../../matlab_lib/');
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
@@ -12,14 +12,19 @@ n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
 % Import video
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
-%%
+
+%% ***** Tunable parameters *****
+% These determine the system detection performance
+train = 64;
+guard = 6;
+nbar = 3;
+sll = -100;
+Pfa = 18e-4;
+% ---------------------------------------------
 % Taylor Window
-nbar = 4;
-sll = -50;
-twinu = taylorwin(n_samples, nbar, sll);
-twind = taylorwin(n_samples, nbar, sll);
-iq_u = iq_u.*twinu.';
-iq_d = iq_d.*twind.';
+twin = taylorwin(n_samples, nbar, sll);
+iq_u = iq_u.*twin.';
+iq_d = iq_d.*twin.';
 
 % FFT
 n_fft = 512;
@@ -39,14 +44,8 @@ IQ_DN(:, end-num_nul+1:end) = 0;
 
 % IQ_UP = IQ_UP - mean(IQ_UP);
 % IQ_DN = IQ_DN - mean(IQ_DN);
+
 % CFAR
-guard = 2*n_fft/n_samples;
-guard = floor(guard/2)*2; % make even
-% too many training cells results in too many detections
-train = round(20*n_fft/n_samples);
-train = floor(train/2)*2;
-% false alarm rate - sets sensitivity
-F = 18e-4; 
 OS = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
@@ -87,6 +86,7 @@ fbd = zeros(n_sweeps,nbins);
 rg_array = zeros(n_sweeps,nbins);
 fd_array = zeros(n_sweeps,nbins);
 sp_array = zeros(n_sweeps,nbins);
+sp_array_corrected = zeros(n_sweeps,nbins);
 beat_arr = zeros(n_sweeps,nbins);
 
 osu_pk_clean = zeros(n_sweeps,n_fft/2);
@@ -98,6 +98,7 @@ osd_pk_clean = zeros(n_sweeps,n_fft/2);
 
 f_bin_edges_idx = size(f_pos(),2)/nbins;
 road_width = 2;
+correction_factor = 3;
 %%
 for i = 1:n_sweeps
    for bin = 0:(nbins-1)
@@ -136,10 +137,11 @@ for i = 1:n_sweeps
 
                     % Angle correction
                    
-%                     theta = asind(road_width/rg_array(i,bin+1));
-% 
-%                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
-%                     sp_array(i,bin+1) = real_v;
+                    % Theta in radians
+                    theta = asin(road_width/rg_array(i,bin+1))*correction_factor;
+
+                    real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
+                    sp_array_corrected(i,bin+1) = real_v;
                     
                 end
            
@@ -178,7 +180,17 @@ for i = 1:n_sweeps
 % %        end
 %    end
 end
+close all
+figure
+tiledlayout(2,1)
+nexttile
+plot(sp_array)
+axis([0 400 0 13])
+nexttile
+plot(sp_array_corrected)
+axis([0 400 0 13])
 sp_array_kmh = sp_array.*3.6;
+sp_array_kmh_corrected = sp_array_corrected.*3.6;
 % return;
 %%
 % Define range axis
@@ -241,11 +253,11 @@ movegui(fig1,'west')
 sweep_window = 200;
 loop_cnt = 0;
 % Need here to restart video
-% vidObj = VideoReader('20kmhx.mp4');
+vidObj = VideoReader('20kmhx.mp4');
 % vidObj = VideoReader('30kmhx.mp4');
 % vidObj = VideoReader('40kmhxq.mp4');
 % vidObj = VideoReader('50kmhx.mp4');
-vidObj = VideoReader('60kmhx.mp4');
+% vidObj = VideoReader('60kmhx.mp4');
 % Loop for fast sampled data
 tic;
 for sweep = 1:15:(n_sweeps-sweep_window)

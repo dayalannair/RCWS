@@ -9,12 +9,11 @@ n_sweeps = size(iq_u,1);
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
 %%
 % Taylor Window
-nbar = 4;
-sll = -50;
-twinu = taylorwin(n_samples, nbar, sll);
-twind = taylorwin(n_samples, nbar, sll);
-iq_u = iq_u.*twinu.';
-iq_d = iq_d.*twind.';
+nbar = 3;
+sll = -100;
+twin = taylorwin(n_samples, nbar, sll);
+iq_u = iq_u.*twin.';
+iq_d = iq_d.*twin.';
 
 % FFT
 n_fft = 512;
@@ -40,6 +39,8 @@ guard = floor(guard/2)*2; % make even
 % too many training cells results in too many detections
 train = round(20*n_fft/n_samples);
 train = floor(train/2)*2;
+train = 64;
+guard = 6;
 % false alarm rate - sets sensitivity
 F = 18e-4; 
 OS = phased.CFARDetector('NumTrainingCells',train, ...
