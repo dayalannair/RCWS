@@ -9,7 +9,8 @@ import numpy as np
 # import matplotlib
 # matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+import cv2
+from matplotlib.gridspec import GridSpec
 # True if USB, False if UART
 usb_communication = True
 
@@ -148,43 +149,55 @@ os_pkd = 20*np.log(abs(os_pkd))
 
 # x = np.zeros(100, 100)
 # y = np.zeros(100, 100)
-figure, ax = plt.subplots(nrows=4, ncols=1, figsize=(10, 8))
-line1, = ax[0].plot(rng_ax, fftu)
-line2, = ax[0].plot(rng_ax, upth)
-line3, = ax[1].plot(rng_ax, fftd)
-line4, = ax[1].plot(rng_ax, dnth)
 
-ax[0].set_title("USB Down chirp spectrum negative half flipped")
-ax[1].set_title("USB Up chirp spectrum positive half")
+fig = plt.figure()
+gs = GridSpec(4, 2, wspace=0.4, hspace=0.3, figure=fig)
 
-ax[0].set_xlabel("Coupled Range (m)")
-ax[1].set_xlabel("Coupled Range (m)")
+ax1 = fig.add_subplot(gs[0, 0])
+ax2 = fig.add_subplot(gs[1, 0])
+ax3 = fig.add_subplot(gs[2, 0])
+ax4 = fig.add_subplot(gs[3, 0])
 
-ax[0].set_ylabel("Magnitude (dB)")
-ax[1].set_ylabel("Magnitude (dB)")
+ax5 = fig.add_subplot(gs[0:1, 1])
+ax6 = fig.add_subplot(gs[2:3, 1])
+
+# figure, ax = plt.subplots(nrows=4, ncols=2, figsize=(10, 8))
+# line1, = ax[0, 0].plot(rng_ax, fftu)
+# line2, = ax[0, 0].plot(rng_ax, upth)
+# line3, = ax[1, 0].plot(rng_ax, fftd)
+# line4, = ax[1, 0].plot(rng_ax, dnth)
+
+# ax[0, 0].set_title("USB Down chirp spectrum negative half flipped")
+# ax[1, 0].set_title("USB Up chirp spectrum positive half")
+
+# ax[0, 0].set_xlabel("Coupled Range (m)")
+# ax[1, 0].set_xlabel("Coupled Range (m)")
+
+# ax[0, 0].set_ylabel("Magnitude (dB)")
+# ax[1, 0].set_ylabel("Magnitude (dB)")
 
 
-line1_pi, = ax[2].plot(rng_ax, fftu)
-line2_pi, = ax[2].plot(rng_ax, upth)
-line3_pi, = ax[3].plot(rng_ax, fftd)
-line4_pi, = ax[3].plot(rng_ax, dnth)
+# line1_pi, = ax[2, 0].plot(rng_ax, fftu)
+# line2_pi, = ax[2, 0].plot(rng_ax, upth)
+# line3_pi, = ax[3, 0].plot(rng_ax, fftd)
+# line4_pi, = ax[3, 0].plot(rng_ax, dnth)
 
-ax[2].set_title("RPI Down chirp spectrum negative half flipped")
-ax[3].set_title("RPI Up chirp spectrum positive half")
+# ax[2, 0].set_title("RPI Down chirp spectrum negative half flipped")
+# ax[3, 0].set_title("RPI Up chirp spectrum positive half")
 
-ax[2].set_xlabel("Coupled Range (m)")
-ax[3].set_xlabel("Coupled Range (m)")
+# ax[2, 0].set_xlabel("Coupled Range (m)")
+# ax[3, 0].set_xlabel("Coupled Range (m)")
 
-ax[2].set_ylabel("Magnitude (dB)")
-ax[3].set_ylabel("Magnitude (dB)")
+# ax[2, 0].set_ylabel("Magnitude (dB)")
+# ax[3, 0].set_ylabel("Magnitude (dB)")
 
 
 
 # CFAR stems
 # line5, = ax[0].stem([],cfar_res_up)
 # line6, = ax[1].stem([],cfar_res_dn)
-line5, = ax[0].plot(rng_ax, os_pku, markersize=20)
-line6, = ax[1].plot(rng_ax, os_pkd, markersize=20)
+# line5, = ax[0, 0].plot(rng_ax, os_pku, markersize=20)
+# line6, = ax[1, 0].plot(rng_ax, os_pkd, markersize=20)
 
 # line7, = ax[2].plot(rg_full)
 # line8, = ax[3].plot(sp_array)
@@ -196,8 +209,22 @@ line6, = ax[1].plot(rng_ax, os_pkd, markersize=20)
 print("System running...")
 safety_inv = np.zeros(sweeps)
 safety_inv_pi = np.zeros(sweeps)
+
+
+# ****************** CAMERAS ***********************
+def grab_frame(cap):
+	ret,frame = cap.read()
+	# return cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+	return frame
+cap1 = cv2.VideoCapture(0)
+
+# im1 = ax[0, 1].imshow(grab_frame(cap1))
+# im2 = ax2.imshow(grab_frame(cap2))
+
 try:
 	for i in range(sweeps):
+		ret1,frame1 = cap1.read()
+		# im1.set_data(grab_frame(cap1))
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 		if (return_code != 0):
 			closeProgram()
@@ -230,33 +257,52 @@ try:
 		fftd_pi = 20*np.log(abs(fftd_pi))
 
 		# print(len(cfar_res_up))
-		line1.set_ydata(fftu)
-		line2.set_ydata(upth)
-		line3.set_ydata(fftd)
-		line4.set_ydata(dnth)
-		line5.set_ydata(os_pku)
-		line6.set_ydata(os_pkd)
 
-		line1_pi.set_ydata(fftu_pi)
-		line2_pi.set_ydata(upth_pi)
-		line3_pi.set_ydata(fftd_pi)
-		line4_pi.set_ydata(dnth_pi)
+		ax1.plot(fftu)
+		ax2.plot(upth)
+		ax3.plot(fftd)
+		ax4.plot(dnth)
+
+		
+		# line2.set_ydata(upth)
+		# line3.set_ydata(fftd)
+		# line4.set_ydata(dnth)
+		# line5.set_ydata(os_pku)
+		# line6.set_ydata(os_pkd)
+
+		# line1_pi.set_ydata(fftu_pi)
+		# line2_pi.set_ydata(upth_pi)
+		# line3_pi.set_ydata(fftd_pi)
+		# line4_pi.set_ydata(dnth_pi)
 
 
-		line9 = ax[1].axvline(rng_ax[beat_index])
-		line10 = ax[1].axvline(rng_ax[beat_min])
-		line9.remove()
-		line10.remove()
+		# line1.set_ydata(fftu)
+		# line2.set_ydata(upth)
+		# line3.set_ydata(fftd)
+		# line4.set_ydata(dnth)
+		# line5.set_ydata(os_pku)
+		# line6.set_ydata(os_pkd)
+
+		# line1_pi.set_ydata(fftu_pi)
+		# line2_pi.set_ydata(upth_pi)
+		# line3_pi.set_ydata(fftd_pi)
+		# line4_pi.set_ydata(dnth_pi)
+
+
+		# line9 = ax[1, 0].axvline(rng_ax[beat_index])
+		# line10 = ax[1, 0].axvline(rng_ax[beat_min])
+		# line9.remove()
+		# line10.remove()
 		
 		# print(cfar_res_dn)
 		# TRY THE BELOW:
 		# ani = FuncAnimation(plt.gcf(), update, interval=200)
 		# plt.show()
-		figure.canvas.draw()
-		figure.savefig('temp.jpeg')
+		fig.canvas.draw()
+		fig.savefig('temp.jpeg')
 		# ax[1].clear()
 		# sleep(0.5)
-		figure.canvas.flush_events()
+		fig.canvas.flush_events()
 		# plt.plot(fftu)
 		# plt.show()
 		# sleep(1)
