@@ -5,7 +5,10 @@ import sys
 from pyDSPv2 import py_trig_dsp
 from datetime import datetime
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
 # True if USB, False if UART
 usb_communication = True
 
@@ -48,8 +51,8 @@ Q_true = True 				# Quadrature Component (RAW data) requested
 # Serial Port configuration
 ser = serial.Serial()
 if (usb_communication):
-	ser.port = 'COM3'
-	# ser.port = '/dev/ttyACM0'
+	# ser.port = 'COM3'
+	ser.port = '/dev/ttyACM0'
 	ser.baudrate = 1e6
 else:
 	print("Could not find USB connection.")
@@ -209,6 +212,7 @@ try:
 		
 		# print(cfar_res_dn)
 		figure.canvas.draw()
+		figure.savefig('temp.png')
 		# ax[1].clear()
 		# sleep(0.5)
 		figure.canvas.flush_events()
