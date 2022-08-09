@@ -123,6 +123,7 @@ if (return_code != 0):
 I = raw_results[0]
 Q = raw_results[1]
 rg_full = np.zeros(16*sweeps)
+sp_full = np.zeros([sweeps, 16])
 os_pku, os_pkd, upth, dnth, fftu, fftd, safet, beat_index, beat_min,rg_array, sp_array = py_trig_dsp(I,Q)
 plt.ion()
 print(beat_index)
@@ -138,12 +139,11 @@ os_pkd = 20*np.log(abs(os_pkd))
 
 # x = np.zeros(100, 100)
 # y = np.zeros(100, 100)
-figure, ax = plt.subplots(nrows=4, ncols=1, figsize=(10, 8))
+figure, ax = plt.subplots(nrows=3, ncols=1, figsize=(10, 8))
 line1, = ax[0].plot(rng_ax, fftu)
 line2, = ax[0].plot(rng_ax, upth)
 line3, = ax[1].plot(rng_ax, fftd)
 line4, = ax[1].plot(rng_ax, dnth)
-
 ax[0].set_title("Down chirp spectrum negative half flipped")
 ax[1].set_title("Up chirp spectrum positive half")
 
@@ -159,8 +159,7 @@ ax[1].set_ylabel("Magnitude (dB)")
 line5, = ax[0].plot(rng_ax, os_pku, markersize=20)
 line6, = ax[1].plot(rng_ax, os_pkd, markersize=20)
 
-line7, = ax[2].plot(rg_full)
-line8, = ax[3].plot(sp_array)
+ax[2].imshow(sp_full)
 
 # ax[1].axvline(rng_ax[beat_index])
 # ax[1].axvline(rng_ax[beat_min])
@@ -181,7 +180,8 @@ try:
 		t0_proc = time()
 		os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv[i], beat_index, beat_min, rg_array, sp_array = py_trig_dsp(I,Q)
 		np.concatenate((rg_full, rg_array))
-		rg_full[i*16:(i+1)*16] = rg_array
+		# rg_full[i*16:(i+1)*16] = rg_array
+		sp_full[i] = sp_array
 		print(safety_inv[i])
 		t1_proc = time()-t0_proc
 
@@ -200,8 +200,7 @@ try:
 		line4.set_ydata(dnth)
 		line5.set_ydata(os_pku)
 		line6.set_ydata(os_pkd)
-		line7.set_ydata(rg_full)
-		line8.set_ydata(sp_array)
+		imagesc = ax[2].imshow(sp_full)
 		line9 = ax[1].axvline(rng_ax[beat_index])
 		line10 = ax[1].axvline(rng_ax[beat_min])
 		line9.remove()
