@@ -53,23 +53,21 @@ def py_trig_dsp(i_data, q_data):
 	# note the abs
 
 	# -------------------- CFAR detection ---------------------------
-	Pfa, cfar_res_up, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP))
-	Pfa, cfar_res_dn, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN))
-
+	Pfa, os_pku, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP))
+	Pfa, os_pkd, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN))
 	# np.log(upth, out=upth)
 	# np.log(dnth, out=dnth)
 	# np.log(abs(IQ_UP), out=IQ_UP)
 	# np.log(abs(IQ_DN), out=IQ_DN)
 
-	upth = 20*np.log(upth)
-	dnth = 20*np.log(dnth)
-	IQ_UP = 20*np.log(abs(IQ_UP))
-	IQ_DN = 20*np.log(abs(IQ_DN))
-	os_pku = 20*np.log(abs(cfar_res_up))
-	os_pkd = 20*np.log(abs(cfar_res_dn))
-
+	# upth = 20*np.log(upth)
+	# dnth = 20*np.log(dnth)
+	# IQ_UP = 20*np.log(abs(IQ_UP))
+	# IQ_DN = 20*np.log(abs(IQ_DN))
+	# os_pku = 20*np.log(abs(cfar_res_up))
+	# os_pkd = 20*np.log(abs(cfar_res_dn))
 	nbins = 16
-	bin_width = (n_fft/2)/nbins
+	bin_width = round((n_fft/2)/nbins)
 	fbu = np.zeros(nbins)
 	fbd = np.zeros(nbins)
 
@@ -90,26 +88,34 @@ def py_trig_dsp(i_data, q_data):
 	road_width = 2
 	correction_factor = 3
 	fd_max = 2.6667e3 # for max speed = 60km/h
+	safety_inv = 0
+	safety = 0
+	beat_min = 0
+	beat_index = 0
 	# ********************* beat extraction for multiple targets **************************
 	for bin in range(nbins):
 		# find beat in bin
 		bin_slice_d = os_pkd[bin*bin_width:(bin+1)*bin_width]
-		[magd, idx_d] = max(bin_slice_d)
+		magd = np.amax(bin_slice_d)
+		idx_d = np.argmax(bin_slice_d)
 		
 		beat_index = bin*bin_width + idx_d
 		if magd != 0:
-			fbd[bin] = f_ax(beat_index)
+			fbd[bin] = f_ax[beat_index]
 			# set up bin slice to range of expected beats
 			# See freqs from 0 to index 15 - determined from 60kmh (VERIFY)
 			# check if far enough from center
 			if (beat_index>15):
+				beat_min = beat_index - 15
 				bin_slice_u = os_pku[beat_index - 15:beat_index]
 			# if not, start from center
 			else:
+				beat_min = 1
 				bin_slice_u = os_pku[1:beat_index]
 				
 			# index is index in the subset
-			[magu, idx_u] = max(bin_slice_u)
+			magu = np.amax(bin_slice_u)
+			idx_u = np.argmax(bin_slice_u)
 			if magu != 0:
 				fbu[bin] = f_ax[beat_index - 15 + idx_u]
 
@@ -132,7 +138,7 @@ def py_trig_dsp(i_data, q_data):
 					theta = np.arcsin(road_width/rg_array[bin])*correction_factor
 
 					# real_v = fd*lmda/(8*np.cos(theta))
-					sp_array_corrected[bin] = fd*lmda/(8*np.cos(theta))
+					sp_array[bin] = fd*lmda/(8*np.cos(theta))
 				
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************
@@ -147,6 +153,6 @@ def py_trig_dsp(i_data, q_data):
 		safety_inv = t_safe-min(ratio)
 		
 	# log scale for display purposes
-	return cfar_res_up, cfar_res_dn, upth, dnth, IQ_UP, IQ_DN
+	return os_pku, os_pkd, upth, dnth, IQ_UP, IQ_DN, safety_inv, beat_index, beat_min, rg_array, sp_array
 	# return cfar_res_up, cfar_res_dn, 20*np.log10(upth), 20*np.log10(dnth),\
 	#      20*np.log10(abs(IQ_UP), 10),  20*np.log10(abs(IQ_DN))

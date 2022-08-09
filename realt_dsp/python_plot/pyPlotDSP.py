@@ -2,7 +2,7 @@ import uRAD_USB_SDK11
 import serial
 from time import time, sleep, strftime,localtime
 import sys
-from pyDSP import py_trig_dsp
+from pyDSPv2 import py_trig_dsp
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
@@ -122,25 +122,33 @@ if (return_code != 0):
 		# call matlab dsp
 I = raw_results[0]
 Q = raw_results[1]
-cfar_res_up, cfar_res_dn, upth, dnth, fftu, fftd = py_trig_dsp(I,Q)
+os_pku, os_pkd, upth, dnth, fftu, fftd, safet, beat_index, beat_min,rg_array, sp_array = py_trig_dsp(I,Q)
 plt.ion()
+print(beat_index)
+print(beat_min)
 # x = np.zeros(100, 100)
 # y = np.zeros(100, 100)
-figure, ax = plt.subplots(nrows=2, ncols=1, figsize=(10, 8))
+figure, ax = plt.subplots(nrows=4, ncols=1, figsize=(10, 8))
 line1, = ax[0].plot(rng_ax, fftu)
 line2, = ax[0].plot(rng_ax, upth)
 line3, = ax[1].plot(rng_ax, fftd)
 line4, = ax[1].plot(rng_ax, dnth)
+
 # CFAR stems
 # line5, = ax[0].stem([],cfar_res_up)
 # line6, = ax[1].stem([],cfar_res_dn)
-print(len(rng_ax))
-line5, = ax[0].plot(rng_ax, cfar_res_up, markersize=20)
-line6, = ax[1].plot(rng_ax, cfar_res_dn, markersize=20)
+line5, = ax[0].plot(rng_ax, os_pku, markersize=20)
+line6, = ax[1].plot(rng_ax, os_pkd, markersize=20)
 
-print(cfar_res_dn)
+line7, = ax[2].plot(rg_array)
+line8, = ax[3].plot(sp_array)
+
+ax[1].axvline(rng_ax[beat_index])
+ax[1].axvline(rng_ax[beat_min])
+# print(cfar_res_dn)
 # eng.eval("load(\'urad_trig_proc_config.mat\')")
 print("System running...")
+safety_inv = np.zeros(sweeps)
 try:
 	for i in range(sweeps):
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
@@ -152,17 +160,24 @@ try:
 		I = raw_results[0]
 		Q = raw_results[1]
 		t0_proc = time()
-		cfar_res_up, cfar_res_dn, upth, dnth, fftu, fftd = py_trig_dsp(I,Q)
+		os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv[i], beat_index, beat_min, rg_array, sp_array = py_trig_dsp(I,Q)
+		print(safety_inv[i])
 		t1_proc = time()-t0_proc
 		# print(len(cfar_res_up))
 		line1.set_ydata(fftu)
 		line2.set_ydata(upth)
 		line3.set_ydata(fftd)
 		line4.set_ydata(dnth)
-		line5.set_ydata(cfar_res_up)
-		line6.set_ydata(cfar_res_dn)
+		line5.set_ydata(os_pku)
+		line6.set_ydata(os_pkd)
+		line7.set_ydata(rg_array)
+		line8.set_ydata(sp_array)
+		ax[1].axvline(rng_ax[beat_index])
+		ax[1].axvline(rng_ax[beat_min])
+		
 		# print(cfar_res_dn)
 		figure.canvas.draw()
+		# ax[1].clear()
 		# sleep(0.5)
 		figure.canvas.flush_events()
 		# plt.plot(fftu)
