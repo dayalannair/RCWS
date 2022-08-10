@@ -216,10 +216,10 @@ def grab_frame(cap):
 	# return cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
 	return frame
 cap1 = cv2.VideoCapture(0)
-cap2 = cv2.VideoCapture(1)
+# cap2 = cv2.VideoCapture(1)
 fig2, ax2 = plt.subplots(nrows=2, ncols=1, figsize=(10, 8))
 im1 = ax2[0].imshow(grab_frame(cap1))
-im2 = ax2[1].imshow(grab_frame(cap2))
+# im2 = ax2[1].imshow(grab_frame(cap2))
 # im1 = ax[0, 1].imshow(grab_frame(cap1))
 # im2 = ax2.imshow(grab_frame(cap2))
 
@@ -227,8 +227,8 @@ try:
 	for i in range(sweeps):
 		ret1,frame1 = cap1.read()
 		im1.set_data(grab_frame(cap1))
-		ret2,frame2 = cap2.read()
-		im2.set_data(grab_frame(cap2))
+		# ret2,frame2 = cap2.read()
+		# im2.set_data(grab_frame(cap2))
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 		if (return_code != 0):
 			closeProgram()
