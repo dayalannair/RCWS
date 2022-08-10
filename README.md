@@ -3,12 +3,12 @@
 ## Task list
 
 - [ ] Add all work to report - remember to use issues and discussions from old repo
-- [ ] Improve bin method by restricting 'search' area for triangle modulation/ I.e. based on fbd, where can we expect fbu?
-- [ ] Improve Python OS CFAR
-- [ ] Test full Python realtime version on PC and RPI
-- [ ] Integrate Pi camera and show real time plots of spectra, results, and video (similar to MATLAB offline processing)
-- [ ] Modify real time Python program to work with two uRADs
-- [ ] Modify dual radar Python program to incorporate two cameras. Pi can support one Pi cam and one USB camera
+- [X] Improve bin method by restricting 'search' area for triangle modulation/ I.e. based on fbd, where can we expect fbu?
+- [X] Improve Python OS CFAR
+- [X] Test full Python realtime version on PC and RPI
+- [X] Integrate Pi camera and show real time plots of spectra, results, and video (similar to MATLAB offline processing)
+- [X] Modify real time Python program to work with two uRADs
+- [X] Modify dual radar Python program to incorporate two cameras. Pi can support one Pi cam and one USB camera
 - [ ] Consider a Pi network - control and sensor nodes
 - [ ] Create condensed Python program (no GUI) as required by the prototype
 - [ ] Test system - both GUI and no GUI - on road side
