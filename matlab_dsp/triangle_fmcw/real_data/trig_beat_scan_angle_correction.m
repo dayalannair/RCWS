@@ -140,7 +140,8 @@ for i = 1:n_sweeps
                     % Theta in radians
                     theta = asin(road_width/rg_array(i,bin+1))*correction_factor;
 
-                    real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
+%                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
+                    real_v = fd*lambda/(4*cos(theta));
                     sp_array_corrected(i,bin+1) = real_v;
                     
                 end
@@ -227,8 +228,8 @@ end
 
 %% Store results
 writematrix(rg_array, "mt_range_results.txt", 'Delimiter',' ')
-writematrix(sp_array, "mt_speed_results.txt", 'Delimiter',' ')
-writematrix(safe_sweeps, "mt_safety_results.txt", 'Delimiter',' ')
+writematrix(sp_array_corrected, "mt_speed_results.txt", 'Delimiter',' ')
+writematrix(safety, "mt_safety_results.txt", 'Delimiter',' ')
 %%
 close all
 figure

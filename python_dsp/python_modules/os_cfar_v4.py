@@ -7,7 +7,7 @@ import math as mt
 # Pfa = probability of false alarm
 # This version ignores all cells with insufficient lead/lag cells
 # for training
-def os_cfar(half_train, half_guard, rank, SOS, data):
+def os_cfar(half_train, half_guard, rank, SOS, data, cfar_scale):
 
     ns = len(data) # number of samples
     result = np.zeros(ns)
@@ -92,7 +92,7 @@ def os_cfar(half_train, half_guard, rank, SOS, data):
         # print('TOS =', TOS)
         th[cutidx] = TOS
         # print('TOS =', th[cutidx])
-        if cut > TOS:
+        if cut > TOS*cfar_scale:
             # index implies frequency. return magnitude for use in
             # determining max value
             result[cutidx] = cut
