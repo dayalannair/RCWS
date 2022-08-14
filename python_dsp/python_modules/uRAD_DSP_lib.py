@@ -1,12 +1,8 @@
-# from cfar_lib import os_cfar
-from operator import length_hint
-from turtle import up
-from os_cfar_v4 import os_cfar
-import numpy as np
-from scipy.fft import fft
-from scipy import signal
+# from os_cfar_v4 import os_cfar
+# import numpy as np
+# from scipy.fft import fft
 
-def py_trig_dsp(i_data, q_data):
+def py_trig_dsp(i_data, q_data, win, np, fft, os_cfar):
 
 	# SQUARE LAW DETECTOR
 	# NOTE: last element in slice not included
@@ -15,9 +11,8 @@ def py_trig_dsp(i_data, q_data):
 
 	# TAYLOR WINDOW
 	# SLL specified as positive
-	twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
-	iq_u = np.multiply(iq_u, twin)
-	iq_d = np.multiply(iq_d, twin)
+	iq_u = np.multiply(iq_u, win)
+	iq_d = np.multiply(iq_d, win)
 
 	# 512-point FFT
 	n_fft = 512 
@@ -142,17 +137,22 @@ def py_trig_dsp(i_data, q_data):
 				
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************
-	ratio = rg_array/sp_array
+	ratio = np.divide(rg_array,sp_array)
+	# ratio = np.nan_to_num(ratio)
 	t_safe = 3
 	if (np.any(ratio<t_safe)):
+		# print(ratio)
 		# 1 indicates sweep contained target at unsafe distance
 		# UPDATE: put the ratio/time into array to scale how
 		# safe the turn is
 		safety = min(ratio)
 		# for colour map:
-		safety_inv = t_safe-min(ratio)
+		safety_inv = t_safe-np.nanmin(ratio)
 		
 	# log scale for display purposes
-	return os_pku, os_pkd, upth, dnth, IQ_UP, IQ_DN, safety_inv, beat_index, beat_min, rg_array, sp_array
+	# 
+	# return os_pku, os_pkd, upth, dnth, IQ_UP, IQ_DN, safety_inv, beat_index, beat_min, rg_array, sp_array
 	# return cfar_res_up, cfar_res_dn, 20*np.log10(upth), 20*np.log10(dnth),\
 	#      20*np.log10(abs(IQ_UP), 10),  20*np.log10(abs(IQ_DN))
+
+	return safety_inv, rg_array, sp_array

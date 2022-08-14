@@ -19,7 +19,7 @@ train = 64;
 guard = 6;
 nbar = 3;
 sll = -100;
-Pfa = 18e-4;
+F = 18e-4;
 % ---------------------------------------------
 % Taylor Window
 twin = taylorwin(n_samples, nbar, sll);
