@@ -15,10 +15,10 @@ function [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps)
 %     addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/m4_rustenberg/');
 %     addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/office/');
 
-iq_tbl=readtable('IQ_tri_20kmh.txt','Delimiter' ,' ');
+% iq_tbl=readtable('IQ_tri_20kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_30kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_40kmh.txt','Delimiter' ,' ');
-% iq_tbl=readtable('IQ_tri_50kmh.txt','Delimiter' ,' ');
+iq_tbl=readtable('IQ_tri_50kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_70kmh.txt','Delimiter' ,' ');
 

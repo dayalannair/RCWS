@@ -2,6 +2,9 @@
 # import numpy as np
 # from scipy.fft import fft
 
+from cmath import pi
+
+
 def py_trig_dsp(i_data, q_data, win, np, fft, os_cfar, n_fft, num_nul, half_guard, half_train, rank, SOS, cfar_scale, nbins, bin_width, f_ax):
 # def py_trig_dsp(i_data, q_data):
 	# SQUARE LAW DETECTOR
@@ -73,7 +76,7 @@ def py_trig_dsp(i_data, q_data, win, np, fft, os_cfar, n_fft, num_nul, half_guar
 	slope = 2.4e11
 	c = 3e8
 	road_width = 2
-	correction_factor = 3
+	correction_factor = 1#3
 	fd_max = 3e3 # for max speed = 60km/h
 	safety_inv = 0
 	safety = 0
@@ -115,6 +118,7 @@ def py_trig_dsp(i_data, q_data, win, np, fft, os_cfar, n_fft, num_nul, half_guar
 				
 				# if less than max expected and filter clutter doppler
 				if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
+
 					# convert Doppler to speed. fd is twice the Doppler therefore
 					# divide by 2
 					# sp_array[bin] = fd*lmda/4
@@ -124,7 +128,12 @@ def py_trig_dsp(i_data, q_data, win, np, fft, os_cfar, n_fft, num_nul, half_guar
 					# ************* Angle correction *******************
 					# Theta in radians
 					theta = np.arcsin(road_width/rg_array[bin])*correction_factor
-
+					# DEBUGGING
+					theta_deg = theta*180/pi
+					if theta_deg>90:
+						print(theta_deg)
+						print("Range = ", rg_array[bin])
+					# theta = 0
 					# real_v = fd*lmda/(8*np.cos(theta))
 					sp_array[bin] = fd*lmda/(4*np.cos(theta))
 				

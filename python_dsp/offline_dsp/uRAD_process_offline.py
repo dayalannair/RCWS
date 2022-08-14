@@ -2,8 +2,20 @@ import sys
 
 from pathlib import Path
 
-file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_20kmh.txt")
+# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_20kmh.txt")
+# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_30kmh.txt")
+# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_40kmh.txt")
+file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
+# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
 
+# 60kmh subset
+subset = range(800,1100)
+len_subset = len(subset)
+# 50 kmh subset - same
+# 40 kmh subset
+# subset = range(700,1100)
+# 20km/h subset
+# subset = range(1,1500)
 
 sys.path.append('../python_modules')
 # sys.path.append('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby')
@@ -19,10 +31,9 @@ with open(file_path, "r") as raw_IQ:
 		# split into sweeps
 		sweeps = raw_IQ.read().split("\n")
 
-subset = 1500
-fft_array       = np.empty([subset, 256])
-threshold_array = np.empty([subset, 256])
-up_peaks        = np.empty([subset, 256])
+fft_array       = np.empty([len_subset, 256])
+threshold_array = np.empty([len_subset, 256])
+up_peaks        = np.empty([len_subset, 256])
 
 # ------------------------ Frequency axis -----------------
 n_fft = 512
@@ -47,24 +58,26 @@ twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
 nbins = 16
 bin_width = round((n_fft/2)/nbins)
 
-safety = np.zeros(subset)
-rg_array = np.zeros([subset, nbins])
-sp_array = np.zeros([subset, nbins])
+safety = np.zeros(len_subset)
+rg_array = np.zeros([len_subset, nbins])
+sp_array = np.zeros([len_subset, nbins])
 safety_fname = "safety_results.txt"
 rng_fname = "range_results.txt"
 spd_fname = "speed_results.txt"
 
 nul_width_factor = 0.04
 num_nul = round((n_fft/2)*nul_width_factor)
+print("NUM null = ", num_nul)
 
 half_guard = 3
 half_train = 32
 rank = 2*half_train-2*half_guard
 SOS = 2 # Pfa = 0.0056
-cfar_scale = 1.1
+cfar_scale = 1.4
 
 t_0 = time()
-for i in range(subset):
+data_index = 0
+for i in subset:
 	# Extract samples from 1 sweep
 	samples = np.array(sweeps[i].split(" "))
 	i_data = samples[  0:400]
@@ -76,8 +89,9 @@ for i in range(subset):
 
 	# t0_proc = time()
 
-	safety[i],rg_array[i], sp_array[i] = py_trig_dsp(i_data,q_data, twin, np, fft, os_cfar,\
+	safety[data_index],rg_array[data_index], sp_array[data_index] = py_trig_dsp(i_data,q_data, twin, np, fft, os_cfar,\
 		n_fft, num_nul, half_guard, half_train, rank, SOS, cfar_scale, nbins, bin_width, f_ax)
+	data_index = data_index + 1
 	# safety[i],rg_array[i], sp_array[i] = py_trig_dsp(i_data,q_data)
 	# t1_proc = time()-t0_proc
 

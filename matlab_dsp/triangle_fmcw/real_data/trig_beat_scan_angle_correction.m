@@ -1,10 +1,11 @@
 % Import data and parameters
 % 60kmh subset
-% subset = 900:1200;
+subset = 800:1100;
 % 50 kmh subset - same
 % 40 kmh subset
-subset = 700:1100;
-subset = 1:1500;
+% subset = 700:1100;
+% 20km/h subset
+% subset = 1:1500;
 addpath('../../../matlab_lib/');
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
