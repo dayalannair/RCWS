@@ -18,7 +18,7 @@ with open(file_path, "r") as raw_IQ:
 		# split into sweeps
 		sweeps = raw_IQ.read().split("\n")
 
-subset = len(sweeps)-5000
+subset = 1500
 fft_array       = np.empty([subset, 256])
 threshold_array = np.empty([subset, 256])
 up_peaks        = np.empty([subset, 256])
@@ -46,7 +46,7 @@ fftd = np.full(n_half, 250)
 twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
 nbins = 16
 
-safety_inv = np.zeros(subset)
+safety = np.zeros(subset)
 rg_array = np.zeros([subset, nbins])
 sp_array = np.zeros([subset, nbins])
 safety_fname = "safety_results.txt"
@@ -65,7 +65,7 @@ for i in range(subset):
 
 	# t0_proc = time()
 
-	safety_inv[i],rg_array[i], sp_array[i] = py_trig_dsp(i_data,q_data, twin, np, fft, os_cfar)
+	safety[i],rg_array[i], sp_array[i] = py_trig_dsp(i_data,q_data, twin, np, fft, os_cfar)
 
 	# t1_proc = time()-t0_proc
 
@@ -73,13 +73,13 @@ for i in range(subset):
 
 print("Elapsed time: ", str(time()-t_0))
 print("Saving data...")
-np.savetxt(safety_fname,  safety_inv, fmt='%3.4f')
+np.savetxt(safety_fname,  safety, fmt='%3.4f')
 np.savetxt(rng_fname,  rg_array, fmt='%3.2f')
 np.savetxt(spd_fname,  sp_array, fmt='%3.2f')
 
 # with open(safety_fname, 'w') as f1, open(rng_fname, 'w') as f2,open(spd_fname, 'w') as f3:
 # 	line = ''
 # 	for s in range(subset):
-# 		line = str(safety_inv[s]) + ' ' + str(rg_array[s]) + ' ' + str(sp_array[s])
+# 		line = str(safety[s]) + ' ' + str(rg_array[s]) + ' ' + str(sp_array[s])
 		
 # 		f.write(line +'\n')

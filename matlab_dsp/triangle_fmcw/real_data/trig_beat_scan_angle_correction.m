@@ -4,7 +4,7 @@
 % 50 kmh subset - same
 % 40 kmh subset
 subset = 700:1100;
-subset = 1:4000;
+subset = 1:1500;
 addpath('../../../matlab_lib/');
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
@@ -224,6 +224,11 @@ end
 % figure
 % plot(safety)
 % 
+
+%% Store results
+writematrix(rg_array, "mt_range_results.txt", 'Delimiter',' ')
+writematrix(sp_array, "mt_speed_results.txt", 'Delimiter',' ')
+writematrix(safe_sweeps, "mt_safety_results.txt", 'Delimiter',' ')
 %%
 close all
 figure

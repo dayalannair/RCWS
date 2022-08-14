@@ -35,21 +35,26 @@ def py_trig_dsp(i_data, q_data, win, np, fft, os_cfar):
 	IQ_DN = np.flip(IQ_DN)
 	# OS CFAR
 	n_samples = len(iq_u)
-	half_guard = n_fft/n_samples
-	half_guard = int(np.floor(half_guard/2)*2) # make even
+	# half_guard = n_fft/n_samples
+	# half_guard = int(np.floor(half_guard/2)*2) # make even
 
-	half_train = round(20*n_fft/n_samples)
-	half_train = int(np.floor(half_train/2))
-	rank = 2*half_train -2*half_guard
+	# half_train = round(20*n_fft/n_samples)
+	# half_train = int(np.floor(half_train/2))
+	# rank = 2*half_train -2*half_guard
+
+	half_guard = 3
+	half_train = 32
+	rank = 2*half_train-2*half_guard
 	# rank = half_train*2
 	Pfa_expected = 15e-3
 	# factorial needs integer values
-	SOS = 2
+	SOS = 2 # Pfa = 0.0056
 	# note the abs
 
 	# -------------------- CFAR detection ---------------------------
 	Pfa, os_pku, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP))
 	Pfa, os_pkd, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN))
+	# print(Pfa)
 	# np.log(upth, out=upth)
 	# np.log(dnth, out=dnth)
 	# np.log(abs(IQ_UP), out=IQ_UP)
@@ -82,7 +87,7 @@ def py_trig_dsp(i_data, q_data, win, np, fft, os_cfar):
 	f_ax = np.linspace(0, round(fs/2), round(n_fft/2))
 	road_width = 2
 	correction_factor = 3
-	fd_max = 2.6667e3 # for max speed = 60km/h
+	fd_max = 3e3 # for max speed = 60km/h
 	safety_inv = 0
 	safety = 0
 	beat_min = 0
@@ -145,9 +150,9 @@ def py_trig_dsp(i_data, q_data, win, np, fft, os_cfar):
 		# 1 indicates sweep contained target at unsafe distance
 		# UPDATE: put the ratio/time into array to scale how
 		# safe the turn is
-		safety = min(ratio)
+		safety = np.nanmin(ratio)
 		# for colour map:
-		safety_inv = t_safe-np.nanmin(ratio)
+		# safety_inv = t_safe-np.nanmin(ratio)
 		
 	# log scale for display purposes
 	# 
@@ -155,4 +160,4 @@ def py_trig_dsp(i_data, q_data, win, np, fft, os_cfar):
 	# return cfar_res_up, cfar_res_dn, 20*np.log10(upth), 20*np.log10(dnth),\
 	#      20*np.log10(abs(IQ_UP), 10),  20*np.log10(abs(IQ_DN))
 
-	return safety_inv, rg_array, sp_array
+	return safety, rg_array, sp_array
