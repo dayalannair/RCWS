@@ -1,8 +1,9 @@
+import sys
+sys.path.append('../python_modules')
 import uRAD_USB_SDK11
 import uRAD_RP_SDK10		# uRAD v1.1 RPi lib
 import serial
 from time import time, sleep, strftime,localtime
-import sys
 from uRAD_DSP_lib import py_trig_dsp
 import numpy as np
 # True if USB, False if UART
@@ -102,62 +103,59 @@ uRAD_RP_SDK10.turnON()
 # no return code from SDK 1.0 for RPi
 uRAD_RP_SDK10.loadConfiguration(mode, f0, BW, Ns, 0, 0, 0, 0)
 
-I_pi = [0] * 2 * Ns
-Q_pi = [0] * 2 * Ns
-t_0 = time()
-i = 0
-I = []
-Q = []
 
-# ------------------------ Frequency axis -----------------
-nfft = 512
-# kHz Axis
-fax = np.linspace(0, round(fs/2), round(nfft/2))
-# c*fb/(2*slope)
-tsweep = 1e-3
-bw = 240e6
-slope = bw/tsweep
-c = 3e8
-rng_ax = c*fax/(2*slope)
+Q_temp = [0] * 2 * Ns
+I_temp = [0] * 2 * Ns
+
+I_usb = []
+Q_usb = []
+
+I_rpi = []
+Q_rpi = []
+
+t_0 = time()
+
 return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 if (return_code != 0):
 	closeProgram()
 
 print("System running...")
-safety_inv = np.zeros(sweeps)
-safety_inv_pi = np.zeros(sweeps)
-rg_array = np.zeros(sweeps, Ns)
-sp_array = np.zeros(sweeps, Ns)
-rg_array_pi = np.zeros(sweeps, Ns)
-sp_array_pi = np.zeros(sweeps, Ns)
-fileName = "dual_uRAD_results.txt"
+
+PifileName = "IQ_pi.txt"
+USBfileName = "IQ_usb.txt"
 try:
 	for i in range(sweeps):
+		# fetch IQ from uRAD Pi
+		uRAD_RP_SDK10.detection(0, 0, 0, I_temp, Q_temp, 0)
 		# fetch IQ from uRAD USB
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 		if (return_code != 0):
 			closeProgram()
-		# fetch IQ from uRAD Pi
-		uRAD_RP_SDK10.detection(0, 0, 0, I_pi, Q_pi, 0)
+			
+		I_usb.append(raw_results[0])
+		Q_usb.append(raw_results[1])
 
-		I = raw_results[0]
-		Q = raw_results[1]
-		t0_proc = time()
-		safety_inv[i],rg_array[i], sp_array[i] = py_trig_dsp(I,Q)
-		safety_inv_pi[i], rg_array_pi[i], sp_array_pi[i] = py_trig_dsp(I_pi,Q_pi)
-
-		t1_proc = time()-t0_proc
-
-		print("Processing time: ", t1_proc)
+		I_rpi.append(I_temp[:])
+		Q_rpi.append(Q_temp[:])
 
 	print("Elapsed time: ", str(time()-t_0))
 	print("Saving data...")
-	with open(fileName, 'w') as f:
-		line = ''
-		for s in range(sweeps):
-			line = safety_inv[s] + ' ' + rg_array[s] + ' ' + sp_array[s]\
-				+ safety_inv_pi[s] + ' ' + rg_array_pi[s] + ' ' + sp_array_pi[s]
-			f.write(line +'\n')
+	with open(PifileName, 'w') as rpi, open(USBfileName, 'w') as usb:
+		for sweep in range(sweeps):
+			IQ_rpi = ''
+			IQ_usb = ''
+			# Store I data
+			for sample in range(Ns):
+				IQ_rpi += '%d ' % I_rpi[sweep][sample]
+				IQ_usb += '%d ' % I_usb[sweep][sample]
+			# Store Q data
+			for sample in range(Ns):
+				IQ_rpi += '%d ' % Q_rpi[sweep][sample]
+				IQ_usb += '%d ' % Q_rpi[sweep][sample]
+			#f.write(IQ_string + '%1.3f\n' % t_i[sweep])
+			rpi.write(IQ_rpi +'\n')
+			usb.write(IQ_usb +'\n')
+
 	uRAD_RP_SDK10.turnOFF()
 	uRAD_USB_SDK11.turnOFF(ser)
 	print("Complete.")
