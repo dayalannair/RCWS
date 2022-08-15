@@ -51,10 +51,11 @@ USB_IQ_DN = flip(USB_IQ_DN,2);
 RPI_IQ_DN = flip(RPI_IQ_DN,2);
 % IQ_DN2 = flip(IQ_DN2,2);
 %%
-ax_dims = [0 256 60 160];
+ax_dims = [0 256 60 200];
 close all
 fig1 = figure('WindowState','maximized');
 movegui(fig1,'west')
+tic
 for sweep = 1:n_sweeps
     tiledlayout(2,2)
     nexttile
@@ -66,11 +67,11 @@ for sweep = 1:n_sweeps
     title("RPI DOWN chirp flipped negative half")
     axis(ax_dims)
     nexttile
-    plot(absmagdb(IQ_UP2(sweep,:)))
+    plot(absmagdb(RPI_IQ_UP(sweep,:)))
     title("USB UP chirp positive half")
     axis(ax_dims)
     nexttile
-    plot(absmagdb(IQ_DN2(sweep,:)))
+    plot(absmagdb(RPI_IQ_DN(sweep,:)))
     title("USB DOWN chirp flipped negative half")
     axis(ax_dims)
 %     nexttile
@@ -84,5 +85,9 @@ for sweep = 1:n_sweeps
 %     axis([0 256 0 7e6])
 % %     yline(125)
     drawnow;
-%     pause(0.1)
+    % pause for elapsed time (see python output) / 2*num_sweeps
+    % figure out why half is needed
+    % UPDATE: plot does not update at this rate
+%     pause(0.025)
 end
+toc
