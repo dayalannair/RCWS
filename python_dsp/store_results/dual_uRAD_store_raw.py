@@ -1,3 +1,4 @@
+from curses import raw
 import sys
 sys.path.append('../python_modules')
 import uRAD_USB_SDK11
@@ -103,7 +104,7 @@ uRAD_RP_SDK10.turnON()
 # no return code from SDK 1.0 for RPi
 uRAD_RP_SDK10.loadConfiguration(mode, f0, BW, Ns, 0, 0, 0, 0)
 
-
+# 2* because 200 up and 200 down for each
 Q_temp = [0] * 2 * Ns
 I_temp = [0] * 2 * Ns
 
@@ -144,17 +145,19 @@ try:
 		for sweep in range(sweeps):
 			IQ_rpi = ''
 			IQ_usb = ''
+			# Length is 2*Ns
+			up_down_length = len(I_rpi)
 			# Store I data
-			for sample in range(Ns):
+			for sample in range(up_down_length):
 				IQ_rpi += '%d ' % I_rpi[sweep][sample]
 				IQ_usb += '%d ' % I_usb[sweep][sample]
 			# Store Q data
-			for sample in range(Ns):
+			for sample in range(up_down_length):
 				IQ_rpi += '%d ' % Q_rpi[sweep][sample]
-				IQ_usb += '%d ' % Q_rpi[sweep][sample]
+				IQ_usb += '%d ' % Q_usb[sweep][sample]
 			#f.write(IQ_string + '%1.3f\n' % t_i[sweep])
-			rpi.write(IQ_rpi +'\n')
-			usb.write(IQ_usb +'\n')
+			rpi.write(IQ_rpi + '\n')
+			usb.write(IQ_usb + '\n')
 
 	uRAD_RP_SDK10.turnOFF()
 	uRAD_USB_SDK11.turnOFF(ser)
