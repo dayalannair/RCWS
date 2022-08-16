@@ -1,7 +1,7 @@
 % last section of the 20 km/h test 
 subset = 1000:2000;
 % first portion 60 kmh
-subset = 1:1000;
+subset = 1:100;
 
 addpath('../../../matlab_lib/');
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/dual_uRAD/');
@@ -57,6 +57,8 @@ rng_ax = beat2range((f_pos)', sweep_slope, c);
 USB_IQ_DN = flip(USB_IQ_DN,2);
 RPI_IQ_DN = flip(RPI_IQ_DN,2);
 % IQ_DN2 = flip(IQ_DN2,2);
+
+vidObj = VideoReader('cam1_vid.avi');
 %%
 ax_dims = [0 max(rng_ax) 80 190];
 ax_ticks = 1:2:60;
@@ -66,19 +68,6 @@ movegui(fig1,'west')
 tic
 for sweep = 1:n_sweeps
     tiledlayout(2,2)
-    nexttile
-    plot(rng_ax, absmagdb(USB_IQ_UP(sweep,:)))
-    title("RPI UP chirp positive half")
-    axis(ax_dims)
-    xticks(ax_ticks)
-    grid on
-    nexttile
-    plot(rng_ax, absmagdb(USB_IQ_DN(sweep,:)))
-    title("RPI DOWN chirp flipped negative half")
-    axis(ax_dims)
-    xticks(ax_ticks)
-    grid on
-    nexttile
     plot(rng_ax, absmagdb(RPI_IQ_UP(sweep,:)))
     title("USB UP chirp positive half")
     axis(ax_dims)
@@ -90,6 +79,12 @@ for sweep = 1:n_sweeps
     axis(ax_dims)
     xticks(ax_ticks)
     grid on
+    nexttile
+    for w = 1:6
+        vidFrame = readFrame(vidObj);
+    end
+    imshow(vidFrame)
+    
 %     nexttile
 %     plot(abs(IQ_UP2(sweep,:)))
 %     title("UP chirp positive half average nulling")
