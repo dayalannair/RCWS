@@ -1,13 +1,9 @@
 import sys
 sys.path.append('../python_modules')
 import uRAD_USB_SDK11
-import uRAD_RP_SDK10		# uRAD v1.1 RPi lib
 import serial
 from time import time, sleep, strftime,localtime
-from vidgear.gears import VideoGear
 import cv2
-
-
 
 # True if USB, False if UART
 usb_communication = True
@@ -101,20 +97,9 @@ if (return_code != 0):
 
 if (not usb_communication):
 	sleep(timeSleep)
-#Switch on Pi uRAD
-uRAD_RP_SDK10.turnON()
-# no return code from SDK 1.0 for RPi
-uRAD_RP_SDK10.loadConfiguration(mode, f0, BW, Ns, 0, 0, 0, 0)
-
-# 2* because 200 up and 200 down for each
-Q_temp = [0] * 2 * Ns
-I_temp = [0] * 2 * Ns
 
 I_usb = []
 Q_usb = []
-
-I_rpi = []
-Q_rpi = []
 
 t_0 = time()
 
@@ -122,36 +107,17 @@ return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 if (return_code != 0):
 	closeProgram()
 
+cap1 = cv2.VideoCapture(0)
+fourcc = cv2.VideoWriter_fourcc(*'X264')
+# 20 fps = 1 frame every 5ms which seems inline with urad update rate (VERIFY)
+cam1_vid = cv2.VideoWriter('cam1_vid.avi',fourcc, 20.0, (640,480))
+
 print("System running...")
 
 PifileName = "IQ_pi.txt"
 USBfileName = "IQ_usb.txt"
-
-# -------------------- Cameras -----------------------------
-# cap1 = cv2.VideoCapture(0, cv2.CAP_V4L)
-# cap2 = cv2.VideoCapture(1, cv2.CAP_V4L)
-
-# cap1 = cv2.VideoCapture(0)
-# cap2 = cv2.VideoCapture(1)
-
-# define and start the stream on first source ( For e.g #0 index device)
-stream1 = VideoGear(source=0, logging=True).start() 
-
-# define and start the stream on second source ( For e.g #1 index device)
-stream2 = VideoGear(source=1, logging=True).start() 
-
-# Define the codec and create VideoWriter object
-# four character code
-fourcc = cv2.VideoWriter_fourcc(*'X264')
-# 20 fps = 1 frame every 5ms which seems inline with urad update rate (VERIFY)
-cam1_vid = cv2.VideoWriter('cam1_vid.avi',fourcc, 20.0, (640,480))
-cam2_vid = cv2.VideoWriter('cam2_vid.avi',fourcc, 20.0, (640,480))
-
-
 try:
 	for i in range(sweeps):
-		# fetch IQ from uRAD Pi
-		uRAD_RP_SDK10.detection(0, 0, 0, I_temp, Q_temp, 0)
 		# fetch IQ from uRAD USB
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 		if (return_code != 0):
@@ -160,25 +126,8 @@ try:
 		I_usb.append(raw_results[0])
 		Q_usb.append(raw_results[1])
 
-		I_rpi.append(I_temp[:])
-		Q_rpi.append(Q_temp[:])
-
-		# ret, lhs_frame = cap1.read()
-		# ret, rhs_frame = cap2.read()
-		
-		lhs_frame = stream1.read()
-			# read frames from stream1
-
-		rhs_frame = stream2.read()
-		# read frames from stream2
-
-		# check if any of two frame is None
-		if lhs_frame is None or rhs_frame is None:
-			#if True break the infinite loop
-			break
-		
+		ret, lhs_frame = cap1.read()
 		cam1_vid.write(lhs_frame)
-		cam2_vid.write(rhs_frame)
 
 
 	print("Elapsed time: ", str(time()-t_0))
@@ -191,27 +140,20 @@ try:
 			up_down_length = len(I_usb[0])
 			# Store I data
 			for sample in range(up_down_length):
-				IQ_rpi += '%d ' % I_rpi[sweep][sample]
 				IQ_usb += '%d ' % I_usb[sweep][sample]
 			# Store Q data
 			for sample in range(up_down_length):
-				IQ_rpi += '%d ' % Q_rpi[sweep][sample]
 				IQ_usb += '%d ' % Q_usb[sweep][sample]
 			#f.write(IQ_string + '%1.3f\n' % t_i[sweep])
-
 			rpi.write(IQ_rpi + '\n')
 			usb.write(IQ_usb + '\n')
 
 	cap1.release()
-	cap2.release()
 	cam1_vid.release()
-	cam2_vid.release()
-	uRAD_RP_SDK10.turnOFF()
 	uRAD_USB_SDK11.turnOFF(ser)
 	print("Complete.")
 	
 except KeyboardInterrupt:
-	uRAD_RP_SDK10.turnOFF()
 	uRAD_USB_SDK11.turnOFF(ser)
 	print("Interrupted.")
 	exit()
