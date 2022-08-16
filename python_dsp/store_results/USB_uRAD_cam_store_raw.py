@@ -1,9 +1,10 @@
 import sys
 sys.path.append('../python_modules')
 import uRAD_USB_SDK11
-import uRAD_RP_SDK10		# uRAD v1.1 RPi lib
 import serial
 from time import time, sleep, strftime,localtime
+import cv2
+
 # True if USB, False if UART
 usb_communication = True
 
@@ -96,20 +97,9 @@ if (return_code != 0):
 
 if (not usb_communication):
 	sleep(timeSleep)
-#Switch on Pi uRAD
-uRAD_RP_SDK10.turnON()
-# no return code from SDK 1.0 for RPi
-uRAD_RP_SDK10.loadConfiguration(mode, f0, BW, Ns, 0, 0, 0, 0)
-
-# 2* because 200 up and 200 down for each
-Q_temp = [0] * 2 * Ns
-I_temp = [0] * 2 * Ns
 
 I_usb = []
 Q_usb = []
-
-I_rpi = []
-Q_rpi = []
 
 t_0 = time()
 
@@ -117,14 +107,17 @@ return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 if (return_code != 0):
 	closeProgram()
 
+cap1 = cv2.VideoCapture(0)
+fourcc = cv2.VideoWriter_fourcc(*'X264')
+# 20 fps = 1 frame every 5ms which seems inline with urad update rate (VERIFY)
+cam1_vid = cv2.VideoWriter('cam1_vid.avi',fourcc, 20.0, (640,480))
+
 print("System running...")
 
 PifileName = "IQ_pi.txt"
 USBfileName = "IQ_usb.txt"
 try:
 	for i in range(sweeps):
-		# fetch IQ from uRAD Pi
-		uRAD_RP_SDK10.detection(0, 0, 0, I_temp, Q_temp, 0)
 		# fetch IQ from uRAD USB
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 		if (return_code != 0):
@@ -133,8 +126,9 @@ try:
 		I_usb.append(raw_results[0])
 		Q_usb.append(raw_results[1])
 
-		I_rpi.append(I_temp[:])
-		Q_rpi.append(Q_temp[:])
+		ret, lhs_frame = cap1.read()
+		cam1_vid.write(lhs_frame)
+
 
 	print("Elapsed time: ", str(time()-t_0))
 	print("Saving data...")
@@ -146,22 +140,20 @@ try:
 			up_down_length = len(I_usb[0])
 			# Store I data
 			for sample in range(up_down_length):
-				IQ_rpi += '%d ' % I_rpi[sweep][sample]
 				IQ_usb += '%d ' % I_usb[sweep][sample]
 			# Store Q data
 			for sample in range(up_down_length):
-				IQ_rpi += '%d ' % Q_rpi[sweep][sample]
 				IQ_usb += '%d ' % Q_usb[sweep][sample]
 			#f.write(IQ_string + '%1.3f\n' % t_i[sweep])
 			rpi.write(IQ_rpi + '\n')
 			usb.write(IQ_usb + '\n')
 
-	uRAD_RP_SDK10.turnOFF()
+	cap1.release()
+	cam1_vid.release()
 	uRAD_USB_SDK11.turnOFF(ser)
 	print("Complete.")
 	
 except KeyboardInterrupt:
-	uRAD_RP_SDK10.turnOFF()
 	uRAD_USB_SDK11.turnOFF(ser)
 	print("Interrupted.")
 	exit()
