@@ -6,18 +6,31 @@ import threading
 
 cap1 = cv2.VideoCapture(0)
 cap2 = cv2.VideoCapture(2)
+
+cap1.set(3, 320)
+cap1.set(4, 240)
+
+cap2.set(3, 320)
+cap2.set(4, 240)
+
+
 sleep(1)
 # # Define the codec and create VideoWriter object
 fourcc = cv2.VideoWriter_fourcc(*'X264')
-out1 = cv2.VideoWriter('output1.avi',fourcc, 20.0, (640,480))
-out2 = cv2.VideoWriter('output2.avi',fourcc, 20.0, (640,480))
+out1 = cv2.VideoWriter('output1.avi',fourcc, 20.0, (320,240))
+out2 = cv2.VideoWriter('output2.avi',fourcc, 20.0, (320,240))
 
 def capture(n, cap, out):
-    for i in range (n):
-        ret, frame = cap.read()
-        if ret==True:
-            out.write(frame)
-        print(i)
+	print("Video initialised")
+	frames = []
+	for i in range (n):
+		ret, frame = cap.read()
+		print(len(frame))
+		if ret==True:
+			frames.append(frame)
+	print("Storing a video")
+	for frame in frames:
+		out.write(frame)
 	
 n_frames = 50
 vid1 = threading.Thread(target=capture, args=(n_frames, cap1, out1))
@@ -65,7 +78,7 @@ cv2.destroyAllWindows()
 
 # for i in range(1000):
 #     frame = stream.r
-    
+	
 
 
 

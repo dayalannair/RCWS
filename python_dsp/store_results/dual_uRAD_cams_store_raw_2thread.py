@@ -113,29 +113,22 @@ print("System running...")
 #=============================================================
 # 						Cameras
 # ============================================================
-cap1 = cv2.VideoCapture(0)
-cap2 = cv2.VideoCapture(2)
-sleep(1)
+
 # # Define the codec and create VideoWriter object
-fourcc = cv2.VideoWriter_fourcc(*'X264')
-out1 = cv2.VideoWriter('out1.avi',fourcc, 20.0, (640,480))
-out2 = cv2.VideoWriter('out2.avi',fourcc, 20.0, (640,480))
-
-# Camera thread function
-def capture(n, cap, out):
-    for i in range (n):
-        ret, frame = cap.read()
-        if ret==True:
-            out.write(frame)
-
-# Camera threads
-vid1 = threading.Thread(target=capture, args=[sweeps, cap1, out1])
-vid2 = threading.Thread(target=capture, args=[sweeps, cap2, out2])
 
 # ================================================================
 # 							uRAD threads
 # ================================================================
 def rpi_urad_capture(sweeps):
+	print("RPI uRAD video initialised")
+	frames = []
+	cap1 = cv2.VideoCapture(0)
+	cap1.set(3, 320)
+	cap1.set(4, 240)
+	
+	fourcc = cv2.VideoWriter_fourcc(*'X264')
+	out1 = cv2.VideoWriter('out1.avi',fourcc, 20.0, (320,240))
+
 	Q_temp = [0] * 2 * Ns
 	I_temp = [0] * 2 * Ns
 	I_rpi = []
@@ -145,8 +138,12 @@ def rpi_urad_capture(sweeps):
 		uRAD_RP_SDK10.detection(0, 0, 0, I_temp, Q_temp, 0)
 		I_rpi.append(I_temp[:])
 		Q_rpi.append(Q_temp[:])
+		ret, frame = cap1.read()
+		if ret==True:
+			frames.append(frame)
 
 	# Store results
+	print("uRAD RPI storing data...")
 	with open("IQ_pi.txt", 'w') as rpi:
 		for sweep in range(sweeps):
 			IQ_rpi = ''
@@ -160,12 +157,26 @@ def rpi_urad_capture(sweeps):
 				IQ_rpi += '%d ' % Q_rpi[sweep][sample]
 			#f.write(IQ_string + '%1.3f\n' % t_i[sweep])
 			rpi.write(IQ_rpi + '\n')
+		print("Storing a video")
+	
+	for frame in frames:
+		out1.write(frame)
 
+	uRAD_RP_SDK10.turnOFF()
+	cap1.release()
+	out1.release()
+	print("uRAD RPI capture complete.")
 
 def usb_urad_capture(sweeps):
+	print("USB uRAD video initialised")
+	frames = []
 	I_usb = []
 	Q_usb = []
-
+	cap2 = cv2.VideoCapture(2)
+	cap2.set(3, 320)
+	cap2.set(4, 240)
+	fourcc = cv2.VideoWriter_fourcc(*'X264')
+	out2 = cv2.VideoWriter('out2.avi',fourcc, 20.0, (320,240))
 	# Capture data
 	for i in range(sweeps):
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
@@ -175,7 +186,12 @@ def usb_urad_capture(sweeps):
 		I_usb.append(raw_results[0])
 		Q_usb.append(raw_results[1])
 
+		ret, frame = cap2.read()
+		if ret==True:
+			frames.append(frame)
+
 	# Store data
+	print("uRAD USB storing data...")
 	up_down_length = len(I_usb[0])
 	with open("IQ_usb.txt", 'w') as usb:
 		for sweep in range(sweeps):
@@ -188,6 +204,16 @@ def usb_urad_capture(sweeps):
 			for sample in range(up_down_length):
 				IQ_usb += '%d ' % Q_usb[sweep][sample]
 			usb.write(IQ_usb + '\n')
+	print("Storing a video")
+
+	for frame in frames:
+		out2.write(frame)
+
+	uRAD_USB_SDK11.turnOFF(ser)
+	cap2.release()
+	out2.release()
+
+	print("uRAD USB capture complete.")
 
 # uRAD threads
 rpi_urad = threading.Thread(target=rpi_urad_capture, args=[sweeps])
@@ -195,9 +221,6 @@ usb_urad = threading.Thread(target=usb_urad_capture, args=[sweeps])
 
 try:
 	t_0 = time()
-	# Start camera threads
-	vid1.start()
-	vid2.start()
 	rpi_urad.start()
 	usb_urad.start()
 	
@@ -219,8 +242,6 @@ try:
 	# 	Q_rpi.append(Q_temp[:])
 
 	# Wait for cameras to finish recording
-	vid1.join()
-	vid2.join()
 	rpi_urad.join()
 	usb_urad.join()
 	# print(I_usb)
@@ -244,19 +265,12 @@ try:
 	# 		rpi.write(IQ_rpi + '\n')
 	# 		usb.write(IQ_usb + '\n')
 
-	cap1.release()
-	cap2.release()
-	out1.release()
-	out2.release()
-	uRAD_RP_SDK10.turnOFF()
-	uRAD_USB_SDK11.turnOFF(ser)
+	
+	
+	
 	print("Complete.")
 	
 except KeyboardInterrupt:
-	cap1.release()
-	cap2.release()
-	out1.release()
-	out2.release()
 	uRAD_RP_SDK10.turnOFF()
 	uRAD_USB_SDK11.turnOFF(ser)
 	print("Interrupted.")
