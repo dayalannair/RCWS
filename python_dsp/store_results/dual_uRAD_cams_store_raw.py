@@ -1,10 +1,9 @@
+import sys
+sys.path.append('../python_modules')
 import uRAD_USB_SDK11
 import uRAD_RP_SDK10		# uRAD v1.1 RPi lib
 import serial
 from time import time, sleep, strftime,localtime
-import sys
-from uRAD_DSP_lib import py_trig_dsp
-import numpy as np
 import cv2
 # True if USB, False if UART
 usb_communication = True
@@ -24,6 +23,7 @@ try:
 		mode = 2					
 	elif mode_in == "t":
 		print("********** TRIANGLE MODE **********")
+		print("Expected run time: ",str(2*runtime))
 		resultsFileName = 'IQ_tri_' + str(BW) + '_' + str(Ns) + '_' + str(now) + '.txt'
 		mode = 3	
 	elif mode_in == "d":
@@ -34,7 +34,6 @@ try:
 		print("Invalid mode")
 		exit()
 	print("BW = ",str(BW),"\nNs = ",str(Ns),"\nSweeps = ",str(sweeps))
-	print("Expected run time (saw): ",str(runtime))
 except: 
 	print("Invalid mode")
 	exit()
@@ -103,81 +102,100 @@ uRAD_RP_SDK10.turnON()
 # no return code from SDK 1.0 for RPi
 uRAD_RP_SDK10.loadConfiguration(mode, f0, BW, Ns, 0, 0, 0, 0)
 
-I_pi = [0] * 2 * Ns
-Q_pi = [0] * 2 * Ns
+# 2* because 200 up and 200 down for each
+Q_temp = [0] * 2 * Ns
+I_temp = [0] * 2 * Ns
+
+I_usb = []
+Q_usb = []
+
+I_rpi = []
+Q_rpi = []
+
 t_0 = time()
-i = 0
-I = []
-Q = []
 
-# ------------------------ Frequency axis -----------------
-nfft = 512
-# kHz Axis
-fax = np.linspace(0, round(fs/2), round(nfft/2))
-# c*fb/(2*slope)
-tsweep = 1e-3
-bw = 240e6
-slope = bw/tsweep
-c = 3e8
-rng_ax = c*fax/(2*slope)
 return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
-
-# -------------------- Cameras -----------------------------
-cap1 = cv2.VideoCapture(0)
-cap2 = cv2.VideoCapture(1)
-# Define the codec and create VideoWriter object
-fourcc = cv2.VideoWriter_fourcc(*'X264')
-lhs_vid = cv2.VideoWriter('lhs_vid.mp4',fourcc, 20.0, (640,480))
-rhs_vid = cv2.VideoWriter('rhs_vid.mp4',fourcc, 20.0, (640,480))
 if (return_code != 0):
 	closeProgram()
 
+cap1 = cv2.VideoCapture(0)
+cap2 = cv2.VideoCapture(2)
+
+cap1.set(3, 320)
+cap1.set(4, 240)
+
+cap2.set(3, 320)
+cap2.set(4, 240)
+
+sleep(1)
+
+# # Define the codec and create VideoWriter object
+fourcc = cv2.VideoWriter_fourcc(*'X264')
+out1 = cv2.VideoWriter('out1.avi',fourcc, 20.0, (320,240))
+out2 = cv2.VideoWriter('out2.avi',fourcc, 20.0, (320,240))
+
+
+
 print("System running...")
-safety_inv = np.zeros(sweeps)
-safety_inv_pi = np.zeros(sweeps)
-rg_array = np.zeros(sweeps, Ns)
-sp_array = np.zeros(sweeps, Ns)
-rg_array_pi = np.zeros(sweeps, Ns)
-sp_array_pi = np.zeros(sweeps, Ns)
-fileName = "dual_uRAD_results.txt"
+
+PifileName = "IQ_pi.txt"
+USBfileName = "IQ_usb.txt"
+
+frames_1 = []
+frames_2 = []
+
 try:
 	for i in range(sweeps):
+		# READ FROM THE FASTEST DEVICES FIRST
 		# fetch IQ from uRAD USB
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 		if (return_code != 0):
 			closeProgram()
+			
+		I_usb.append(raw_results[0])
+		Q_usb.append(raw_results[1])
+
+		ret, frame1 = cap1.read()
+		ret, frame2 = cap2.read()
+
+		frames_1.append(frame1)
+		frames_2.append(frame2)
+
 		# fetch IQ from uRAD Pi
-		uRAD_RP_SDK10.detection(0, 0, 0, I_pi, Q_pi, 0)
+		uRAD_RP_SDK10.detection(0, 0, 0, I_temp, Q_temp, 0)
 
-		I = raw_results[0]
-		Q = raw_results[1]
-		t0_proc = time()
-		safety_inv[i],rg_array[i], sp_array[i] = py_trig_dsp(I,Q)
-		safety_inv_pi[i], rg_array_pi[i], sp_array_pi[i] = py_trig_dsp(I_pi,Q_pi)
+		I_rpi.append(I_temp[:])
+		Q_rpi.append(Q_temp[:])
+	
 
-		t1_proc = time()-t0_proc
-
-		ret, lhs_frame = cap1.read()
-		ret, rhs_frame = cap2.read()
-
-		lhs_vid.write(lhs_frame)
-		rhs_vid.write(rhs_frame)
-		
-		print("Processing time: ", t1_proc)
 
 	print("Elapsed time: ", str(time()-t_0))
 	print("Saving data...")
-	with open(fileName, 'w') as f:
-		line = ''
-		for s in range(sweeps):
-			line = safety_inv[s] + ' ' + rg_array[s] + ' ' + sp_array[s]\
-				+ safety_inv_pi[s] + ' ' + rg_array_pi[s] + ' ' + sp_array_pi[s]
-			f.write(line +'\n')
+	with open(PifileName, 'w') as rpi, open(USBfileName, 'w') as usb:
+		for sweep in range(sweeps):
+			IQ_rpi = ''
+			IQ_usb = ''
+			# Length is 2*Ns
+			up_down_length = len(I_usb[0])
+			# Store I data
+			for sample in range(up_down_length):
+				IQ_rpi += '%d ' % I_rpi[sweep][sample]
+				IQ_usb += '%d ' % I_usb[sweep][sample]
+			# Store Q data
+			for sample in range(up_down_length):
+				IQ_rpi += '%d ' % Q_rpi[sweep][sample]
+				IQ_usb += '%d ' % Q_usb[sweep][sample]
+			#f.write(IQ_string + '%1.3f\n' % t_i[sweep])
+			rpi.write(IQ_rpi + '\n')
+			usb.write(IQ_usb + '\n')
+			out1.write(frames_1[sweep])
+			out2.write(frames_2[sweep])
 
 	cap1.release()
 	cap2.release()
-	lhs_vid.release()
-	rhs_vid.release()
+	out1.release()
+	out2.release()
+
 	uRAD_RP_SDK10.turnOFF()
 	uRAD_USB_SDK11.turnOFF(ser)
 	print("Complete.")

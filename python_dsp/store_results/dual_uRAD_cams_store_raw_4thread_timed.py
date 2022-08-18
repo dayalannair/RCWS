@@ -19,7 +19,6 @@ try:
 	t = localtime()
 	now = strftime("%H-%M-%S", t)  
 	fs = 200000
-	runtime = duration*Ns/200000
 	if mode_in == "s":
 		print("********** SAWTOOTH MODE **********")
 		resultsFileName = 'IQ_saw_' + str(BW) + '_' + str(Ns) +  '_' + str(now) + '.txt'
@@ -36,7 +35,7 @@ try:
 		print("Invalid mode")
 		exit()
 	print("BW = ",str(BW),"\nNs = ",str(Ns),"\nSweeps = ",str(duration))
-	print("Expected run time (saw): ",str(runtime))
+	print("Duration: ",str(duration), 's')
 except: 
 	print("Invalid mode")
 	exit()
@@ -130,7 +129,7 @@ out2 = cv2.VideoWriter('out2.avi',fourcc, 20.0, (320,240))
 
 # Camera thread function
 def capture(n, cap, out):
-	print("Video initialised")
+	print("Video thread runnning...")
 	frames = []
 	t0 = time()
 	t1 = 0
@@ -154,6 +153,7 @@ vid2 = threading.Thread(target=capture, args=[duration, cap2, out2])
 # 							uRAD threads
 # ================================================================
 def rpi_urad_capture(duration):
+	print("uRAD RPI thread running...")
 	Q_temp = [0] * 2 * Ns
 	I_temp = [0] * 2 * Ns
 	I_rpi = []
@@ -190,6 +190,7 @@ def rpi_urad_capture(duration):
 	print("uRAD RPI capture complete.")
 
 def usb_urad_capture(duration):
+	print("uRAD USB thread running...")
 	I_usb = []
 	Q_usb = []
 	t0 = time()
