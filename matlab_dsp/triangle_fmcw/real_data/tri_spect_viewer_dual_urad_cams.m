@@ -6,10 +6,16 @@ subset = 1:1000;
 addpath('../../../matlab_lib/');
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/dual_uRAD/');
 [fc, c, lambda, tm, bw, k, rpi_iq_u, rpi_iq_d, usb_iq_u, ...
-    usb_iq_d, t_stamps] = import_dual_data(subset);
+    usb_iq_d, t_stamps] = import_dual_data_full();
+
+
+% Get dimensions of data from slower device
 n_samples = size(rpi_iq_u,2);
 n_sweeps = size(rpi_iq_u,1);
 
+% Decimate faster device data
+% usb_iq_u = usb_iq_u(1:3:end, :);
+% usb_iq_d = usb_iq_d(1:3:end, :);
 % Taylor Window
 nbar = 3;
 sll = -100;
@@ -57,8 +63,8 @@ rng_ax = beat2range((f_pos)', sweep_slope, c);
 USB_IQ_DN = flip(USB_IQ_DN,2);
 RPI_IQ_DN = flip(RPI_IQ_DN,2);
 
-vid1 = VideoReader('out1.avi');
-vid2 = VideoReader('out2.avi');
+vid2 = VideoReader('out1.avi');
+vid1 = VideoReader('out2.avi');
 %%
 USB_IQ_UP = absmagdb(USB_IQ_UP);
 USB_IQ_DN = absmagdb(USB_IQ_DN);
@@ -74,15 +80,15 @@ fig1 = figure('WindowState','maximized');
 movegui(fig1,'west')
 
 subplot(2,3,1);
-p1 = plot(rng_ax, USB_IQ_UP(1,:));
-title("USB UP chirp positive half")
+p1 = plot(rng_ax, RPI_IQ_UP(1,:));
+title("RPI UP chirp positive half")
 axis(ax_dims)
 xticks(ax_ticks)
 grid on
 
 subplot(2,3,2);
-p2 = plot(rng_ax, USB_IQ_DN(1,:));
-title("USB DOWN chirp flipped negative half")
+p2 = plot(rng_ax, RPI_IQ_DN(1,:));
+title("RPI DOWN chirp flipped negative half")
 axis(ax_dims)
 xticks(ax_ticks)
 grid on
@@ -103,7 +109,7 @@ p4 = plot(rng_ax, USB_IQ_DN(1,:));
 title("USB DOWN chirp flipped negative half")
 axis(ax_dims)
 xticks(ax_ticks)
-
+grid on
 subplot(2,3,6);
 vidFrame = readFrame(vid2);
 v2 = imshow(vidFrame);
@@ -113,10 +119,11 @@ for sweep = 1:n_sweeps
 %     for w = 1:6
 %         vidFrame = readFrame(vidObj);
 %     end
-    set(p1, 'YData',USB_IQ_UP(sweep,:))
-    set(p2, 'YData',USB_IQ_DN(sweep,:))
-    set(p3, 'YData',RPI_IQ_UP(sweep,:))
-    set(p4, 'YData',RPI_IQ_DN(sweep,:))
+    set(p1, 'YData',RPI_IQ_UP(sweep,:))
+    set(p2, 'YData',RPI_IQ_DN(sweep,:))
+    set(p3, 'YData',USB_IQ_UP(sweep,:))
+    set(p4, 'YData',USB_IQ_DN(sweep,:))
+    
     
     vidFrame = readFrame(vid1);
 %     v1.set(vidFrame)
@@ -139,6 +146,7 @@ for sweep = 1:n_sweeps
 %     title("DOWN chirp flipped negative half average nulling")
 %     axis([0 256 0 7e6])
 % %     yline(125)
+    pause(0.05)
     drawnow;
     % pause for elapsed time (see python output) / 2*num_sweeps
     % figure out why half is needed
