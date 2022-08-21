@@ -9,11 +9,16 @@ n_sweeps = size(iq_u,1);
 %%
 % ======================== Tunable parameters =============================
 % These determine the system detection performance
-train = 64;
-guard = 6;
+% train = 64 and guard = 6 for 512 point fft
+% this is 64/512 = 1/8 and 1/64 of the fft len respectively
+% Can use
+n_fft = 1024;
+train = n_fft/8;%64;
+guard = n_fft/64;%8;
 nbar = 3;
 sll = -100;
-F = 1e-3;
+F = 1e-4;
+
 % =========================================================================
 
 
@@ -33,18 +38,20 @@ iq_d = iq_d.*twind.';
 % iq_d = iq_d.*bwin.';
 
 % FFT
-n_fft = 512;
-nul_width_factor = 0.04;
-num_nul = round((n_fft/2)*nul_width_factor);
+IQ_UP = fft(iq_u,[],2);
+IQ_DN = fft(iq_d,[],2);
 
-IQ_UP = fft(iq_u,n_fft,2);
-IQ_DN = fft(iq_d,n_fft,2);
+% Interpolate FFT
+IQ_UP = interpft(IQ_UP,n_fft,2);
+IQ_DN = interpft(IQ_DN,n_fft,2);
 
 % Halve FFTs
 IQ_UP = IQ_UP(:, 1:n_fft/2);
 IQ_DN = IQ_DN(:, n_fft/2+1:end);
 
 % Null feedthrough
+nul_width_factor = 0.04;
+num_nul = round((n_fft/2)*nul_width_factor);
 IQ_UP(:, 1:num_nul) = 0;
 IQ_DN(:, end-num_nul+1:end) = 0;
 % Mean nulling
@@ -136,7 +143,7 @@ for i = 1:n_sweeps
 end
 
 %% Plots
-ax_dims = [0 256 60 160];
+ax_dims = [0 round(n_fft/2) 60 160];
 dat1 = absmagdb(IQ_DN);
 dat2 = absmagdb(os_thd);
 dat3 = absmagdb(os_pkd);

@@ -14,7 +14,8 @@ n_sweeps = size(iq_u,1);
 nbar = 3;
 sll = -200;
 F = 1e-3;
-n_fft = 4096;
+n_fft = 1024;
+n_interp = 2*n_fft;
 % =========================================================================
 
 % Taylor Window
@@ -28,6 +29,9 @@ num_nul = round((n_fft/2)*nul_width_factor);
 
 IQ_UP = fft(iq_u,n_fft,2);
 IQ_DN = fft(iq_d,n_fft,2);
+
+IQ_UP = interpft(IQ_UP,n_interp,2);
+IQ_DN = interpft(IQ_DN,n_interp,2);
 
 % Halve FFTs
 IQ_UP = IQ_UP(:, 1:n_fft/2);
@@ -49,7 +53,7 @@ IQ_DN2 = flip(IQ_DN2,2);
 dat1 = absmagdb(IQ_DN);
 dat2 = absmagdb(IQ_UP);
 
-ax_dims = [0 round(n_fft/2) 60 160];
+ax_dims = [0 round(n_interp/2) 60 160];
 sweep = 1;
 close all
 fig1 = figure('WindowState','maximized');

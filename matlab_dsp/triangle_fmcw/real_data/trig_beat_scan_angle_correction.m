@@ -16,11 +16,13 @@ addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
 
 % ************************ Tunable parameters *****************************
 % These determine the system detection performance
-train = 64;
-guard = 6;
+n_fft = 1024;
+train = n_fft/8;%64;
+guard = n_fft/64;%8;
 nbar = 3;
 sll = -100;
 F = 5e-3;
+% n_fft = 2*n_fft_pad;
 % ---------------------------------------------
 % Taylor Window
 twin = taylorwin(n_samples, nbar, sll);
@@ -28,9 +30,13 @@ iq_u = iq_u.*twin.';
 iq_d = iq_d.*twin.';
 
 % FFT
-n_fft = 512;
-IQ_UP = fft(iq_u,n_fft,2);
-IQ_DN = fft(iq_d,n_fft,2);
+% no padding
+IQ_UP = fft(iq_u,[],2);
+IQ_DN = fft(iq_d,[],2);
+
+% Interpolate FFT
+IQ_UP = interpft(IQ_UP,n_fft,2);
+IQ_DN = interpft(IQ_DN,n_fft,2);
 
 % Halve FFTs
 IQ_UP = IQ_UP(:, 1:n_fft/2);
@@ -104,7 +110,7 @@ osd_pk_clean = zeros(n_sweeps,n_fft/2);
 f_bin_edges_idx = size(f_pos(),2)/nbins;
 road_width = 2;
 correction_factor = 3;
-
+prev_det = 0;
 speed_correction = 1.2;
 %%
 for i = 1:n_sweeps
@@ -119,7 +125,7 @@ for i = 1:n_sweeps
             % set up bin slice to range of expected beats
             % See freqs from 0 to index 15 - determined from 60kmh (VERIFY)
             % check if far enough from center
-            if (beat_index>15)
+            if (beat_index>bin_width)
                 bin_slice_u = os_pku(i,beat_index - 15:beat_index);
             % if not, start from center
             else
@@ -135,6 +141,7 @@ for i = 1:n_sweeps
             if and(fbu(i,bin+1) ~= 0, fbd(i,bin+1)~= 0)
                 fd = -fbu(i,bin+1) + fbd(i,bin+1);
                 fd_array(i,bin+1) = fd/2;
+                prev_det = 1;
                 
                 % if less than max expected and filter clutter doppler
                 if ((abs(fd/2) < fd_max) && (fd/2 > 400))
@@ -154,10 +161,19 @@ for i = 1:n_sweeps
                     
                 end
            
+            else 
+                prev_det = 0;
             end
             % for plot
             osu_pk_clean(i, bin*bin_width + idx_u) = magu;
             osd_pk_clean(i, bin*bin_width + idx_d) = magd;
+       
+        % "Tracker"
+%         elseif prev_det
+%             fd = -fbu(i-1,bin+1) + fbd(i-1,bin+1);
+%             sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
+%             rg_array(i,bin+1) = beat2range( ...
+%                 [fbu(i-1,bin+1) -fbd(i-1,bin+1)], k, c);
         end
    end
   
