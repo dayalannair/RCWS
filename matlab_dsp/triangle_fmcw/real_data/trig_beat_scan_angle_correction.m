@@ -14,13 +14,13 @@ n_sweeps = size(iq_u,1);
 % Import video
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
 
-%% ***** Tunable parameters *****
+% ************************ Tunable parameters *****************************
 % These determine the system detection performance
 train = 64;
 guard = 6;
 nbar = 3;
 sll = -100;
-F = 18e-4;
+F = 5e-3;
 % ---------------------------------------------
 % Taylor Window
 twin = taylorwin(n_samples, nbar, sll);
@@ -29,9 +29,6 @@ iq_d = iq_d.*twin.';
 
 % FFT
 n_fft = 512;
-nul_width_factor = 0.04;
-num_nul = round((n_fft/2)*nul_width_factor);
-
 IQ_UP = fft(iq_u,n_fft,2);
 IQ_DN = fft(iq_d,n_fft,2);
 
@@ -40,6 +37,8 @@ IQ_UP = IQ_UP(:, 1:n_fft/2);
 IQ_DN = IQ_DN(:, n_fft/2+1:end);
 
 % Null feedthrough
+nul_width_factor = 0.04;
+num_nul = round((n_fft/2)*nul_width_factor);
 IQ_UP(:, 1:num_nul) = 0;
 IQ_DN(:, end-num_nul+1:end) = 0;
 
@@ -55,7 +54,7 @@ OS = phased.CFARDetector('NumTrainingCells',train, ...
     'ThresholdOutputPort', true, ...
     'Rank',train);
 
-% flip
+% flip down chirp
 IQ_DN = flip(IQ_DN,2);
 
 % Filter peaks/ peak detection
@@ -71,6 +70,11 @@ fs = 200e3;
 f = f_ax(n_fft, fs);
 f_neg = f(1:n_fft/2);
 f_pos = f((n_fft/2 + 1):end);
+
+% Define range axis
+% Check if faster to search for index than to compute
+% Dont think so
+rng_ax = beat2range(f_pos',k,c);
 
 v_max = 60/3.6; 
 fd_max = speed2dop(v_max, lambda)*2;
@@ -100,10 +104,12 @@ osd_pk_clean = zeros(n_sweeps,n_fft/2);
 f_bin_edges_idx = size(f_pos(),2)/nbins;
 road_width = 2;
 correction_factor = 3;
+
+speed_correction = 1.2;
 %%
 for i = 1:n_sweeps
    for bin = 0:(nbins-1)
-        % find beat in bin
+        % find beat in down chirp bin
         bin_slice_d = os_pkd(i,bin*bin_width+1:(bin+1)*bin_width);
         [magd, idx_d] = max(bin_slice_d);
         
@@ -139,11 +145,12 @@ for i = 1:n_sweeps
                     % Angle correction
                    
                     % Theta in radians
-                    theta = asin(road_width/rg_array(i,bin+1))*correction_factor;
+                    theta = asin(road_width/rg_array(i,bin+1))*...
+                        correction_factor;
 
 %                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
                     real_v = fd*lambda/(4*cos(theta));
-                    sp_array_corrected(i,bin+1) = real_v;
+                    sp_array_corrected(i,bin+1) = round(real_v,2);
                     
                 end
            
@@ -192,12 +199,9 @@ nexttile
 plot(sp_array_corrected)
 axis([0 400 0 13])
 sp_array_kmh = sp_array.*3.6;
-sp_array_kmh_corrected = sp_array_corrected.*3.6;
+sp_array_kmh_corrected = sp_array_corrected.*3.6.*speed_correction;
 % return;
 %%
-% Define range axis
-rng_ax = beat2range(f_pos',k,c);
-
 % labels for range bins
 rg_bin_lbl = strings(1,nbins);
 rax = linspace(0,62,32);

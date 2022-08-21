@@ -7,9 +7,17 @@ n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
 
 %%
+% ======================== Tunable parameters =============================
+% These determine the system detection performance
+train = 64;
+guard = 6;
+nbar = 3;
+sll = -100;
+F = 1e-3;
+% =========================================================================
+
+
 % Taylor Window
-nbar = 4;
-sll = -50;
 twinu = taylorwin(n_samples, nbar, sll);
 twind = taylorwin(n_samples, nbar, sll);
 iq_u = iq_u.*twinu.';
@@ -43,15 +51,11 @@ IQ_DN(:, end-num_nul+1:end) = 0;
 % IQ_UP = IQ_UP - mean(IQ_UP, 2);
 % IQ_DN = IQ_DN - mean(IQ_DN, 2);
 % CFAR
-guard = 2*n_fft/n_samples;
-guard = floor(guard/2)*2; % make even
-% too many training cells results in too many detections- NOT always!
-train = round(20*n_fft/n_samples);
-train = floor(train/2)*2;
-train = 50
-guard = 6
-% false alarm rate - sets sensitivity
-F = 7e-4; 
+% guard = 2*n_fft/n_samples;
+% guard = floor(guard/2)*2; % make even
+% % too many training cells results in too many detections- NOT always!
+% train = round(20*n_fft/n_samples);
+% train = floor(train/2)*2;
 OS = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
@@ -97,10 +101,8 @@ beat_arr = zeros(n_sweeps,nbins);
 
 osu_pk_clean = zeros(n_sweeps,n_fft/2);
 osd_pk_clean = zeros(n_sweeps,n_fft/2);
+
 %%
-% ax_dims = [0 256 60 160];
-close all
-fig1 = figure('WindowState','maximized');
 for i = 1:n_sweeps
    for bin = 0:(nbins-1)
         bin_slice_u = os_pku(i,bin*bin_width+1:(bin+1)*bin_width);
@@ -131,7 +133,21 @@ for i = 1:n_sweeps
         osu_pk_clean(i, bin*bin_width + idx_u) = magu;
         osd_pk_clean(i, bin*bin_width + idx_d) = magd;
    end
-      tiledlayout(2,1)
+end
+
+%% Plots
+ax_dims = [0 256 60 160];
+dat1 = absmagdb(IQ_DN);
+dat2 = absmagdb(os_thd);
+dat3 = absmagdb(os_pkd);
+dat4 = absmagdb(IQ_UP);
+dat5 = absmagdb(os_thu);
+dat6 = absmagdb(os_pku);
+
+close all
+fig1 = figure('WindowState','maximized');
+movegui(fig1, 'east');
+tiledlayout(2,1)
 %     nexttile
 %     plot(absmagdb(IQ_UP(sweep,:)))
 %     title("UP chirp positive half slice nulling")
@@ -141,36 +157,39 @@ for i = 1:n_sweeps
 %     title("DOWN chirp flipped negative half slice nulling")
 %     axis(ax_dims)
 
-    nexttile
-    plot(absmagdb(IQ_DN(i,:)))
-    title("DOWN chirp flipped negative half average nulling")
-%     axis(ax_dims)
-    hold on
-    plot(absmagdb(os_thd(:,i)))
-    hold on
-    stem(absmagdb(os_pkd(i,:)))
-    hold on
+nexttile
+p1 = plot(dat1(1,:));
+title("DOWN chirp flipped negative half average nulling")
+    axis(ax_dims)
+hold on
+p2 = plot(dat2(:,1));
+hold on
+p3 = stem(dat3(1,:));
+hold on
 %     xline(lines)
-    hold off
+hold off
 
-    nexttile
-    plot(absmagdb(IQ_UP(i,:)))
-    title("UP chirp positive half average nulling")
-%     axis(ax_dims)
-    hold on
-    plot(absmagdb(os_thu(:,i)))
-    hold on
-    stem(absmagdb(os_pku(i,:)))
-    hold on
+nexttile
+p4 = plot(dat4(1,:));
+title("UP chirp positive half average nulling")
+    axis(ax_dims)
+hold on
+p5 = plot(dat5(:,1));
+hold on
+p6 = stem(dat6(1,:));
+hold on
 %     xline(lines)
-    hold off
-    
-    
-    
+hold off
+
+for i = 1:n_sweeps
+    set(p1, 'YData',dat1(i,:))
+    set(p2, 'YData',dat2(:,i))
+    set(p3, 'YData',dat3(i,:))
+    set(p4, 'YData',dat4(i,:))
+    set(p5, 'YData',dat5(:,i))
+    set(p6, 'YData',dat6(i,:))
     drawnow;
-%     pause(0.1)
 end
-
 return;
 %%
 % Define range axis

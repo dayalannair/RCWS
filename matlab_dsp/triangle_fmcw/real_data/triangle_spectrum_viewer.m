@@ -9,16 +9,20 @@ addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby
 n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
 
+% ======================== Tunable parameters =============================
+% These determine the system detection performance
+nbar = 3;
+sll = -200;
+F = 1e-3;
+n_fft = 4096;
+% =========================================================================
+
 % Taylor Window
-nbar = 4;
-sll = -38;
-twinu = taylorwin(n_samples, nbar, sll);
-twind = taylorwin(n_samples, nbar, sll);
-iq_u = iq_u.*twinu.';
-iq_d = iq_d.*twind.';
+twin = taylorwin(n_samples, nbar, sll);
+iq_u = iq_u.*twin.';
+iq_d = iq_d.*twin.';
 
 % FFT
-n_fft = 512;
 nul_width_factor = 0.04;
 num_nul = round((n_fft/2)*nul_width_factor);
 
@@ -42,28 +46,31 @@ IQ_DN2 = IQ_DN - mean(IQ_DN,2);
 IQ_DN = flip(IQ_DN,2);
 IQ_DN2 = flip(IQ_DN2,2);
 %%
-ax_dims = [0 256 60 160];
+dat1 = absmagdb(IQ_DN);
+dat2 = absmagdb(IQ_UP);
+
+ax_dims = [0 round(n_fft/2) 60 160];
+sweep = 1;
 close all
 fig1 = figure('WindowState','maximized');
-movegui(fig1,'west')
-for sweep = 1:n_sweeps
-    tiledlayout(2,2)
-    nexttile
-    plot(absmagdb(IQ_UP(sweep,:)))
-    title("UP chirp positive half slice nulling")
-    axis(ax_dims)
-    nexttile
-    plot(absmagdb(IQ_DN(sweep,:)))
-    title("DOWN chirp flipped negative half slice nulling")
-    axis(ax_dims)
-    nexttile
-    plot(absmagdb(IQ_UP2(sweep,:)))
-    title("UP chirp positive half average nulling")
-    axis(ax_dims)
-    nexttile
-    plot(absmagdb(IQ_DN2(sweep,:)))
-    title("DOWN chirp flipped negative half average nulling")
-    axis(ax_dims)
+movegui(fig1,'east')
+tiledlayout(2,1)
+nexttile
+p1 = plot(dat1(sweep,:));
+title("UP chirp positive half slice nulling")
+axis(ax_dims)
+nexttile
+p2 = plot(dat2(sweep,:));
+title("DOWN chirp flipped negative half slice nulling")
+axis(ax_dims)
+% nexttile
+% plot(absmagdb(IQ_UP2(sweep,:)))
+% title("UP chirp positive half average nulling")
+% axis(ax_dims)
+% nexttile
+% plot(absmagdb(IQ_DN2(sweep,:)))
+% title("DOWN chirp flipped negative half average nulling")
+% axis(ax_dims)
 %     nexttile
 %     plot(abs(IQ_UP2(sweep,:)))
 %     title("UP chirp positive half average nulling")
@@ -74,6 +81,11 @@ for sweep = 1:n_sweeps
 %     title("DOWN chirp flipped negative half average nulling")
 %     axis([0 256 0 7e6])
 % %     yline(125)
-    drawnow;
+
 %     pause(0.1)
+
+for i = 1:n_sweeps
+    set(p1, 'YData',dat1(i,:))
+    set(p2, 'YData',dat2(i,:))
+    drawnow;
 end
