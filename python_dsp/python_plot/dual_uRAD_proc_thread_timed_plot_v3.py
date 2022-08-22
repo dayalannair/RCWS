@@ -126,7 +126,7 @@ def rpi_urad_capture(duration):
 	tmp = np.zeros(256)
 	line1, = ax[0].plot(tmp, animated=True)
 	line2, = ax[1].plot(tmp, animated=True)
-
+	plt.show(block=False)
 	ax[0].set_title("USB Down chirp spectrum negative half flipped")
 	ax[0].set_xlabel("Coupled Range (m)")
 	ax[0].set_ylabel("Magnitude (dB)")
@@ -137,7 +137,7 @@ def rpi_urad_capture(duration):
 	
 	ax[0].set(xlim=(xmin, xmax), ylim=(ymin, ymax))
 	ax[1].set(xlim=(xmin, xmax), ylim=(ymin, ymax))
-	
+	plt.pause(0.1)
 	bg = fig1.canvas.copy_from_bbox(fig1.bbox)
 
 	ax[0].draw_artist(line1)
@@ -164,6 +164,7 @@ def rpi_urad_capture(duration):
 		t1 = time() - t0
 		os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, sp_array = py_trig_dsp(I_temp,Q_temp)
 
+		fig1.canvas.restore_region(bg)
 		line1.set_ydata(20*np.log10(fftu))
 		line2.set_ydata(20*np.log10(fftd))
 		ax[0].draw_artist(line1)
@@ -182,9 +183,9 @@ def usb_urad_capture(duration):
 
 	fig2, ax = plt.subplots(nrows=2, ncols=1, figsize=(10, 8))
 	tmp = np.zeros(256)
-	line1, = ax[0].plot(tmp)
-	line2, = ax[1].plot(tmp)
-
+	line1, = ax[0].plot(tmp, animated=True)
+	line2, = ax[1].plot(tmp, animated=True)
+	plt.show(block=False)
 	ax[0].set_title("USB Down chirp spectrum negative half flipped")
 	ax[0].set_xlabel("Coupled Range (m)")
 	ax[0].set_ylabel("Magnitude (dB)")
@@ -196,6 +197,7 @@ def usb_urad_capture(duration):
 	ax[0].set(xlim=(xmin, xmax), ylim=(ymin, ymax))
 	ax[1].set(xlim=(xmin, xmax), ylim=(ymin, ymax))
 
+	plt.pause(0.1)
 	bg = fig2.canvas.copy_from_bbox(fig2.bbox)
 
 	ax[0].draw_artist(line1)
@@ -210,6 +212,7 @@ def usb_urad_capture(duration):
 		if (return_code != 0):
 			closeProgram()
 		os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, sp_array = py_trig_dsp(raw_results[0],raw_results[1])
+		fig2.canvas.restore_region(bg)
 		line1.set_ydata(20*np.log10(fftu))
 		line2.set_ydata(20*np.log10(fftd))
 		ax[0].draw_artist(line1)
