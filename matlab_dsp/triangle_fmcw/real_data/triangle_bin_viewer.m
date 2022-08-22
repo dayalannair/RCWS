@@ -38,12 +38,12 @@ iq_d = iq_d.*twind.';
 % iq_d = iq_d.*bwin.';
 
 % FFT
-IQ_UP = fft(iq_u,[],2);
-IQ_DN = fft(iq_d,[],2);
+IQ_UP = fft(iq_u,n_fft,2);
+IQ_DN = fft(iq_d,n_fft,2);
 
 % Interpolate FFT
-IQ_UP = interpft(IQ_UP,n_fft,2);
-IQ_DN = interpft(IQ_DN,n_fft,2);
+% IQ_UP = interpft(IQ_UP,n_fft,2);
+% IQ_DN = interpft(IQ_DN,n_fft,2);
 
 % Halve FFTs
 IQ_UP = IQ_UP(:, 1:n_fft/2);
@@ -153,7 +153,7 @@ dat6 = absmagdb(os_pku);
 
 close all
 fig1 = figure('WindowState','maximized');
-movegui(fig1, 'east');
+% movegui(fig1, 'east');
 tiledlayout(2,1)
 %     nexttile
 %     plot(absmagdb(IQ_UP(sweep,:)))
