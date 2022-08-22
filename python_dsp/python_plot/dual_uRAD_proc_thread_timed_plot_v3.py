@@ -138,7 +138,7 @@ def rpi_urad_capture(duration):
 	ax[0].set(xlim=(xmin, xmax), ylim=(ymin, ymax))
 	ax[1].set(xlim=(xmin, xmax), ylim=(ymin, ymax))
 	plt.pause(0.1)
-	bg = fig1.canvas.copy_from_bbox(fig1.bbox)
+	bg1 = fig1.canvas.copy_from_bbox(fig1.bbox)
 
 	ax[0].draw_artist(line1)
 	ax[1].draw_artist(line2)
@@ -158,13 +158,12 @@ def rpi_urad_capture(duration):
 
 	# Capture data
 	while (t1 < duration):
-		fig1.canvas.restore_region(bg)
 		uRAD_RP_SDK10.detection(0, 0, 0, I_temp, Q_temp, 0)
 
-		t1 = time() - t0
+		
 		os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, sp_array = py_trig_dsp(I_temp,Q_temp)
 
-		fig1.canvas.restore_region(bg)
+		fig1.canvas.restore_region(bg1)
 		line1.set_ydata(20*np.log10(fftu))
 		line2.set_ydata(20*np.log10(fftd))
 		ax[0].draw_artist(line1)
@@ -172,6 +171,7 @@ def rpi_urad_capture(duration):
 		fig1.canvas.blit(fig1.bbox)
 		fig1.savefig('thread_out1.jpeg')
 		fig1.canvas.flush_events()
+		t1 = time() - t0
 		# fig1.canvas.flush_events()
 
 
@@ -198,7 +198,7 @@ def usb_urad_capture(duration):
 	ax[1].set(xlim=(xmin, xmax), ylim=(ymin, ymax))
 
 	plt.pause(0.1)
-	bg = fig2.canvas.copy_from_bbox(fig2.bbox)
+	bg2 = fig2.canvas.copy_from_bbox(fig2.bbox)
 
 	ax[0].draw_artist(line1)
 	ax[1].draw_artist(line2)
@@ -212,7 +212,7 @@ def usb_urad_capture(duration):
 		if (return_code != 0):
 			closeProgram()
 		os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, sp_array = py_trig_dsp(raw_results[0],raw_results[1])
-		fig2.canvas.restore_region(bg)
+		fig2.canvas.restore_region(bg2)
 		line1.set_ydata(20*np.log10(fftu))
 		line2.set_ydata(20*np.log10(fftd))
 		ax[0].draw_artist(line1)

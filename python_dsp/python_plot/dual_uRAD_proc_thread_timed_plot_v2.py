@@ -134,7 +134,7 @@ def rpi_urad_capture(duration):
 	ax[1].set_title("USB Up chirp spectrum positive half")
 	ax[1].set_xlabel("Coupled Range (m)")
 	ax[1].set_ylabel("Magnitude (dB)")
-	
+
 	ax[0].set(xlim=(xmin, xmax), ylim=(ymin, ymax))
 	ax[1].set(xlim=(xmin, xmax), ylim=(ymin, ymax))
 	
@@ -194,15 +194,15 @@ def usb_urad_capture(duration):
 
 # uRAD threads
 rpi_urad = threading.Thread(target=rpi_urad_capture, args=[duration])
-usb_urad = threading.Thread(target=usb_urad_capture, args=[duration])
+# usb_urad = threading.Thread(target=usb_urad_capture, args=[duration])
 
 try:
 	t_0 = time()
 	# Start camera threads
 	rpi_urad.start()
-	usb_urad.start()
+	# usb_urad.start()
 	rpi_urad.join()
-	usb_urad.join()
+	# usb_urad.join()
 	# print(I_usb)
 	print("Elapsed time: ", str(time()-t_0))
 	uRAD_RP_SDK10.turnOFF()
