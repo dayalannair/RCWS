@@ -111,7 +111,10 @@ if (return_code != 0):
 
 
 plt.ion()
-
+xmin = 0
+xmax = 256
+ymin = 50
+ymax = 160
 print("System running...")
 # ================================================================
 # 							uRAD threads
@@ -132,6 +135,9 @@ def rpi_urad_capture(duration):
 	ax[1].set_xlabel("Coupled Range (m)")
 	ax[1].set_ylabel("Magnitude (dB)")
 	
+	ax[0].set(xlim=(xmin, xmax), ylim=(ymin, ymax))
+	ax[1].set(xlim=(xmin, xmax), ylim=(ymin, ymax))
+	
 	Q_temp = [0] * 2 * Ns
 	I_temp = [0] * 2 * Ns
 	# line1, = ax[0].plot()
@@ -149,7 +155,7 @@ def rpi_urad_capture(duration):
 		line1.set_ydata(20*np.log10(fftu))
 		line2.set_ydata(20*np.log10(fftd))
 		fig1.savefig('thread_out1.jpeg')
-		fig1.canvas.flush_events()
+		# fig1.canvas.flush_events()
 
 
 
@@ -171,6 +177,9 @@ def usb_urad_capture(duration):
 	ax[1].set_xlabel("Coupled Range (m)")
 	ax[1].set_ylabel("Magnitude (dB)")
 
+	ax[0].set(xlim=(xmin, xmax), ylim=(ymin, ymax))
+	ax[1].set(xlim=(xmin, xmax), ylim=(ymin, ymax))
+
 	# Capture data
 	while (t1 < duration):
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
@@ -180,7 +189,7 @@ def usb_urad_capture(duration):
 		line1.set_ydata(20*np.log10(fftu))
 		line2.set_ydata(20*np.log10(fftd))
 		fig2.savefig('thread_out2.jpeg')
-		fig2.canvas.flush_events()
+		# fig2.canvas.flush_events()
 		t1 = time() - t0
 
 # uRAD threads
