@@ -112,23 +112,24 @@ if (return_code != 0):
 
 plt.ion()
 figure, ax = plt.subplots(nrows=2, ncols=2, figsize=(10, 8))
-line1, = ax[0].plot()
-line2, = ax[1].plot()
-line3, = ax[2].plot()
-line4, = ax[3].plot()
+tmp = np.zeros(256)
+line1, = ax[0, 0].plot(tmp)
+line2, = ax[0, 1].plot(tmp)
+line3, = ax[1, 0].plot(tmp)
+line4, = ax[1, 1].plot(tmp)
 
-ax[0].set_title("USB Down chirp spectrum negative half flipped")
-ax[0].set_xlabel("Coupled Range (m)")
-ax[0].set_ylabel("Magnitude (dB)")
-ax[1].set_title("USB Up chirp spectrum positive half")
-ax[1].set_xlabel("Coupled Range (m)")
-ax[1].set_ylabel("Magnitude (dB)")
-ax[2].set_title("RPI Down chirp spectrum negative half flipped")
-ax[3].set_title("RPI Up chirp spectrum positive half")
-ax[2].set_xlabel("Coupled Range (m)")
-ax[3].set_xlabel("Coupled Range (m)")
-ax[2].set_ylabel("Magnitude (dB)")
-ax[3].set_ylabel("Magnitude (dB)")	
+ax[0, 0].set_title("USB Down chirp spectrum negative half flipped")
+ax[0, 0].set_xlabel("Coupled Range (m)")
+ax[0, 0].set_ylabel("Magnitude (dB)")
+ax[0, 1].set_title("USB Up chirp spectrum positive half")
+ax[0, 1].set_xlabel("Coupled Range (m)")
+ax[0, 1].set_ylabel("Magnitude (dB)")
+ax[1, 0].set_title("RPI Down chirp spectrum negative half flipped")
+ax[1, 1].set_title("RPI Up chirp spectrum positive half")
+ax[1, 0].set_xlabel("Coupled Range (m)")
+ax[1, 1].set_xlabel("Coupled Range (m)")
+ax[1, 0].set_ylabel("Magnitude (dB)")
+ax[1, 1].set_ylabel("Magnitude (dB)")	
 
 
 print("System running...")
@@ -152,8 +153,9 @@ def rpi_urad_capture(duration):
 		t1 = time() - t0
 		os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, sp_array = py_trig_dsp(I_temp,Q_temp)
 
-		line1.set_ydata(fftu)
-		line2.set_ydata(fftd)
+		line1.set_ydata(20*np.log10(fftu))
+		line2.set_ydata(20*np.log10(fftd))
+
 
 def usb_urad_capture(duration):
 	print("uRAD USB thread running...")
@@ -166,8 +168,10 @@ def usb_urad_capture(duration):
 		if (return_code != 0):
 			closeProgram()
 		os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, sp_array = py_trig_dsp(raw_results[0],raw_results[1])
-		line3.set_ydata(fftu)
-		line4.set_ydata(fftd)
+		line3.set_ydata(20*np.log10(fftu))
+		line4.set_ydata(20*np.log10(fftd))
+		figure.savefig('thread_out.jpeg')
+		figure.canvas.flush_events()
 		t1 = time() - t0
 
 # uRAD threads
@@ -179,61 +183,15 @@ try:
 	# Start camera threads
 	rpi_urad.start()
 	usb_urad.start()
-	
-
-	# NON threaded uRAD detection
-	# Start uRADs
-	# for i in range(duration):
-	# 	# fetch IQ from uRAD Pi
-	# 	uRAD_RP_SDK10.detection(0, 0, 0, I_temp, Q_temp, 0)
-	# 	# fetch IQ from uRAD USB
-	# 	return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
-	# 	if (return_code != 0):
-	# 		closeProgram()
-			
-	# 	I_usb.append(raw_results[0])
-	# 	Q_usb.append(raw_results[1])
-
-	# 	I_rpi.append(I_temp[:])
-	# 	Q_rpi.append(Q_temp[:])
-
-	# Wait for cameras to finish recording
 	rpi_urad.join()
 	usb_urad.join()
 	# print(I_usb)
 	print("Elapsed time: ", str(time()-t_0))
-	# print("Saving data...")
-	# with open(PifileName, 'w') as rpi, open(USBfileName, 'w') as usb:
-	# 	for sweep in range(duration):
-	# 		IQ_rpi = ''
-	# 		IQ_usb = ''
-	# 		# Length is 2*Ns
-	# 		up_down_length = len(I_usb[0])
-	# 		# Store I data
-	# 		for sample in range(up_down_length):
-	# 			IQ_rpi += '%d ' % I_rpi[sweep][sample]
-	# 			IQ_usb += '%d ' % I_usb[sweep][sample]
-	# 		# Store Q data
-	# 		for sample in range(up_down_length):
-	# 			IQ_rpi += '%d ' % Q_rpi[sweep][sample]
-	# 			IQ_usb += '%d ' % Q_usb[sweep][sample]
-	# 		#f.write(IQ_string + '%1.3f\n' % t_i[sweep])
-	# 		rpi.write(IQ_rpi + '\n')
-	# 		usb.write(IQ_usb + '\n')
-
-	cap1.release()
-	cap2.release()
-	out1.release()
-	out2.release()
 	uRAD_RP_SDK10.turnOFF()
 	uRAD_USB_SDK11.turnOFF(ser)
 	print("Complete.")
 	
 except KeyboardInterrupt:
-	cap1.release()
-	cap2.release()
-	out1.release()
-	out2.release()
 	uRAD_RP_SDK10.turnOFF()
 	uRAD_USB_SDK11.turnOFF(ser)
 	print("Interrupted.")
