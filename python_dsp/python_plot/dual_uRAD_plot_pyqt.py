@@ -6,10 +6,14 @@ import sys
 from pyDSPv2 import py_trig_dsp
 from datetime import datetime
 import numpy as np
-# import matplotlib
-# matplotlib.use('Agg')
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+from pyqtgraph.Qt import QtGui, QtCore
+import pyqtgraph as pg
+
+
 # True if USB, False if UART
 usb_communication = True
 
@@ -106,6 +110,11 @@ if (not usb_communication):
 uRAD_RP_SDK10.turnON()
 # no return code from SDK 1.0 for RPi
 uRAD_RP_SDK10.loadConfiguration(mode, f0, BW, Ns, 0, 0, 0, 0)
+app = QtGui.QApplication([])
+
+p = pg.plot()
+p.setWindowTitle('live plot from serial')	
+curve = p.plot()
 
 I_pi = [0] * 2 * Ns
 Q_pi = [0] * 2 * Ns
@@ -216,50 +225,49 @@ try:
 		rg_full[i*16:(i+1)*16] = rg_array
 		print(safety_inv[i])
 		t1_proc = time()-t0_proc
+		curve.setData(20*np.log10(fftu))
+		# upth = 20*np.log(upth)
+		# dnth = 20*np.log(dnth)
+		# fftu = 20*np.log(abs(fftu))
+		# fftd = 20*np.log(abs(fftd))
+		# os_pku = 20*np.log(abs(os_pku))
+		# os_pkd = 20*np.log(abs(os_pkd))
 
-		upth = 20*np.log(upth)
-		dnth = 20*np.log(dnth)
-		fftu = 20*np.log(abs(fftu))
-		fftd = 20*np.log(abs(fftd))
-		os_pku = 20*np.log(abs(os_pku))
-		os_pkd = 20*np.log(abs(os_pkd))
+		# upth_pi = 20*np.log(upth_pi)
+		# dnth_pi = 20*np.log(dnth_pi)
+		# fftu_pi = 20*np.log(abs(fftu_pi))
+		# fftd_pi = 20*np.log(abs(fftd_pi))
 
-		upth_pi = 20*np.log(upth_pi)
-		dnth_pi = 20*np.log(dnth_pi)
-		fftu_pi = 20*np.log(abs(fftu_pi))
-		fftd_pi = 20*np.log(abs(fftd_pi))
+		# # print(len(cfar_res_up))
+		# line1.set_ydata(fftu)
+		# line2.set_ydata(upth)
+		# line3.set_ydata(fftd)
+		# line4.set_ydata(dnth)
+		# line5.set_ydata(os_pku)
+		# line6.set_ydata(os_pkd)
 
-		# print(len(cfar_res_up))
-		line1.set_ydata(fftu)
-		line2.set_ydata(upth)
-		line3.set_ydata(fftd)
-		line4.set_ydata(dnth)
-		line5.set_ydata(os_pku)
-		line6.set_ydata(os_pkd)
-
-		line1_pi.set_ydata(fftu_pi)
-		line2_pi.set_ydata(upth_pi)
-		line3_pi.set_ydata(fftd_pi)
-		line4_pi.set_ydata(dnth_pi)
+		# line1_pi.set_ydata(fftu_pi)
+		# line2_pi.set_ydata(upth_pi)
+		# line3_pi.set_ydata(fftd_pi)
+		# line4_pi.set_ydata(dnth_pi)
 
 
-		line9 = ax[1].axvline(rng_ax[beat_index])
-		line10 = ax[1].axvline(rng_ax[beat_min])
-		line9.remove()
-		line10.remove()
+		# line9 = ax[1].axvline(rng_ax[beat_index])
+		# line10 = ax[1].axvline(rng_ax[beat_min])
+		# line9.remove()
+		# line10.remove()
 		
-		# print(cfar_res_dn)
-		# TRY THE BELOW:
-		# ani = FuncAnimation(plt.gcf(), update, interval=200)
-		# plt.show()
-		figure.canvas.draw()
-		figure.savefig('temp.jpeg')
-		# ax[1].clear()
-		# sleep(0.5)
-		figure.canvas.flush_events()
-		# plt.plot(fftu)
-		# plt.show()
-		# sleep(1)
+		# # print(cfar_res_dn)
+		# # TRY THE BELOW:
+		# # ani = FuncAnimation(plt.gcf(), update, interval=200)
+		# # plt.show()
+		# figure.canvas.draw()
+		# # figure.savefig('temp.jpeg')
+		# # ax[1].clear()
+		# # sleep(0.5)
+		# figure.canvas.flush_events()
+		# # plt.plot(fftu)
+		# # plt.show()
 		# plot1.set_xdata(x)
 		# plot1.set_ydata(update_y_value)
 	
