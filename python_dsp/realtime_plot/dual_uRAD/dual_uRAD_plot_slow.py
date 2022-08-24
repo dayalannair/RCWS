@@ -7,7 +7,7 @@ from pyDSPv2 import py_trig_dsp
 from datetime import datetime
 import numpy as np
 import matplotlib
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 # True if USB, False if UART
@@ -133,20 +133,26 @@ if (return_code != 0):
 I = raw_results[0]
 Q = raw_results[1]
 rg_full = np.zeros(16*sweeps)
+os_pku, os_pkd, upth, dnth, fftu, fftd, safet, beat_index, beat_min,rg_array, sp_array = py_trig_dsp(I,Q)
 plt.ion()
+print(beat_index)
+print(beat_min)
 
-plt.show(block=False)
-
+upth = 20*np.log(upth)
+dnth = 20*np.log(dnth)
+fftu = 20*np.log(abs(fftu))
+fftd = 20*np.log(abs(fftd))
+os_pku = 20*np.log(abs(os_pku))
+os_pkd = 20*np.log(abs(os_pkd))
 
 
 # x = np.zeros(100, 100)
-tmp = np.zeros(256)
-fig1, ax = plt.subplots(nrows=4, ncols=1, figsize=(10, 8))
-line1, = ax[0].plot(tmp)
-line2, = ax[1].plot(tmp)
-line3, = ax[2].plot(tmp)
-line4, = ax[3].plot(tmp)
-
+# y = np.zeros(100, 100)
+figure, ax = plt.subplots(nrows=4, ncols=1, figsize=(10, 8))
+line1, = ax[0].plot(rng_ax, fftu)
+line2, = ax[0].plot(rng_ax, upth)
+line3, = ax[1].plot(rng_ax, fftd)
+line4, = ax[1].plot(rng_ax, dnth)
 
 ax[0].set_title("USB Down chirp spectrum negative half flipped")
 ax[1].set_title("USB Up chirp spectrum positive half")
@@ -158,6 +164,11 @@ ax[0].set_ylabel("Magnitude (dB)")
 ax[1].set_ylabel("Magnitude (dB)")
 
 
+line1_pi, = ax[2].plot(rng_ax, fftu)
+line2_pi, = ax[2].plot(rng_ax, upth)
+line3_pi, = ax[3].plot(rng_ax, fftd)
+line4_pi, = ax[3].plot(rng_ax, dnth)
+
 ax[2].set_title("RPI Down chirp spectrum negative half flipped")
 ax[3].set_title("RPI Up chirp spectrum positive half")
 
@@ -167,19 +178,24 @@ ax[3].set_xlabel("Coupled Range (m)")
 ax[2].set_ylabel("Magnitude (dB)")
 ax[3].set_ylabel("Magnitude (dB)")
 
+
+
+# CFAR stems
+# line5, = ax[0].stem([],cfar_res_up)
+# line6, = ax[1].stem([],cfar_res_dn)
+line5, = ax[0].plot(rng_ax, os_pku, markersize=20)
+line6, = ax[1].plot(rng_ax, os_pkd, markersize=20)
+
+# line7, = ax[2].plot(rg_full)
+# line8, = ax[3].plot(sp_array)
+
+# ax[1].axvline(rng_ax[beat_index])
+# ax[1].axvline(rng_ax[beat_min])
+# print(cfar_res_dn)
+# eng.eval("load(\'urad_trig_proc_config.mat\')")
 print("System running...")
 safety_inv = np.zeros(sweeps)
 safety_inv_pi = np.zeros(sweeps)
-
-plt.pause(0.1)
-bg1 = fig1.canvas.copy_from_bbox(fig1.bbox)
-
-ax[0].draw_artist(line1)
-ax[1].draw_artist(line2)
-ax[2].draw_artist(line3)
-ax[3].draw_artist(line4)
-fig1.canvas.blit(fig1.bbox)
-
 try:
 	for i in range(sweeps):
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
@@ -194,29 +210,68 @@ try:
 		I = raw_results[0]
 		Q = raw_results[1]
 		t0_proc = time()
-		# os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv[i], beat_index, beat_min, rg_array, sp_array = py_trig_dsp(I,Q)
-		# os_pku_pi, os_pkd_pi, upth_pi, dnth_pi, fftu_pi, fftd_pi, safety_inv_pi[i], beat_index_pi, beat_min_pi, rg_array_pi, sp_array_pi = py_trig_dsp(I_pi,Q_pi)
-		fftu = np.fft
+		os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv[i], beat_index, beat_min, rg_array, sp_array = py_trig_dsp(I,Q)
+		os_pku_pi, os_pkd_pi, upth_pi, dnth_pi, fftu_pi, fftd_pi, safety_inv_pi[i], beat_index_pi, beat_min_pi, rg_array_pi, sp_array_pi = py_trig_dsp(I_pi,Q_pi)
+		np.concatenate((rg_full, rg_array))
+		rg_full[i*16:(i+1)*16] = rg_array
+		print(safety_inv[i])
 		t1_proc = time()-t0_proc
-		fig1.canvas.restore_region(bg1)
+
+		upth = 20*np.log(upth)
+		dnth = 20*np.log(dnth)
+		fftu = 20*np.log(abs(fftu))
+		fftd = 20*np.log(abs(fftd))
+		os_pku = 20*np.log(abs(os_pku))
+		os_pkd = 20*np.log(abs(os_pkd))
+
+		upth_pi = 20*np.log(upth_pi)
+		dnth_pi = 20*np.log(dnth_pi)
+		fftu_pi = 20*np.log(abs(fftu_pi))
+		fftd_pi = 20*np.log(abs(fftd_pi))
+
 		# print(len(cfar_res_up))
-		# line1, = ax[0].plot(rng_ax, 20*np.log10(abs(fftu)))
-		# line2, = ax[1].plot(rng_ax, 20*np.log10(abs(fftd)))
-		# line3, = ax[2].plot(rng_ax, 20*np.log10(abs(fftu_pi)))
-		# line4, = ax[3].plot(rng_ax, 20*np.log10(abs(fftd_pi)))
+		line1.set_ydata(fftu)
+		line2.set_ydata(upth)
+		line3.set_ydata(fftd)
+		line4.set_ydata(dnth)
+		line5.set_ydata(os_pku)
+		line6.set_ydata(os_pkd)
 
-		line1, = ax[0].plot(I[0:200])
-		line2, = ax[1].plot(I[200:400])
-		line3, = ax[2].plot(I_pi[0:200])
-		line4, = ax[3].plot(Q_pi[200:400])
+		line1_pi.set_ydata(fftu_pi)
+		line2_pi.set_ydata(upth_pi)
+		line3_pi.set_ydata(fftd_pi)
+		line4_pi.set_ydata(dnth_pi)
 
-		ax[0].draw_artist(line1)
-		ax[1].draw_artist(line2)
-		ax[2].draw_artist(line3)
-		ax[3].draw_artist(line4)
-		fig1.canvas.blit(fig1.bbox)
-		fig1.canvas.flush_events()
+
+		line9 = ax[1].axvline(rng_ax[beat_index])
+		line10 = ax[1].axvline(rng_ax[beat_min])
+		line9.remove()
+		line10.remove()
 		
+		# print(cfar_res_dn)
+		# TRY THE BELOW:
+		# ani = FuncAnimation(plt.gcf(), update, interval=200)
+		# plt.show()
+		figure.canvas.draw()
+		# figure.savefig('temp.jpeg')
+		# ax[1].clear()
+		# sleep(0.5)
+		figure.canvas.flush_events()
+		# plt.plot(fftu)
+		# plt.show()
+		# plot1.set_xdata(x)
+		# plot1.set_ydata(update_y_value)
+	
+		# figure.canvas.draw()
+		# figure.canvas.flush_events()
+
+		# print("Processing time: ", t1_proc)
+		# if eng.workspace['safety']<10:
+		# 	print("Range of hazardous target: ", eng.workspace['targ_rng'])
+		# 	print("Speed of hazardous target: ", eng.workspace['targ_vel'])
+		# 	print("TOA of hazardous target: ", eng.workspace['safety'])
+		
+
 	print("Elapsed time: ", str(time()-t_0))
 
 	print("Complete.")

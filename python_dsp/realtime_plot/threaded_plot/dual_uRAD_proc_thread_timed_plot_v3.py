@@ -169,10 +169,9 @@ def rpi_urad_capture(duration):
 		ax[0].draw_artist(line1)
 		ax[1].draw_artist(line2)
 		fig1.canvas.blit(fig1.bbox)
-		fig1.savefig('thread_out1.jpeg')
+		# fig1.savefig('thread_out1.jpeg')
 		fig1.canvas.flush_events()
 		t1 = time() - t0
-		# fig1.canvas.flush_events()
 
 
 
@@ -218,7 +217,7 @@ def usb_urad_capture(duration):
 		ax[0].draw_artist(line1)
 		ax[1].draw_artist(line2)
 		fig2.canvas.blit(fig2.bbox)
-		fig2.savefig('thread_out2.jpeg')
+		# fig2.savefig('thread_out2.jpeg')
 		fig2.canvas.flush_events()
 		t1 = time() - t0
 

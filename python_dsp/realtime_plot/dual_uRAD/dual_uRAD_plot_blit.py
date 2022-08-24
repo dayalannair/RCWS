@@ -7,7 +7,7 @@ from pyDSPv2 import py_trig_dsp
 from datetime import datetime
 import numpy as np
 import matplotlib
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 # True if USB, False if UART
@@ -198,7 +198,9 @@ print("System running...")
 safety_inv = np.zeros(sweeps)
 safety_inv_pi = np.zeros(sweeps)
 
+fig1.set_size_inches(4, 4)
 plt.pause(0.1)
+
 bg1 = fig1.canvas.copy_from_bbox(fig1.bbox)
 
 ax[0].draw_artist(line1)
