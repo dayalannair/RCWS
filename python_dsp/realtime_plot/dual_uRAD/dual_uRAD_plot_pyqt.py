@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../../custom_modules')
 import uRAD_USB_SDK11
 import uRAD_RP_SDK10		# uRAD v1.1 RPi lib
 import serial
@@ -115,7 +117,7 @@ app = QtGui.QApplication([])
 p = pg.plot()
 p.setWindowTitle('live plot from serial')	
 pg_layout = pg.GraphicsLayoutWidget()
-# curve = p.plot()
+curve = p.plot()
 
 I_pi = [0] * 2 * Ns
 Q_pi = [0] * 2 * Ns
@@ -144,9 +146,6 @@ I = raw_results[0]
 Q = raw_results[1]
 rg_full = np.zeros(16*sweeps)
 os_pku, os_pkd, upth, dnth, fftu, fftd, safet, beat_index, beat_min,rg_array, sp_array = py_trig_dsp(I,Q)
-plt.ion()
-print(beat_index)
-print(beat_min)
 
 upth = 20*np.log(upth)
 dnth = 20*np.log(dnth)
@@ -169,44 +168,44 @@ p1 = plot1.plot()
 p2 = plot2.plot()
 
 pg_layout.show()
-sleep(1)
-figure, ax = plt.subplots(nrows=4, ncols=1, figsize=(10, 8))
-line1, = ax[0].plot(rng_ax, fftu)
-line2, = ax[0].plot(rng_ax, upth)
-line3, = ax[1].plot(rng_ax, fftd)
-line4, = ax[1].plot(rng_ax, dnth)
+# sleep(1)
+# figure, ax = plt.subplots(nrows=4, ncols=1, figsize=(10, 8))
+# line1, = ax[0].plot(rng_ax, fftu)
+# line2, = ax[0].plot(rng_ax, upth)
+# line3, = ax[1].plot(rng_ax, fftd)
+# line4, = ax[1].plot(rng_ax, dnth)
 
-ax[0].set_title("USB Down chirp spectrum negative half flipped")
-ax[1].set_title("USB Up chirp spectrum positive half")
+# ax[0].set_title("USB Down chirp spectrum negative half flipped")
+# ax[1].set_title("USB Up chirp spectrum positive half")
 
-ax[0].set_xlabel("Coupled Range (m)")
-ax[1].set_xlabel("Coupled Range (m)")
+# ax[0].set_xlabel("Coupled Range (m)")
+# ax[1].set_xlabel("Coupled Range (m)")
 
-ax[0].set_ylabel("Magnitude (dB)")
-ax[1].set_ylabel("Magnitude (dB)")
-
-
-line1_pi, = ax[2].plot(rng_ax, fftu)
-line2_pi, = ax[2].plot(rng_ax, upth)
-line3_pi, = ax[3].plot(rng_ax, fftd)
-line4_pi, = ax[3].plot(rng_ax, dnth)
-
-ax[2].set_title("RPI Down chirp spectrum negative half flipped")
-ax[3].set_title("RPI Up chirp spectrum positive half")
-
-ax[2].set_xlabel("Coupled Range (m)")
-ax[3].set_xlabel("Coupled Range (m)")
-
-ax[2].set_ylabel("Magnitude (dB)")
-ax[3].set_ylabel("Magnitude (dB)")
+# ax[0].set_ylabel("Magnitude (dB)")
+# ax[1].set_ylabel("Magnitude (dB)")
 
 
+# line1_pi, = ax[2].plot(rng_ax, fftu)
+# line2_pi, = ax[2].plot(rng_ax, upth)
+# line3_pi, = ax[3].plot(rng_ax, fftd)
+# line4_pi, = ax[3].plot(rng_ax, dnth)
 
-# CFAR stems
-# line5, = ax[0].stem([],cfar_res_up)
-# line6, = ax[1].stem([],cfar_res_dn)
-line5, = ax[0].plot(rng_ax, os_pku, markersize=20)
-line6, = ax[1].plot(rng_ax, os_pkd, markersize=20)
+# ax[2].set_title("RPI Down chirp spectrum negative half flipped")
+# ax[3].set_title("RPI Up chirp spectrum positive half")
+
+# ax[2].set_xlabel("Coupled Range (m)")
+# ax[3].set_xlabel("Coupled Range (m)")
+
+# ax[2].set_ylabel("Magnitude (dB)")
+# ax[3].set_ylabel("Magnitude (dB)")
+
+
+
+# # CFAR stems
+# # line5, = ax[0].stem([],cfar_res_up)
+# # line6, = ax[1].stem([],cfar_res_dn)
+# line5, = ax[0].plot(rng_ax, os_pku, markersize=20)
+# line6, = ax[1].plot(rng_ax, os_pkd, markersize=20)
 
 # line7, = ax[2].plot(rg_full)
 # line8, = ax[3].plot(sp_array)
@@ -240,9 +239,12 @@ try:
 		t1_proc = time()-t0_proc
 		p1.setData(20*np.log10(abs(fftu)))
 		pg_layout.show()
-		sleep(0.5)
+		# sleep(0.5)
 		# p1.setData(20*np.log10(fftd))
-		# curve.setData(20*np.log10(fftu))
+		curve.setData(20*np.log10(abs(fftu)))
+		curve.show()
+		app.exec_()
+		sleep(0.01)
 		# upth = 20*np.log(upth)
 		# dnth = 20*np.log(dnth)
 		# fftu = 20*np.log(abs(fftu))

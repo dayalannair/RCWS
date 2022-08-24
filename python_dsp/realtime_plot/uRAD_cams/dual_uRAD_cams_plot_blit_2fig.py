@@ -9,8 +9,9 @@ import sys
 from pyDSPv2 import py_trig_dsp
 from datetime import datetime
 import numpy as np
-import matplotlib
-matplotlib.use('TkAgg')
+import matplotlib as mpl
+mpl.rcParams['toolbar'] = 'None' 
+# matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import cv2
 from matplotlib.gridspec import GridSpec
@@ -149,75 +150,52 @@ fftd = 20*np.log(abs(fftd))
 os_pku = 20*np.log(abs(os_pku))
 os_pkd = 20*np.log(abs(os_pkd))
 
-fig1, ax = plt.subplots(nrows=4, ncols=2, figsize=(6, 4))
-fig1.tight_layout()
-line1, = ax[0, 1].plot(rng_ax, fftu)
-line2, = ax[0, 1].plot(rng_ax, upth)
-line3, = ax[1, 1].plot(rng_ax, fftd)
-line4, = ax[1, 1].plot(rng_ax, dnth)
-line1_pi, = ax[2, 1].plot(rng_ax, fftu)
-line2_pi, = ax[2, 1].plot(rng_ax, upth)
-line3_pi, = ax[3, 1].plot(rng_ax, fftd)
-line4_pi, = ax[3, 1].plot(rng_ax, dnth)
+# x = np.zeros(100, 100)
+# y = np.zeros(100, 100)
+fig1, ax = plt.subplots(nrows=4, ncols=1, figsize=(3, 3))
+line1, = ax[0].plot(rng_ax, fftu)
+line2, = ax[0].plot(rng_ax, upth)
+line3, = ax[1].plot(rng_ax, fftd)
+line4, = ax[1].plot(rng_ax, dnth)
+line1_pi, = ax[2].plot(rng_ax, fftu)
+line2_pi, = ax[2].plot(rng_ax, upth)
+line3_pi, = ax[3].plot(rng_ax, fftd)
+line4_pi, = ax[3].plot(rng_ax, dnth)
 
-# ax[0, 1].set_title("USB Down chirp spectrum negative half flipped")
-# ax[1, 1].set_title("USB Up chirp spectrum positive half")
+ax[0].set_title("USB Down chirp spectrum negative half flipped")
+ax[1].set_title("USB Up chirp spectrum positive half")
 
-# ax[0, 1].set_xlabel("Coupled Range (m)")
-# ax[1, 1].set_xlabel("Coupled Range (m)")
+ax[0].set_xlabel("Coupled Range (m)")
+ax[1].set_xlabel("Coupled Range (m)")
 
-# ax[0, 1].set_ylabel("Magnitude (dB)")
-# ax[1, 1].set_ylabel("Magnitude (dB)")
+ax[0].set_ylabel("Magnitude (dB)")
+ax[1].set_ylabel("Magnitude (dB)")
 
-# ax[2, 1].set_title("RPI Down chirp spectrum negative half flipped")
-# ax[3, 1].set_title("RPI Up chirp spectrum positive half")
+ax[2].set_title("RPI Down chirp spectrum negative half flipped")
+ax[3].set_title("RPI Up chirp spectrum positive half")
 
-# ax[2, 1].set_xlabel("Coupled Range (m)")
-# ax[3, 1].set_xlabel("Coupled Range (m)")
+ax[2].set_xlabel("Coupled Range (m)")
+ax[3].set_xlabel("Coupled Range (m)")
 
-# ax[2, 1].set_ylabel("Magnitude (dB)")
-# ax[3, 1].set_ylabel("Magnitude (dB)")
+ax[2].set_ylabel("Magnitude (dB)")
+ax[3].set_ylabel("Magnitude (dB)")
 
 
-
-# CFAR stems
-# line5, = ax[0].stem([],cfar_res_up)
-# line6, = ax[1].stem([],cfar_res_dn)
-# line5, = ax[0].plot(rng_ax, os_pku, markersize=20)
-# line6, = ax[1].plot(rng_ax, os_pkd, markersize=20)
-
-# line7, = ax[2].plot(rg_full)
-# line8, = ax[3].plot(sp_array)
-
-# ax[1].axvline(rng_ax[beat_index])
-# ax[1].axvline(rng_ax[beat_min])
-# print(cfar_res_dn)
-# eng.eval("load(\'urad_trig_proc_config.mat\')")
 print("System running...")
 safety_inv = np.zeros(sweeps)
 safety_inv_pi = np.zeros(sweeps)
 plt.pause(0.1)
 bg1 = fig1.canvas.copy_from_bbox(fig1.bbox)
 
-# ax[0, 1].draw_artist(line1)
-# ax[0, 1].draw_artist(line2)
-# ax[1, 1].draw_artist(line3)
-# ax[1, 1].draw_artist(line4)
+# ax[0].draw_artist(line1)
+# ax[0].draw_artist(line2)
+# ax[1].draw_artist(line3)
+# ax[1].draw_artist(line4)
 
-# ax[2, 1].draw_artist(line1_pi)
-# ax[2, 1].draw_artist(line2_pi)
-# ax[3, 1].draw_artist(line3_pi)
-# ax[3, 1].draw_artist(line4_pi)
-
-# ax[0, 1].draw_artist(line1)
-# ax[0, 1].draw_artist(line2)
-# ax[1, 1].draw_artist(line3)
-# ax[1, 1].draw_artist(line4)
-
-# ax[2, 1].draw_artist(line1_pi)
-# ax[2, 1].draw_artist(line2_pi)
-# ax[3, 1].draw_artist(line3_pi)
-# ax[3, 1].draw_artist(line4_pi)
+# ax[2].draw_artist(line1_pi)
+# ax[2].draw_artist(line2_pi)
+# ax[3].draw_artist(line3_pi)
+# ax[3].draw_artist(line4_pi)
 
 
 fig1.canvas.blit(fig1.bbox)
@@ -241,15 +219,15 @@ out2 = cv2.VideoWriter('out2.avi',fourcc, 20.0, (320,240))
 ret,frame1 = cap1.read()
 ret,frame2 = cap2.read()
 
-# ax[[0, 1], 1].imshow(frame1)
-# ax[[2, 3], 1].imshow(frame2)
-
-fig2, ax2 = plt.subplots(nrows=2, ncols=1, figsize=(3, 4))
-fig2.tight_layout()
+fig2, ax2 = plt.subplots(nrows=2, ncols=1, figsize=(3, 3))
 bg2 = fig2.canvas.copy_from_bbox(fig2.bbox)
 fig2.canvas.blit(fig2.bbox)
 ax2[0].imshow(frame1)
 ax2[1].imshow(frame2)
+
+# mngr = plt.get_current_fig_manager()
+# # to put it into the upper left corner for example:
+# mngr.window.setGeometry(50,200,320, 240)
 try:
 	for i in range(sweeps):
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
@@ -302,15 +280,15 @@ try:
 		# line9.remove()
 		# line10.remove()
 		
-		ax[0, 1].draw_artist(line1)
-		ax[0, 1].draw_artist(line2)
-		ax[1, 1].draw_artist(line3)
-		ax[1, 1].draw_artist(line4)
+		ax[0].draw_artist(line1)
+		ax[0].draw_artist(line2)
+		ax[1].draw_artist(line3)
+		ax[1].draw_artist(line4)
 
-		ax[2, 1].draw_artist(line1_pi)
-		ax[2, 1].draw_artist(line2_pi)
-		ax[3, 1].draw_artist(line3_pi)
-		ax[3, 1].draw_artist(line4_pi)
+		ax[2].draw_artist(line1_pi)
+		ax[2].draw_artist(line2_pi)
+		ax[3].draw_artist(line3_pi)
+		ax[3].draw_artist(line4_pi)
 		fig1.canvas.blit(fig1.bbox)
 		fig1.canvas.flush_events()
 		
