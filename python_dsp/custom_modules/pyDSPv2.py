@@ -4,9 +4,8 @@ from turtle import up
 from os_cfar_v4 import os_cfar
 import numpy as np
 from scipy.fft import fft
-from scipy import signal
 
-def py_trig_dsp(i_data, q_data):
+def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, f_ax):
 
 	# SQUARE LAW DETECTOR
 	# NOTE: last element in slice not included
@@ -15,12 +14,11 @@ def py_trig_dsp(i_data, q_data):
 
 	# TAYLOR WINDOW
 	# SLL specified as positive
-	twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
 	iq_u = np.multiply(iq_u, twin)
 	iq_d = np.multiply(iq_d, twin)
 
 	# 512-point FFT
-	n_fft = 512 
+	 
 	IQ_UP = fft(iq_u,n_fft)
 	IQ_DN = fft(iq_d,n_fft)
 
@@ -31,27 +29,14 @@ def py_trig_dsp(i_data, q_data):
 
 	# print(len(IQ_UP))   
 	# Null feedthrough
-	nul_width_factor = 0.04
-	num_nul = round((n_fft/2)*nul_width_factor)
 	# note: python starts from zero for this!
 	IQ_UP[0:num_nul-1] = 0
 	IQ_DN[len(IQ_DN)-num_nul:] = 0
 	# print(len(IQ_UP))
 	IQ_DN = np.flip(IQ_DN)
-	# OS CFAR
-	n_samples = len(iq_u)
-	half_guard = n_fft/n_samples
-	half_guard = int(np.floor(half_guard/2)*2) # make even
-
-	half_train = round(20*n_fft/n_samples)
-	half_train = int(np.floor(half_train/2))
-	rank = 2*half_train -2*half_guard
-	# rank = half_train*2
-	Pfa_expected = 15e-3
-	# factorial needs integer values
-	SOS = 2
+	
 	# note the abs
-
+	SOS = 2
 	# -------------------- CFAR detection ---------------------------
 	cfar_scale = 1 # additional scaling factor
 	Pfa, os_pku, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
@@ -67,8 +52,7 @@ def py_trig_dsp(i_data, q_data):
 	# IQ_DN = 20*np.log(abs(IQ_DN))
 	# os_pku = 20*np.log(abs(cfar_res_up))
 	# os_pkd = 20*np.log(abs(cfar_res_dn))
-	nbins = 16
-	bin_width = round((n_fft/2)/nbins)
+	
 	fbu = np.zeros(nbins)
 	fbd = np.zeros(nbins)
 
@@ -77,22 +61,18 @@ def py_trig_dsp(i_data, q_data):
 	sp_array = np.zeros(nbins)
 	sp_array_corrected = np.zeros(nbins)
 	beat_arr = np.zeros(nbins)
-	fs = 200e3
-	lmda = 0.0125
-	# tsweep = 1e-3
-	# bw = 240e6
-	# # can optimise out this calculation
-	# slope = bw/tsweep
-	slope = 2.4e11
-	c = 3e8
-	f_ax = np.linspace(0, round(fs/2), round(n_fft/2))
-	road_width = 2
-	correction_factor = 3
-	fd_max = 2.6667e3 # for max speed = 60km/h
+
 	safety_inv = 0
 	safety = 0
 	beat_min = 0
 	beat_index = 0
+	slope = 2.4e11
+	c = 3e8
+	
+	lmda = 0.0125
+	road_width = 2
+	correction_factor = 3
+	fd_max = 2.6667e3 # for max speed = 60km/h
 	# ********************* beat extraction for multiple targets **************************
 	for bin in range(nbins):
 		# find beat in bin
