@@ -224,8 +224,6 @@ sleep(1)
 
 # # Define the codec and create VideoWriter object
 fourcc = cv2.VideoWriter_fourcc(*'X264')
-out1 = cv2.VideoWriter('out1.avi',fourcc, 20.0, (320,240))
-out2 = cv2.VideoWriter('out2.avi',fourcc, 20.0, (320,240))
 
 # ret,frame1 = cap1.read()
 # ret,frame2 = cap2.read()
@@ -316,28 +314,18 @@ try:
 		fig1.canvas.blit(fig1.bbox)
 		fig1.canvas.flush_events()
 		
-	cap1.release()
-	cap2.release()
-	out1.release()
-	out2.release()
-	uRAD_RP_SDK10.turnOFF()
-	uRAD_USB_SDK11.turnOFF(ser)
 
 	print("Elapsed time: ", str(time()-t_0))
 
 	print("Complete.")
 	cap1.release()
 	cap2.release()
-	out1.release()
-	out2.release()
 	uRAD_RP_SDK10.turnOFF()
 	uRAD_USB_SDK11.turnOFF(ser)
 	
 except KeyboardInterrupt:
 	cap1.release()
 	cap2.release()
-	out1.release()
-	out2.release()
 	uRAD_RP_SDK10.turnOFF()
 	uRAD_USB_SDK11.turnOFF(ser)
 	print("Interrupted.")
