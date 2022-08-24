@@ -9,11 +9,19 @@ import sys
 from pyDSPv2 import py_trig_dsp
 from datetime import datetime
 import numpy as np
-import matplotlib
-matplotlib.use('TkAgg')
+import matplotlib as mpl
+mpl.rcParams['path.simplify'] = True
+mpl.rcParams['path.simplify_threshold'] = 1.0
+import matplotlib.style as mplstyle
+mplstyle.use(['dark_background', 'ggplot', 'fast'])
+
 import matplotlib.pyplot as plt
 import cv2
 from matplotlib.gridspec import GridSpec
+from scipy import signal
+
+import threading
+
 # True if USB, False if UART
 usb_communication = True
 
@@ -21,11 +29,11 @@ try:
 	mode_in = str(sys.argv[1])
 	BW = int(sys.argv[2])
 	Ns = int(sys.argv[3])
-	sweeps = int(sys.argv[4])
+	duration = int(sys.argv[4])
 	t = localtime()
 	now = strftime("%H-%M-%S", t)  
 	fs = 200000
-	runtime = sweeps*Ns/200000
+	# runtime = sweeps*Ns/200000
 	if mode_in == "s":
 		print("********** SAWTOOTH MODE **********")
 		resultsFileName = 'IQ_saw_' + str(BW) + '_' + str(Ns) +  '_' + str(now) + '.txt'
@@ -41,8 +49,8 @@ try:
 	else: 
 		print("Invalid mode")
 		exit()
-	print("BW = ",str(BW),"\nNs = ",str(Ns),"\nSweeps = ",str(sweeps))
-	print("Expected run time (saw): ",str(runtime))
+	# print("BW = ",str(BW),"\nNs = ",str(Ns),"\nSweeps = ",str(sweeps))
+	# print("Expected run time (saw): ",str(runtime))
 except: 
 	print("Invalid mode")
 	exit()
@@ -136,8 +144,34 @@ if (return_code != 0):
 		# call matlab dsp
 I = raw_results[0]
 Q = raw_results[1]
-rg_full = np.zeros(16*sweeps)
-os_pku, os_pkd, upth, dnth, fftu, fftd, safet, beat_index, beat_min,rg_array, sp_array = py_trig_dsp(I,Q)
+# rg_full = np.zeros(16*sweeps)
+n_fft = 512
+twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
+nul_width_factor = 0.04
+num_nul = round((n_fft/2)*nul_width_factor)
+# OS CFAR
+n_samples = 200
+half_guard = n_fft/n_samples
+half_guard = int(np.floor(half_guard/2)*2) # make even
+
+half_train = round(20*n_fft/n_samples)
+half_train = int(np.floor(half_train/2))
+rank = 2*half_train -2*half_guard
+# rank = half_train*2
+Pfa_expected = 15e-3
+# factorial needs integer values
+
+
+nbins = 16
+bin_width = round((n_fft/2)/nbins)
+
+# tsweep = 1e-3
+# bw = 240e6
+# # can optimise out this calculation
+# slope = bw/tsweep
+fs = 200e3
+f_ax = np.linspace(0, round(fs/2), round(n_fft/2))
+os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, sp_array = py_trig_dsp(I,Q, twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, f_ax)
 plt.ion()
 print(beat_index)
 print(beat_min)
@@ -179,46 +213,11 @@ line4_pi, = ax[3, 1].plot(rng_ax, dnth)
 # ax[3, 1].set_ylabel("Magnitude (dB)")
 
 
-
-# CFAR stems
-# line5, = ax[0].stem([],cfar_res_up)
-# line6, = ax[1].stem([],cfar_res_dn)
-# line5, = ax[0].plot(rng_ax, os_pku, markersize=20)
-# line6, = ax[1].plot(rng_ax, os_pkd, markersize=20)
-
-# line7, = ax[2].plot(rg_full)
-# line8, = ax[3].plot(sp_array)
-
-# ax[1].axvline(rng_ax[beat_index])
-# ax[1].axvline(rng_ax[beat_min])
-# print(cfar_res_dn)
-# eng.eval("load(\'urad_trig_proc_config.mat\')")
 print("System running...")
-safety_inv = np.zeros(sweeps)
-safety_inv_pi = np.zeros(sweeps)
+# safety_inv = np.zeros(sweeps)
+# safety_inv_pi = np.zeros(sweeps)
 plt.pause(0.1)
 bg1 = fig1.canvas.copy_from_bbox(fig1.bbox)
-
-# ax[0, 1].draw_artist(line1)
-# ax[0, 1].draw_artist(line2)
-# ax[1, 1].draw_artist(line3)
-# ax[1, 1].draw_artist(line4)
-
-# ax[2, 1].draw_artist(line1_pi)
-# ax[2, 1].draw_artist(line2_pi)
-# ax[3, 1].draw_artist(line3_pi)
-# ax[3, 1].draw_artist(line4_pi)
-
-# ax[0, 1].draw_artist(line1)
-# ax[0, 1].draw_artist(line2)
-# ax[1, 1].draw_artist(line3)
-# ax[1, 1].draw_artist(line4)
-
-# ax[2, 1].draw_artist(line1_pi)
-# ax[2, 1].draw_artist(line2_pi)
-# ax[3, 1].draw_artist(line3_pi)
-# ax[3, 1].draw_artist(line4_pi)
-
 
 fig1.canvas.blit(fig1.bbox)
 # ======================= CAMERAS ================================
@@ -235,23 +234,54 @@ sleep(1)
 
 # # Define the codec and create VideoWriter object
 fourcc = cv2.VideoWriter_fourcc(*'X264')
-# out1 = cv2.VideoWriter('out1.avi',fourcc, 20.0, (320,240))
-# out2 = cv2.VideoWriter('out2.avi',fourcc, 20.0, (320,240))
 
 ret,frame1 = cap1.read()
 ret,frame2 = cap2.read()
 
-# ax[[0, 1], 1].imshow(frame1)
-# ax[[2, 3], 1].imshow(frame2)
+def capture(duration, cap1, cap2):
+	win1 = "Win 1"
+	cv2.namedWindow(win1, cv2.WINDOW_NORMAL)    
+	cv2.resizeWindow(win1, 200, 200)
+	cv2.moveWindow(win1, 0,0)  
 
-fig2, ax2 = plt.subplots(nrows=2, ncols=1, figsize=(3, 4))
-fig2.tight_layout()
-bg2 = fig2.canvas.copy_from_bbox(fig2.bbox)
-fig2.canvas.blit(fig2.bbox)
-ax2[0].imshow(frame1)
-ax2[1].imshow(frame2)
+	win2 = "Win 2"
+	cv2.namedWindow(win2, cv2.WINDOW_NORMAL)     
+	cv2.resizeWindow(win2, 200, 200)
+	cv2.moveWindow(win2, 0,200)  
+	t0 = time()
+	t1 = 0
+	print("Video initialised")
+	while (t1<duration):
+		ret1,frame1 = cap1.read()
+		ret2,frame2 = cap2.read()
+		cv2.imshow(win1,frame1)
+		cv2.imshow(win2,frame2)
+		cv2.waitKey(1)
+		t1 = time() - t0
+	cap2.release()	
+	cap1.release()
+
+vid1 = threading.Thread(target=capture, args=[duration, cap1, cap2])
+# vid2 = threading.Thread(target=capture, args=[sweeps, cap2, win2])
+
 try:
-	for i in range(sweeps):
+	vid1.start()
+	t0 = time()
+	t1 = 0
+	# vid2.start()
+	while (t1<duration):
+		# ret,frame1 = cap1.read()
+		# ret,frame2 = cap2.read()
+		# # fig2.canvas.restore_region(bg2)
+		# # ax2[0].imshow(frame1)
+		# # ax2[1].imshow(frame2)
+		# # fig2.canvas.blit(fig2.bbox)
+		# # fig2.canvas.flush_events()
+
+		# cv2.imshow(win1,frame1)
+		# cv2.imshow(win2,frame2)
+		# cv2.waitKey(1)
+
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 		if (return_code != 0):
 			closeProgram()
@@ -264,11 +294,11 @@ try:
 		I = raw_results[0]
 		Q = raw_results[1]
 		t0_proc = time()
-		os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv[i], beat_index, beat_min, rg_array, sp_array = py_trig_dsp(I,Q)
-		os_pku_pi, os_pkd_pi, upth_pi, dnth_pi, fftu_pi, fftd_pi, safety_inv_pi[i], beat_index_pi, beat_min_pi, rg_array_pi, sp_array_pi = py_trig_dsp(I_pi,Q_pi)
-		np.concatenate((rg_full, rg_array))
-		rg_full[i*16:(i+1)*16] = rg_array
-		print(safety_inv[i])
+		os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, sp_array = py_trig_dsp(I,Q, twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, f_ax)
+		os_pku_pi, os_pkd_pi, upth_pi, dnth_pi, fftu_pi, fftd_pi, safety_inv_pi, beat_index_pi, beat_min_pi, rg_array_pi, sp_array_pi = py_trig_dsp(I_pi,Q_pi, twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, f_ax)
+		# np.concatenate((rg_full, rg_array))
+		# rg_full[i*16:(i+1)*16] = rg_array
+		# print(safety_inv[i])
 		t1_proc = time()-t0_proc
 
 		upth = 20*np.log(upth)
@@ -313,37 +343,21 @@ try:
 		ax[3, 1].draw_artist(line4_pi)
 		fig1.canvas.blit(fig1.bbox)
 		fig1.canvas.flush_events()
+		t1 = time() - t0
 		
-
-		ret,frame1 = cap1.read()
-		ret,frame2 = cap2.read()
-		fig2.canvas.restore_region(bg2)
-		ax2[0].imshow(frame1)
-		ax2[1].imshow(frame2)
-		fig2.canvas.blit(fig2.bbox)
-		fig2.canvas.flush_events()
-		# ret,frame1 = cap1.read()
-		# # im2 = ax2.imshow(grab_frame(cap2))
-		# cv2.imshow('frame',frame1)
-		# ret,frame2 = cap2.read()
-		# # im2 = ax2.imshow(grab_frame(cap2))
-		# cv2.imshow('frame',frame2)
-
+	vid1.join()
+	# vid2.join()
 	print("Elapsed time: ", str(time()-t_0))
 
 	print("Complete.")
 	cap1.release()
 	cap2.release()
-	# out1.release()
-	# out2.release()
 	uRAD_RP_SDK10.turnOFF()
 	uRAD_USB_SDK11.turnOFF(ser)
 	
 except KeyboardInterrupt:
 	cap1.release()
 	cap2.release()
-	# out1.release()
-	# out2.release()
 	uRAD_RP_SDK10.turnOFF()
 	uRAD_USB_SDK11.turnOFF(ser)
 	print("Interrupted.")
