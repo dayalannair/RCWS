@@ -176,41 +176,41 @@ plt.ion()
 print(beat_index)
 print(beat_min)
 plt.show(block=False)
-upth = 20*np.log(upth)
-dnth = 20*np.log(dnth)
-fftu = 20*np.log(abs(fftu))
-fftd = 20*np.log(abs(fftd))
-os_pku = 20*np.log(abs(os_pku))
-os_pkd = 20*np.log(abs(os_pkd))
+upth = 20*np.log10(upth)
+dnth = 20*np.log10(dnth)
+fftu = 20*np.log10(abs(fftu))
+fftd = 20*np.log10(abs(fftd))
+os_pku = 20*np.log10(abs(os_pku))
+os_pkd = 20*np.log10(abs(os_pkd))
 
-fig1, ax = plt.subplots(nrows=4, ncols=2, figsize=(6, 4))
+fig1, ax = plt.subplots(nrows=4, ncols=1, figsize=(3.5, 4))
 fig1.tight_layout()
-line1, = ax[0, 1].plot(rng_ax, fftu)
-line2, = ax[0, 1].plot(rng_ax, upth)
-line3, = ax[1, 1].plot(rng_ax, fftd)
-line4, = ax[1, 1].plot(rng_ax, dnth)
-line1_pi, = ax[2, 1].plot(rng_ax, fftu)
-line2_pi, = ax[2, 1].plot(rng_ax, upth)
-line3_pi, = ax[3, 1].plot(rng_ax, fftd)
-line4_pi, = ax[3, 1].plot(rng_ax, dnth)
+line1, = ax[0].plot(rng_ax, fftu)
+line2, = ax[0].plot(rng_ax, upth)
+line3, = ax[1].plot(rng_ax, fftd)
+line4, = ax[1].plot(rng_ax, dnth)
+line1_pi, = ax[2].plot(rng_ax, fftu)
+line2_pi, = ax[2].plot(rng_ax, upth)
+line3_pi, = ax[3].plot(rng_ax, fftd)
+line4_pi, = ax[3].plot(rng_ax, dnth)
 
-# ax[0, 1].set_title("USB Down chirp spectrum negative half flipped")
-# ax[1, 1].set_title("USB Up chirp spectrum positive half")
+ax[0].set_title("USB Down chirp spectrum negative half flipped")
+ax[1].set_title("USB Up chirp spectrum positive half")
 
-# ax[0, 1].set_xlabel("Coupled Range (m)")
-# ax[1, 1].set_xlabel("Coupled Range (m)")
+ax[0].set_xlabel("Coupled Range (m)")
+ax[1].set_xlabel("Coupled Range (m)")
 
-# ax[0, 1].set_ylabel("Magnitude (dB)")
-# ax[1, 1].set_ylabel("Magnitude (dB)")
+ax[0].set_ylabel("Magnitude (dB)")
+ax[1].set_ylabel("Magnitude (dB)")
 
-# ax[2, 1].set_title("RPI Down chirp spectrum negative half flipped")
-# ax[3, 1].set_title("RPI Up chirp spectrum positive half")
+ax[2].set_title("RPI Down chirp spectrum negative half flipped")
+ax[3].set_title("RPI Up chirp spectrum positive half")
 
-# ax[2, 1].set_xlabel("Coupled Range (m)")
-# ax[3, 1].set_xlabel("Coupled Range (m)")
+ax[2].set_xlabel("Coupled Range (m)")
+ax[3].set_xlabel("Coupled Range (m)")
 
-# ax[2, 1].set_ylabel("Magnitude (dB)")
-# ax[3, 1].set_ylabel("Magnitude (dB)")
+ax[2].set_ylabel("Magnitude (dB)")
+ax[3].set_ylabel("Magnitude (dB)")
 
 
 print("System running...")
@@ -241,13 +241,13 @@ ret,frame2 = cap2.read()
 def capture(duration, cap1, cap2):
 	win1 = "Win 1"
 	cv2.namedWindow(win1, cv2.WINDOW_NORMAL)    
-	cv2.resizeWindow(win1, 200, 200)
-	cv2.moveWindow(win1, 0,0)  
+	cv2.resizeWindow(win1, 320, 240)
+	cv2.moveWindow(win1, 400,0)  
 
 	win2 = "Win 2"
 	cv2.namedWindow(win2, cv2.WINDOW_NORMAL)     
-	cv2.resizeWindow(win2, 200, 200)
-	cv2.moveWindow(win2, 0,200)  
+	cv2.resizeWindow(win2, 320, 240)
+	cv2.moveWindow(win2, 400,200)  
 	t0 = time()
 	t1 = 0
 	print("Video initialised")
@@ -262,35 +262,19 @@ def capture(duration, cap1, cap2):
 	cap1.release()
 
 vid1 = threading.Thread(target=capture, args=[duration, cap1, cap2])
-# vid2 = threading.Thread(target=capture, args=[sweeps, cap2, win2])
-
 try:
 	vid1.start()
 	t0 = time()
 	t1 = 0
-	# vid2.start()
-	while (t1<duration):
-		# ret,frame1 = cap1.read()
-		# ret,frame2 = cap2.read()
-		# # fig2.canvas.restore_region(bg2)
-		# # ax2[0].imshow(frame1)
-		# # ax2[1].imshow(frame2)
-		# # fig2.canvas.blit(fig2.bbox)
-		# # fig2.canvas.flush_events()
 
-		# cv2.imshow(win1,frame1)
-		# cv2.imshow(win2,frame2)
-		# cv2.waitKey(1)
+	while (t1<duration):
 
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 		if (return_code != 0):
 			closeProgram()
 		uRAD_RP_SDK10.detection(0, 0, 0, I_pi, Q_pi, 0)
-		# print(I_pi)
-		# sleep(10)
-		# I.append(raw_results[0])
-		# Q.append(raw_results[1])
-		# call matlab dsp
+
+
 		I = raw_results[0]
 		Q = raw_results[1]
 		t0_proc = time()
@@ -301,17 +285,17 @@ try:
 		# print(safety_inv[i])
 		t1_proc = time()-t0_proc
 
-		upth = 20*np.log(upth)
-		dnth = 20*np.log(dnth)
-		fftu = 20*np.log(abs(fftu))
-		fftd = 20*np.log(abs(fftd))
-		os_pku = 20*np.log(abs(os_pku))
-		os_pkd = 20*np.log(abs(os_pkd))
+		upth = 20*np.log10(upth)
+		dnth = 20*np.log10(dnth)
+		fftu = 20*np.log10(abs(fftu))
+		fftd = 20*np.log10(abs(fftd))
+		os_pku = 20*np.log10(abs(os_pku))
+		os_pkd = 20*np.log10(abs(os_pkd))
 
-		upth_pi = 20*np.log(upth_pi)
-		dnth_pi = 20*np.log(dnth_pi)
-		fftu_pi = 20*np.log(abs(fftu_pi))
-		fftd_pi = 20*np.log(abs(fftd_pi))
+		upth_pi = 20*np.log10(upth_pi)
+		dnth_pi = 20*np.log10(dnth_pi)
+		fftu_pi = 20*np.log10(abs(fftu_pi))
+		fftd_pi = 20*np.log10(abs(fftd_pi))
 
 		fig1.canvas.restore_region(bg1)
 		# print(len(cfar_res_up))
@@ -332,15 +316,15 @@ try:
 		# line9.remove()
 		# line10.remove()
 		
-		ax[0, 1].draw_artist(line1)
-		ax[0, 1].draw_artist(line2)
-		ax[1, 1].draw_artist(line3)
-		ax[1, 1].draw_artist(line4)
+		ax[0].draw_artist(line1)
+		ax[0].draw_artist(line2)
+		ax[1].draw_artist(line3)
+		ax[1].draw_artist(line4)
 
-		ax[2, 1].draw_artist(line1_pi)
-		ax[2, 1].draw_artist(line2_pi)
-		ax[3, 1].draw_artist(line3_pi)
-		ax[3, 1].draw_artist(line4_pi)
+		ax[2].draw_artist(line1_pi)
+		ax[2].draw_artist(line2_pi)
+		ax[3].draw_artist(line3_pi)
+		ax[3].draw_artist(line4_pi)
 		fig1.canvas.blit(fig1.bbox)
 		fig1.canvas.flush_events()
 		t1 = time() - t0
