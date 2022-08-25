@@ -171,7 +171,8 @@ bin_width = round((n_fft/2)/nbins)
 # slope = bw/tsweep
 fs = 200e3
 f_ax = np.linspace(0, round(fs/2), round(n_fft/2))
-os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, sp_array = py_trig_dsp(I,Q, twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, f_ax)
+os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, \
+	sp_array = py_trig_dsp(I,Q, twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, f_ax)
 plt.ion()
 print(beat_index)
 print(beat_min)
@@ -262,6 +263,53 @@ def capture(duration, cap1, cap2):
 	cap1.release()
 
 vid1 = threading.Thread(target=capture, args=[duration, cap1, cap2])
+
+def dsp_thread_usb():
+	global n_fft
+	global twin
+	global num_nul
+	global half_guard
+	global half_train
+	global f_ax
+	global bin_width
+	global nbins
+	global rank
+	global upth
+	global dnth
+	global fftd
+	global fftu
+	global I
+	global Q
+	return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
+	if (return_code != 0):
+		closeProgram()
+	os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min,\
+	rg_array, sp_array = py_trig_dsp(raw_results[0],raw_results[1], twin, n_fft, num_nul, half_train, \
+	half_guard, rank, nbins, bin_width, f_ax)
+
+def dsp_thread_rpi():
+	global n_fft
+	global twin
+	global num_nul
+	global half_guard
+	global half_train
+	global f_ax
+	global bin_width
+	global nbins
+	global rank
+	global upth_pi
+	global dnth_pi
+	global fftd_pi
+	global fftu_pi
+	global I_pi
+	global Q_pi
+	uRAD_RP_SDK10.detection(0, 0, 0, I_pi, Q_pi, 0)
+	os_pku, os_pkd, upth_pi, dnth_pi, fftu_pi, fftd_pi, safety_inv, beat_index, beat_min,\
+	rg_array, sp_array = py_trig_dsp(I_pi,Q_pi, twin, n_fft, num_nul, half_train, \
+	half_guard, rank, nbins, bin_width, f_ax)
+
+proc_usb = threading.Thread(target=dsp_thread_usb, args=[])
+proc_rpi = threading.Thread(target=dsp_thread_rpi, args=[])
 try:
 	vid1.start()
 	t0 = time()
@@ -269,47 +317,40 @@ try:
 
 	while (t1<duration):
 
-		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
-		if (return_code != 0):
-			closeProgram()
-		uRAD_RP_SDK10.detection(0, 0, 0, I_pi, Q_pi, 0)
-
-
-		I = raw_results[0]
-		Q = raw_results[1]
+		# I = raw_results[0]
+		# Q = raw_results[1]
+		proc_usb = threading.Thread(target=dsp_thread_usb, args=[])
+		proc_rpi = threading.Thread(target=dsp_thread_rpi, args=[])
 		t0_proc = time()
-		os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, sp_array = py_trig_dsp(I,Q, twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, f_ax)
-		os_pku_pi, os_pkd_pi, upth_pi, dnth_pi, fftu_pi, fftd_pi, safety_inv_pi, beat_index_pi, beat_min_pi, rg_array_pi, sp_array_pi = py_trig_dsp(I_pi,Q_pi, twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, f_ax)
+		proc_usb.start()
+		proc_rpi.start()
+		proc_usb.join()
+		proc_rpi.join()
+		# os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, sp_array = py_trig_dsp(I,Q, twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, f_ax)
+		# os_pku_pi, os_pkd_pi, upth_pi, dnth_pi, fftu_pi, fftd_pi, safety_inv_pi, beat_index_pi, beat_min_pi, rg_array_pi, sp_array_pi = py_trig_dsp(I_pi,Q_pi, twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, f_ax)
+		
+		
 		# np.concatenate((rg_full, rg_array))
 		# rg_full[i*16:(i+1)*16] = rg_array
 		# print(safety_inv[i])
 		t1_proc = time()-t0_proc
 
-		upth = 20*np.log10(upth)
-		dnth = 20*np.log10(dnth)
-		fftu = 20*np.log10(abs(fftu))
-		fftd = 20*np.log10(abs(fftd))
-		os_pku = 20*np.log10(abs(os_pku))
-		os_pkd = 20*np.log10(abs(os_pkd))
-
-		upth_pi = 20*np.log10(upth_pi)
-		dnth_pi = 20*np.log10(dnth_pi)
-		fftu_pi = 20*np.log10(abs(fftu_pi))
-		fftd_pi = 20*np.log10(abs(fftd_pi))
+		# os_pku = 20*np.log10(abs(os_pku))
+		# os_pkd = 20*np.log10(abs(os_pkd))
 
 		fig1.canvas.restore_region(bg1)
 		# print(len(cfar_res_up))
-		line1.set_ydata(fftu)
-		line2.set_ydata(upth)
-		line3.set_ydata(fftd)
-		line4.set_ydata(dnth)
+		line1.set_ydata(20*np.log10(abs(fftu)))
+		line2.set_ydata(20*np.log10(upth))
+		line3.set_ydata(20*np.log10(abs(fftd)))
+		line4.set_ydata(20*np.log10(dnth))
 		# line5.set_ydata(os_pku)
 		# line6.set_ydata(os_pkd)
 
-		line1_pi.set_ydata(fftu_pi)
-		line2_pi.set_ydata(upth_pi)
-		line3_pi.set_ydata(fftd_pi)
-		line4_pi.set_ydata(dnth_pi)
+		line1_pi.set_ydata(20*np.log10(abs(fftu_pi)))
+		line2_pi.set_ydata(20*np.log10(upth_pi))
+		line3_pi.set_ydata(20*np.log10(abs(fftd_pi)))
+		line4_pi.set_ydata(20*np.log10(dnth_pi))
 
 		# line9 = ax[1].axvline(rng_ax[beat_index])
 		# line10 = ax[1].axvline(rng_ax[beat_min])
