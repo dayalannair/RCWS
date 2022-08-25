@@ -7,11 +7,11 @@ import serial
 from time import time, sleep, strftime,localtime
 import sys
 from pyDSPv2 import py_trig_dsp
-from datetime import datetime
 import numpy as np
 import matplotlib as mpl
 mpl.rcParams['path.simplify'] = True
 mpl.rcParams['path.simplify_threshold'] = 1.0
+mpl.rcParams['toolbar'] = 'None' 
 import matplotlib.style as mplstyle
 mplstyle.use(['dark_background', 'ggplot', 'fast'])
 
@@ -134,7 +134,7 @@ fax = np.linspace(0, round(fs/2), round(nfft/2))
 tsweep = 1e-3
 bw = 240e6
 slope = bw/tsweep
-c = 3e8
+c = 299792458
 rng_ax = c*fax/(2*slope)
 return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 if (return_code != 0):
@@ -352,8 +352,8 @@ try:
 		line3_pi.set_ydata(20*np.log10(abs(fftd_pi)))
 		line4_pi.set_ydata(20*np.log10(dnth_pi))
 
-		# line9 = ax[1].axvline(rng_ax[beat_index])
-		# line10 = ax[1].axvline(rng_ax[beat_min])
+		line9 = ax[1].axvline(rng_ax[beat_index])
+		line10 = ax[1].axvline(rng_ax[beat_min])
 		# line9.remove()
 		# line10.remove()
 		
