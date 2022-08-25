@@ -18,7 +18,6 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, ra
 	iq_d = np.multiply(iq_d, twin)
 
 	# 512-point FFT
-	 
 	IQ_UP = fft(iq_u,n_fft)
 	IQ_DN = fft(iq_d,n_fft)
 
@@ -67,7 +66,7 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, ra
 	beat_min = 0
 	beat_index = 0
 	slope = 2.4e11
-	c = 3e8
+	c = 299792458
 	
 	lmda = 0.0125
 	road_width = 2

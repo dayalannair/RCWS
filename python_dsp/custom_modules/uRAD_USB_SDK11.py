@@ -108,19 +108,19 @@ def loadConfiguration(ser, mode, f0, BW, Ns, Ntar, Rmax, MTI, Mth, Alpha, distan
 
 def detection(ser):
 
-	if (get_distance or get_velocity or get_SNR):
-		NtarDetected = 0
-		buff_temp = [0]*4
-		distance = [0]*NtarMax
-		velocity = [0]*NtarMax
-		SNR = [0]*NtarMax
-		movement = False
-	else:
-		NtarDetected = 0
-		distance = []
-		velocity = []
-		SNR = []
-		movement = False
+	# if (get_distance or get_velocity or get_SNR):
+	# 	NtarDetected = 0
+	# 	buff_temp = [0]*4
+	# 	distance = [0]*NtarMax
+	# 	velocity = [0]*NtarMax
+	# 	SNR = [0]*NtarMax
+	# 	movement = False
+	# else:
+	# 	NtarDetected = 0
+	# 	distance = []
+	# 	velocity = []
+	# 	SNR = []
+	# 	movement = False
 
 	if (get_I or get_Q):
 		mode = (configuration[0] & 0b11100000) >> 5
@@ -144,27 +144,33 @@ def detection(ser):
 		Q = []
 
 	try:
+		# OWN ADDITIONS
+		NtarDetected = 0
+		distance = 0
+		velocity = 0
+		SNR = 0
+		movement = 0
 		if (ser.is_open):
 			ser.write(bytearray([15]))
-			if (get_distance or get_velocity or get_SNR or get_movement):
-				# Receive results
-				results = ser.read(results_packetLen)
-				if (len(results) == results_packetLen):
-					if (get_distance or get_velocity or get_SNR):
-						Ntar_temp = (configuration[3] & 0b00011100) >> 2
-						if (get_distance):
-							distance[0:Ntar_temp] = struct.unpack('<%df' % Ntar_temp, results[0:4*Ntar_temp])
-						if (get_velocity):
-							velocity[0:Ntar_temp] = struct.unpack('<%df' % Ntar_temp, results[NtarMax*4:NtarMax*4+4*Ntar_temp])
-						SNR[0:Ntar_temp] = struct.unpack('<%df' % Ntar_temp, results[2*NtarMax*4:2*NtarMax*4+4*Ntar_temp])
-						NtarDetected = len([i for i in SNR if i > 0])
-						if (not get_SNR):
-							SNR = [0]*NtarMax
-					if (get_movement):
-						if (results[NtarMax*12] == 255):
-							movement = True
-				else:
-					return -2, [], []
+			# if (get_distance or get_velocity or get_SNR or get_movement):
+			# 	# Receive results
+			# 	results = ser.read(results_packetLen)
+			# 	if (len(results) == results_packetLen):
+			# 		if (get_distance or get_velocity or get_SNR):
+			# 			Ntar_temp = (configuration[3] & 0b00011100) >> 2
+			# 			if (get_distance):
+			# 				distance[0:Ntar_temp] = struct.unpack('<%df' % Ntar_temp, results[0:4*Ntar_temp])
+			# 			if (get_velocity):
+			# 				velocity[0:Ntar_temp] = struct.unpack('<%df' % Ntar_temp, results[NtarMax*4:NtarMax*4+4*Ntar_temp])
+			# 			SNR[0:Ntar_temp] = struct.unpack('<%df' % Ntar_temp, results[2*NtarMax*4:2*NtarMax*4+4*Ntar_temp])
+			# 			NtarDetected = len([i for i in SNR if i > 0])
+			# 			if (not get_SNR):
+			# 				SNR = [0]*NtarMax
+			# 		if (get_movement):
+			# 			if (results[NtarMax*12] == 255):
+			# 				movement = True
+			# 	else:
+			# 		return -2, [], []
 
 			# Receive I,Q
 			if (get_I or get_Q):
