@@ -177,15 +177,37 @@ plt.ion()
 print(beat_index)
 print(beat_min)
 plt.show(block=False)
-upth = 20*np.log10(upth)
-dnth = 20*np.log10(dnth)
-fftu = 20*np.log10(abs(fftu))
-fftd = 20*np.log10(abs(fftd))
-os_pku = 20*np.log10(abs(os_pku))
-os_pkd = 20*np.log10(abs(os_pkd))
 
-fig1, ax = plt.subplots(nrows=4, ncols=1, figsize=(3.5, 4))
+# Ignore divide by zero
+# numpy.seterr(divide = 'ignore')
+
+# ===== LOG SCALE ==============
+# upth = 20*np.log10(upth)
+# dnth = 20*np.log10(dnth)
+# fftu = 20*np.log10(abs(fftu))
+# fftd = 20*np.log10(abs(fftd))
+# os_pku = 20*np.log10(abs(os_pku))
+# os_pkd = 20*np.log10(abs(os_pkd))
+
+fig1, ax = plt.subplots(nrows=4, ncols=1, figsize=(5, 6)) #, constrained_layout=True)
+ax[0].set_xlim([0, 62.5])
+ax[0].set_ylim([90, 180])
+ax[1].set_xlim([0, 62.5])
+ax[1].set_ylim([90, 180])
+ax[2].set_xlim([0, 62.5])
+ax[2].set_ylim([90, 180])
+ax[3].set_xlim([0, 62.5])
+ax[3].set_ylim([90, 180])
+
 fig1.tight_layout()
+# set the spacing between subplots
+# plt.subplots_adjust(left=0.1,
+#                     bottom=0.1, 
+#                     right=0.9, 
+#                     top=0.9, 
+#                     wspace=0.4, 
+#                     hspace=0.4)
+
 line1, = ax[0].plot(rng_ax, fftu)
 line2, = ax[0].plot(rng_ax, upth)
 line3, = ax[1].plot(rng_ax, fftd)
@@ -225,42 +247,50 @@ fig1.canvas.blit(fig1.bbox)
 cap1 = cv2.VideoCapture(0)
 cap2 = cv2.VideoCapture(2)
 
-cap1.set(3, 320)
-cap1.set(4, 240)
+# cap1.set(3, 320)
+# cap1.set(4, 240)
 
-cap2.set(3, 320)
-cap2.set(4, 240)
+# cap2.set(3, 320)
+# cap2.set(4, 240)
+
+cap1.set(3, 176)
+cap1.set(4, 144)
+
+cap2.set(3, 176)
+cap2.set(4, 144)
 
 sleep(1)
 
-# # Define the codec and create VideoWriter object
-fourcc = cv2.VideoWriter_fourcc(*'X264')
 
 ret,frame1 = cap1.read()
 ret,frame2 = cap2.read()
 
 def capture(duration, cap1, cap2):
+	# win_factor = 1
 	win1 = "Win 1"
 	cv2.namedWindow(win1, cv2.WINDOW_NORMAL)    
+	# cv2.resizeWindow(win1, win_factor*320, win_factor*240)
 	cv2.resizeWindow(win1, 320, 240)
-	cv2.moveWindow(win1, 400,0)  
+	cv2.moveWindow(win1, 550, 50)  
 
 	win2 = "Win 2"
 	cv2.namedWindow(win2, cv2.WINDOW_NORMAL)     
+	# cv2.resizeWindow(win2, win_factor*320, win_factor*240)
 	cv2.resizeWindow(win2, 320, 240)
-	cv2.moveWindow(win2, 400,200)  
+	cv2.moveWindow(win2, 900, 50)  
 	t0 = time()
 	t1 = 0
 	print("Video initialised")
 	while (t1<duration):
 		ret1,frame1 = cap1.read()
 		ret2,frame2 = cap2.read()
-		cv2.imshow(win1,frame1)
+		cv2.imshow(win1,cv2.flip(frame1,0))
+		# cv2.imshow(win1,frame1)
 		cv2.imshow(win2,frame2)
 		cv2.waitKey(1)
 		t1 = time() - t0
-	cap2.release()	
-	cap1.release()
+	cap1.release()	
+	cap2.release()
 
 vid1 = threading.Thread(target=capture, args=[duration, cap1, cap2])
 
@@ -340,20 +370,32 @@ try:
 
 		fig1.canvas.restore_region(bg1)
 		# print(len(cfar_res_up))
+		# ============== LOG SCALE =====================
 		line1.set_ydata(20*np.log10(abs(fftu)))
 		line2.set_ydata(20*np.log10(upth))
 		line3.set_ydata(20*np.log10(abs(fftd)))
 		line4.set_ydata(20*np.log10(dnth))
-		# line5.set_ydata(os_pku)
-		# line6.set_ydata(os_pkd)
+		# # line5.set_ydata(os_pku)
+		# # line6.set_ydata(os_pkd)
 
 		line1_pi.set_ydata(20*np.log10(abs(fftu_pi)))
 		line2_pi.set_ydata(20*np.log10(upth_pi))
 		line3_pi.set_ydata(20*np.log10(abs(fftd_pi)))
 		line4_pi.set_ydata(20*np.log10(dnth_pi))
+		# =============================================
 
-		line9 = ax[1].axvline(rng_ax[beat_index])
-		line10 = ax[1].axvline(rng_ax[beat_min])
+		# NEED LOG SCALE
+		# line1.set_ydata(fftu)
+		# line2.set_ydata(upth)
+		# line3.set_ydata(fftd)
+		# line4.set_ydata(dnth)
+		# line1_pi.set_ydata(fftu_pi)
+		# line2_pi.set_ydata(upth_pi)
+		# line3_pi.set_ydata(fftd_pi)
+		# line4_pi.set_ydata(dnth_pi)
+
+		# line9 = ax[1].axvline(rng_ax[beat_index])
+		# line10 = ax[1].axvline(rng_ax[beat_min])
 		# line9.remove()
 		# line10.remove()
 		

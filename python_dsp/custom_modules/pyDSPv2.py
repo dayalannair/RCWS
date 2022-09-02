@@ -56,10 +56,11 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, ra
 	fbd = np.zeros(nbins)
 
 	rg_array = np.zeros(nbins)
-	fd_array = np.zeros(nbins)
+	# fd_array = np.zeros(nbins)
 	sp_array = np.zeros(nbins)
-	sp_array_corrected = np.zeros(nbins)
-	beat_arr = np.zeros(nbins)
+	ratio = np.zeros(nbins)
+	# sp_array_corrected = np.zeros(nbins)
+	# beat_arr = np.zeros(nbins)
 
 	safety_inv = 0
 	safety = 0
@@ -103,7 +104,7 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, ra
 			# if both not DC
 			if (fbu[bin] != 0 and fbd[bin] != 0):
 				fd = -fbu[bin] + fbd[bin]
-				fd_array[bin] = fd/2
+				# fd_array[bin] = fd/2
 				
 				# if less than max expected and filter clutter doppler
 				if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
@@ -122,15 +123,15 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, ra
 				
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************
-	ratio = rg_array/sp_array
-	t_safe = 3
-	if (np.any(ratio<t_safe)):
+	np.divide(rg_array,sp_array, ratio, where=sp_array!=0)
+	# t_safe = 3
+	if (np.any(ratio<3)):
 		# 1 indicates sweep contained target at unsafe distance
 		# UPDATE: put the ratio/time into array to scale how
 		# safe the turn is
 		safety = min(ratio)
 		# for colour map:
-		safety_inv = t_safe-min(ratio)
+		safety_inv = 3-min(ratio)
 		
 	# log scale for display purposes
 	return os_pku, os_pkd, upth, dnth, IQ_UP, IQ_DN, safety_inv, beat_index, beat_min, rg_array, sp_array
