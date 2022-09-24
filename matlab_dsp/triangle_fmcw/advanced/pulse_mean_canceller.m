@@ -2,7 +2,7 @@
 % pulses
 addpath('../../../matlab_lib/');
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
-subset = 900:1100;
+subset = 850:1100;
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
 n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
@@ -195,33 +195,33 @@ for i = 1:n_sweeps
    % ===================================================
    % LIVE PLOT OF TARGET, THRESHOLD, AND DETECTIONS
    % ===================================================
-%     tiledlayout(2,1)
-%     nexttile
-%     plot(absmagdb(IQ_DN(i,:)))
-%     title("DOWN chirp flipped negative half average nulling")
-% %     axis(ax_dims)
-%     hold on
-%     plot(absmagdb(os_thd(:,i)))
-%     hold on
-%     stem(absmagdb(os_pkd(i,:)))
-%     hold on
-%     xline([beat_index index_end])
-% %     xline(lines)
-%     hold off
-% 
-%     nexttile
-%     plot(absmagdb(IQ_UP(i,:)))
-%     title("UP chirp positive half average nulling")
-% %     axis(ax_dims)
-%     hold on
-%     plot(absmagdb(os_thu(:,i)))
-%     hold on
-%     stem(absmagdb(os_pku(i,:)))
-%     hold on
-% %     xline(lines)
-%     xline([beat_index index_end])
-%     hold off
-%     drawnow;
+    tiledlayout(2,1)
+    nexttile
+    plot(absmagdb(IQ_DN(i,:)))
+    title("DOWN chirp flipped negative half average nulling")
+%     axis(ax_dims)
+    hold on
+    plot(absmagdb(os_thd(:,i)))
+    hold on
+    stem(absmagdb(os_pkd(i,:)))
+    hold on
+    xline([beat_index index_end])
+%     xline(lines)
+    hold off
+
+    nexttile
+    plot(absmagdb(IQ_UP(i,:)))
+    title("UP chirp positive half average nulling")
+%     axis(ax_dims)
+    hold on
+    plot(absmagdb(os_thu(:,i)))
+    hold on
+    stem(absmagdb(os_pku(i,:)))
+    hold on
+%     xline(lines)
+    xline([beat_index index_end])
+    hold off
+    drawnow;
 %   pause(0.5)
 % ======================================================================
 
