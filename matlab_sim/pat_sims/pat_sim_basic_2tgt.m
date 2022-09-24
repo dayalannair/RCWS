@@ -18,6 +18,7 @@ fd_max = speed2dop(2*v_max,lambda);
 fb_max = fr_max+fd_max;
 fs_wav = max(2*fb_max,bw);
 fs_adc = 200e3;
+% fs_wav =1*240e6;
 %fs_wav = 200e3; % kills range est
 rng(2012);
 waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...

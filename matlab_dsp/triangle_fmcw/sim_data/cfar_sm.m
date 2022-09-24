@@ -26,14 +26,14 @@ waveform = phased.FMCWWaveform('SweepTime',tm, ...
     'SweepBandwidth',bw, ...
     'SampleRate',fs, ...
     'SweepDirection','Triangle');
-% close all
-% figure
-% sig = waveform();
-% subplot(211); plot(0:1/fs:tm-1/fs,real(sig));
-% xlabel('Time (s)'); ylabel('Amplitude (v)');
-% title('FMCW signal'); axis tight;
-% subplot(212); spectrogram(sig,32,16,32,fs,'yaxis');
-% title('FMCW signal spectrogram');
+close all
+figure
+sig = waveform();
+subplot(211); plot(0:1/fs:tm-1/fs,real(sig));
+xlabel('Time (s)'); ylabel('Amplitude (v)');
+title('FMCW signal'); axis tight;
+subplot(212); spectrogram(sig,32,16,32,fs,'yaxis');
+title('FMCW signal spectrogram');
 
 %%
 

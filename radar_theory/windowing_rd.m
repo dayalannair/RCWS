@@ -1,6 +1,6 @@
 sweeps = 800:1200;% 200:205;
 addpath('../matlab_lib/');
-addpath('../../../OneDrive - University of Cape Town/RCWS_DATA/trig_fmcw_data/');
+addpath('../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps);
 %F = 0.015; % see relevant papers
 
@@ -49,7 +49,7 @@ U = fft(u, nfft);
 %%
 close all
 figure
-plot(f, 10*log10(fftshift(abs(U))), 'DisplayName','No Window')
+plot(f, 10*log10(fftshift(abs(U))), 'DisplayName','Rectangular Window')
 title("Effect of windowing on signal spectrum for 1024 point FFT")
 ylabel("Magnitude (dB)")
 xlabel("Freqeuncy (kHz)")

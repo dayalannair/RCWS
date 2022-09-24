@@ -79,25 +79,33 @@ vmax = lambda/(4*tc)*3.6
 range_res = c/(2*bw) % ---> sim to data sheet?
 % Terrible!
 %%
-% v_good_dbkmh = mag2db(60);
-% close all
-% figure
-% plot(rmax_array, 'DisplayName','Max ranges')
-% % axis([0 200 0 60])
+inters = intersect(rmax_array, vmax_array);
+t_sample = 1/(200e3);
+t_sweep = (1:1:200)*t_sample*1000;
+t_sweep = t_sweep';
+v_good_dbkmh = mag2db(60);
+close all
+figure
+plot(t_sweep, rmax_array, 'DisplayName','Max range')
+axis([0 1 0 60])
 % yline(50, '-', '50 m')
-% yyaxis left
-% % ylim([0, 60])
-% ylabel("Range (m)")
-% xlabel("Number of ADC samples")
-% hold on
-% yyaxis right
-% plot(vmax_array, 'DisplayName','Max Velocities')
-% % ylim([0, 60])
-% % yline(60, '-', '60 km/h')
-% % axis([0 200 0 60])
-% ylabel("Velocity (km/h)")
-% xlabel("Number of ADC samples")
-% legend
+yyaxis left
+% ylim([0, 60])
+ylabel("Range (m)")
+xlabel("Chirp duration (ms)")
+hold on
+yyaxis right
+plot(t_sweep, vmax_array, 'DisplayName','Max Velocity')
+% ylim([0, 60])
+% yline(60, '-', '60 km/h')
+axis([0 1 0 60])
+ylabel("Velocity (km/h)")
+xlabel("Chirp duration (ms)")
+hold on
+plot(0.2728, 41.1, 'Marker','x', 'MarkerSize',20, 'DisplayName','Approx. intersect')
+xline(50*t_sample*1000, "DisplayName","Hardware minimum")
+title('Maximum Unambiguous Range and Velocity vs. Chirp Duration')
+legend
 % plot(rmax_array)
 % yyaxis left
 % ylabel("Range (dB meters)")
