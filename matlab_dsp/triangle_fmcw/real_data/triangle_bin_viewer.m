@@ -1,5 +1,5 @@
 % Import data and parameters
-subset = 800:1200;
+subset = 1000:1200;
 addpath('../../../matlab_lib/');
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
@@ -143,7 +143,8 @@ for i = 1:n_sweeps
 end
 
 %% Plots
-ax_dims = [0 round(n_fft/2) 60 160];
+
+ax_dims = [0 max(f_pos) 60 160];
 dat1 = absmagdb(IQ_DN);
 dat2 = absmagdb(os_thd);
 dat3 = absmagdb(os_pkd);
@@ -166,8 +167,10 @@ tiledlayout(2,1)
 
 nexttile
 p1 = plot(dat1(1,:));
-title("DOWN chirp flipped negative half average nulling")
-    axis(ax_dims)
+title("Down chirp flipped negative half of spectrum")
+xlabel("Frequency (kHz)")
+ylabel("Magnitude (dB)")
+axis(ax_dims)
 hold on
 p2 = plot(dat2(:,1));
 hold on
@@ -178,8 +181,10 @@ hold off
 
 nexttile
 p4 = plot(dat4(1,:));
-title("UP chirp positive half average nulling")
-    axis(ax_dims)
+title("UP chirp positive half of spectrum")
+xlabel("Frequency (kHz)")
+ylabel("Magnitude (dB)")
+axis(ax_dims)
 hold on
 p5 = plot(dat5(:,1));
 hold on
