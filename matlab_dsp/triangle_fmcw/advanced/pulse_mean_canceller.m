@@ -1,25 +1,22 @@
-% Import data and parameters
-subset = 900:1100;
+% Increase SNR for moving targets by subtracting the ensemble mean of two
+% pulses
 addpath('../../../matlab_lib/');
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
+subset = 900:1100;
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
 n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
-% Import video
-addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
-%%
-% Taylor Window
-nbar = 3;
-sll = -100;
-twin = taylorwin(n_samples, nbar, sll);
-iq_u = iq_u.*twin.';
-iq_d = iq_d.*twin.';
+
+
+win = hamming(n_samples);
+% win = blackman(n_samples);
+% win = nuttallwin(n_samples);
+
+iq_u = iq_u.*win.';
+iq_d = iq_d.*win.';
 
 % FFT
 n_fft = 512;
-nul_width_factor = 0.04;
-num_nul = round((n_fft/2)*nul_width_factor);
-
 IQ_UP = fft(iq_u,n_fft,2);
 IQ_DN = fft(iq_d,n_fft,2);
 
@@ -28,21 +25,49 @@ IQ_UP = IQ_UP(:, 1:n_fft/2);
 IQ_DN = IQ_DN(:, n_fft/2+1:end);
 
 % Null feedthrough
+nul_width_factor = 0.04;
+num_nul = round((n_fft/2)*nul_width_factor);
 IQ_UP(:, 1:num_nul) = 0;
 IQ_DN(:, end-num_nul+1:end) = 0;
 
-% IQ_UP = IQ_UP - mean(IQ_UP);
-% IQ_DN = IQ_DN - mean(IQ_DN);
-% CFAR
+
+% Best method is to keep previous sweep in memory then get the mean of the
+% that one and the next
+n_mean = 1;
+for row = 1:(n_sweeps-n_mean)
+    mean_up = mean(IQ_UP(row:row+n_mean, :), 1);
+    mean_dn = mean(IQ_DN(row:row+n_mean, :), 1);
+
+    IQ_UP(row,:) = IQ_UP(row,:) - mean_up;
+    IQ_DN(row,:) = IQ_DN(row,:) - mean_dn;
+
+%     IQ_UP(row+1,:) = IQ_UP(row+1,:) - two_sweep_mean;
+end
+
+
+% n_mean = 2;
+% for row = 1:n_mean:(n_sweeps-n_mean)
+%     mean_up = mean(IQ_UP(row:row+n_mean, :), 1);
+%     mean_dn = mean(IQ_DN(row:row+n_mean, :), 1);
+% 
+%     IQ_UP(row,:) = IQ_UP(row,:) - mean_up;
+%     IQ_DN(row,:) = IQ_DN(row,:) - mean_dn;
+%     
+%     IQ_UP(row+1,:) = IQ_UP(row+1,:) - mean_up;
+%     IQ_DN(row+1,:) = IQ_DN(row+1,:) - mean_dn;
+% end
+
+
+
 guard = 2*n_fft/n_samples;
 guard = floor(guard/2)*2; % make even
 % too many training cells results in too many detections
 train = round(20*n_fft/n_samples);
 train = floor(train/2)*2;
-train = 64;
+train = 2*64;
 guard = 6;
 % false alarm rate - sets sensitivity
-F = 18e-4; 
+F = 0.1e-3; 
 OS = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
@@ -91,50 +116,72 @@ osd_pk_clean = zeros(n_sweeps,n_fft/2);
 % Make slightly larger to allow for holding previous
 % >16 will always be 0 and not influence results
 % previous_det = zeros(nbins+2, 1);
+scan_width = 15;
+% f_bin_edges_idx = size(f_pos(),2)/nbins;
 
-f_bin_edges_idx = size(f_pos(),2)/nbins;
-%%
 index_end = 0;
 beat_index = 0;
 close all
 fig1 = figure('WindowState','maximized');
 for i = 1:n_sweeps
-   for bin = 0:(nbins-1)
-        % find beat in bin
-        bin_slice_d = os_pkd(i,bin*bin_width+1:(bin+1)*bin_width);
-        [magd, idx_d] = max(bin_slice_d);
 
+   for bin = 0:(nbins-1)
+        
+        % find beat frequency in bin of down chirp
+        bin_slice_d = os_pkd(i,bin*bin_width+1:(bin+1)*bin_width);
+        
+        % extract peak of beat frequency
+        [magd, idx_d] = max(bin_slice_d);
+        
+        % if there is a non-zero maximum
         if magd ~= 0
-            disp("Found peak in down spectrum")
+            
+            % index of beat frequency is the index in the bin plus
+            % the index of the start of the bin
             beat_index = bin*bin_width + idx_d;
+
+            % store beat frequency
             fbd(i,bin+1) = f_pos(beat_index);
-            % set up bin slice to range of expected beats
-            % See freqs from 0 to index 8
+           
+            % if the beat index is further than one bin from the start
+           if (beat_index>bin_width)
+               
+               % set beat scan window width
+               index_end = beat_index - scan_width;
+
+               % get up chirp spectrum window
+               bin_slice_u = os_pku(i,index_end:beat_index);
             
-            
-            
-            if (beat_index>bin_width)
-                bin_slice_u = os_pku(i,beat_index - 15:beat_index);
-            % if not, start from center
-            else
+           % if not, start from DC
+           else
+                index_end = 1;
                 bin_slice_u = os_pku(i,1:beat_index);
             end
             
             [magu, idx_u] = max(bin_slice_u);
             
             if magu ~= 0
-                disp("Found corresponding peak in up spectrum")
-                fbu(i,bin+1) = f_pos(bin*bin_width + idx_u);
+                
+                % store up chirp beat frequency
+                % NB - the bin index is not necessarily where the beat was
+                % found!
+                % ISSUE FIXED: index starts from index_end not bin*
+                % bin_width
+                fbu(i,bin+1) = f_pos(index_end + idx_u);
             end
             
             % if both not DC
             if and(fbu(i,bin+1) ~= 0, fbd(i,bin+1)~= 0)
+                % Doppler shift is twice the difference in beat frequency
                 fd = -fbu(i,bin+1) + fbd(i,bin+1);
                 fd_array(i,bin+1) = fd/2;
                 
                 % if less than max expected and filter clutter doppler
-                if ((abs(fd/2) < fd_max) && (fd/2 > 400))
+                % removed the max condition as this is controlled by bin
+                % width (abs(fd/2) < fd_max) &&
+                if ( fd/2 > 400)
                     sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
+                    
                     rg_array(i,bin+1) = beat2range( ...
                         [fbu(i,bin+1) -fbd(i,bin+1)], k, c);
                 end
@@ -145,6 +192,9 @@ for i = 1:n_sweeps
             osd_pk_clean(i, bin*bin_width + idx_d) = magd;
         end
    end
+   % ===================================================
+   % LIVE PLOT OF TARGET, THRESHOLD, AND DETECTIONS
+   % ===================================================
 %     tiledlayout(2,1)
 %     nexttile
 %     plot(absmagdb(IQ_DN(i,:)))
@@ -173,6 +223,9 @@ for i = 1:n_sweeps
 %     hold off
 %     drawnow;
 %   pause(0.5)
+% ======================================================================
+
+
    % If nothing detected
    % Issue - if another target detected, will not trigger
    % Issue - if no new target, will hold closest last target
@@ -201,35 +254,42 @@ for i = 1:n_sweeps
 % %        end
 %    end
 end
-%%
-% i = 64;
-% f_pos = f_pos/1000;
+
+sp_array_kmh = sp_array*3.6;
+close all
+figure
+tiledlayout(2, 1)
+nexttile
+plot(rg_array)
+nexttile
+plot(sp_array_kmh)
+
+
+
+
+
+%% SPECTRUM PLOTTING ONLY
+% dat1 = absmagdb(IQ_DN);
+% dat2 = absmagdb(IQ_UP);
+% % ax_dims = [0 round(n_interp/2) 60 160];
+% ax_dims = [0 round(n_fft/2) 60 160];
+% sweep = 1;
 % close all
-% figure
+% fig1 = figure('WindowState','maximized');
+% movegui(fig1,'east')
 % tiledlayout(2,1)
 % nexttile
-% plot(f_pos, absmagdb(IQ_DN(i,:)))
-% title("DOWN chirp flipped negative half average nulling")
-% %     axis(ax_dims)
-% hold on
-% plot(f_pos, absmagdb(os_thd(:,i)))
-% hold on
-% stem(f_pos, absmagdb(os_pkd(i,:)))
-% hold on
-% xline([beat_index index_end])
-% %     xline(lines)
-% hold off
-% 
+% p1 = plot(dat1(sweep,:));
+% title("UP chirp positive half")
+% axis(ax_dims)
 % nexttile
-% plot(f_pos, absmagdb(IQ_UP(i,:)))
-% title("UP chirp positive half average nulling")
-% %     axis(ax_dims)
-% hold on
-% plot(f_pos, absmagdb(os_thu(:,i)))
-% hold on
-% stem(f_pos, absmagdb(os_pku(i,:)))
-% hold on
-% %     xline(lines)
-% xline([beat_index index_end])
-% hold off
-% drawnow;
+% p2 = plot(dat2(sweep,:));
+% title("DOWN chirp flipped negative half")
+% axis(ax_dims)
+% 
+% for i = 1:n_sweeps
+%     set(p1, 'YData',dat1(i,:))
+%     set(p2, 'YData',dat2(i,:))
+%     drawnow;
+% end
+

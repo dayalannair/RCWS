@@ -9,17 +9,15 @@ n_sweeps = size(iq_u,1);
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
 %%
 % Taylor Window
-nbar = 3;
-sll = -100;
-twin = taylorwin(n_samples, nbar, sll);
-iq_u = iq_u.*twin.';
-iq_d = iq_d.*twin.';
+% nbar = 3;
+% sll = -100;
+% twin = taylorwin(n_samples, nbar, sll);
+win = hamming(n_samples);
+iq_u = iq_u.*win.';
+iq_d = iq_d.*win.';
 
 % FFT
-n_fft = 512;
-nul_width_factor = 0.04;
-num_nul = round((n_fft/2)*nul_width_factor);
-
+n_fft = 1024;
 IQ_UP = fft(iq_u,n_fft,2);
 IQ_DN = fft(iq_d,n_fft,2);
 
@@ -28,6 +26,8 @@ IQ_UP = IQ_UP(:, 1:n_fft/2);
 IQ_DN = IQ_DN(:, n_fft/2+1:end);
 
 % Null feedthrough
+nul_width_factor = 0.04;
+num_nul = round((n_fft/2)*nul_width_factor);
 IQ_UP(:, 1:num_nul) = 0;
 IQ_DN(:, end-num_nul+1:end) = 0;
 
@@ -39,17 +39,17 @@ guard = floor(guard/2)*2; % make even
 % too many training cells results in too many detections
 train = round(20*n_fft/n_samples);
 train = floor(train/2)*2;
-train = 64;
+train = 2*64;
 guard = 6;
 % false alarm rate - sets sensitivity
-F = 18e-4; 
+F = 1e-3; 
 OS = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
     'Method', 'OS', ...
     'ThresholdOutputPort', true, ...
-    'Rank',train);
+    'Rank',train-5);
 
 % flip
 IQ_DN = flip(IQ_DN,2);
@@ -91,7 +91,7 @@ osd_pk_clean = zeros(n_sweeps,n_fft/2);
 % Make slightly larger to allow for holding previous
 % >16 will always be 0 and not influence results
 % previous_det = zeros(nbins+2, 1);
-
+scan_width = 30;
 f_bin_edges_idx = size(f_pos(),2)/nbins;
 %%
 index_end = 0;
@@ -105,25 +105,16 @@ for i = 1:n_sweeps
         [magd, idx_d] = max(bin_slice_d);
 
         if magd ~= 0
-            disp("Found peak in down spectrum")
             beat_index = bin*bin_width + idx_d;
             fbd(i,bin+1) = f_pos(beat_index);
             % set up bin slice to range of expected beats
             % See freqs from 0 to index 8
             
-            
-            
-            if (beat_index>bin_width)
-                bin_slice_u = os_pku(i,beat_index - 15:beat_index);
-            % if not, start from center
-            else
-                bin_slice_u = os_pku(i,1:beat_index);
-            end
-            
+            index_end = beat_index - scan_width;
+            bin_slice_u = os_pku(i,beat_index:beat_index - scan_width);
             [magu, idx_u] = max(bin_slice_u);
             
             if magu ~= 0
-                disp("Found corresponding peak in up spectrum")
                 fbu(i,bin+1) = f_pos(bin*bin_width + idx_u);
             end
             
@@ -145,33 +136,33 @@ for i = 1:n_sweeps
             osd_pk_clean(i, bin*bin_width + idx_d) = magd;
         end
    end
-%     tiledlayout(2,1)
-%     nexttile
-%     plot(absmagdb(IQ_DN(i,:)))
-%     title("DOWN chirp flipped negative half average nulling")
-% %     axis(ax_dims)
-%     hold on
-%     plot(absmagdb(os_thd(:,i)))
-%     hold on
-%     stem(absmagdb(os_pkd(i,:)))
-%     hold on
-%     xline([beat_index index_end])
-% %     xline(lines)
-%     hold off
-% 
-%     nexttile
-%     plot(absmagdb(IQ_UP(i,:)))
-%     title("UP chirp positive half average nulling")
-% %     axis(ax_dims)
-%     hold on
-%     plot(absmagdb(os_thu(:,i)))
-%     hold on
-%     stem(absmagdb(os_pku(i,:)))
-%     hold on
-% %     xline(lines)
-%     xline([beat_index index_end])
-%     hold off
-%     drawnow;
+    tiledlayout(2,1)
+    nexttile
+    plot(absmagdb(IQ_DN(i,:)))
+    title("DOWN chirp flipped negative half average nulling")
+%     axis(ax_dims)
+    hold on
+    plot(absmagdb(os_thd(:,i)))
+    hold on
+    stem(absmagdb(os_pkd(i,:)))
+    hold on
+    xline([beat_index index_end])
+%     xline(lines)
+    hold off
+
+    nexttile
+    plot(absmagdb(IQ_UP(i,:)))
+    title("UP chirp positive half average nulling")
+%     axis(ax_dims)
+    hold on
+    plot(absmagdb(os_thu(:,i)))
+    hold on
+    stem(absmagdb(os_pku(i,:)))
+    hold on
+%     xline(lines)
+    xline([beat_index index_end])
+    hold off
+    drawnow;
 %   pause(0.5)
    % If nothing detected
    % Issue - if another target detected, will not trigger
@@ -202,34 +193,34 @@ for i = 1:n_sweeps
 %    end
 end
 %%
-% i = 64;
-% f_pos = f_pos/1000;
-% close all
-% figure
-% tiledlayout(2,1)
-% nexttile
-% plot(f_pos, absmagdb(IQ_DN(i,:)))
-% title("DOWN chirp flipped negative half average nulling")
-% %     axis(ax_dims)
-% hold on
-% plot(f_pos, absmagdb(os_thd(:,i)))
-% hold on
-% stem(f_pos, absmagdb(os_pkd(i,:)))
-% hold on
-% xline([beat_index index_end])
-% %     xline(lines)
-% hold off
-% 
-% nexttile
-% plot(f_pos, absmagdb(IQ_UP(i,:)))
-% title("UP chirp positive half average nulling")
-% %     axis(ax_dims)
-% hold on
-% plot(f_pos, absmagdb(os_thu(:,i)))
-% hold on
-% stem(f_pos, absmagdb(os_pku(i,:)))
-% hold on
-% %     xline(lines)
-% xline([beat_index index_end])
-% hold off
-% drawnow;
+i = 64;
+f_pos = f_pos/1000;
+close all
+figure
+tiledlayout(2,1)
+nexttile
+plot(f_pos, absmagdb(IQ_DN(i,:)))
+title("DOWN chirp flipped negative half average nulling")
+%     axis(ax_dims)
+hold on
+plot(f_pos, absmagdb(os_thd(:,i)))
+hold on
+stem(f_pos, absmagdb(os_pkd(i,:)))
+hold on
+xline([beat_index index_end])
+%     xline(lines)
+hold off
+
+nexttile
+plot(f_pos, absmagdb(IQ_UP(i,:)))
+title("UP chirp positive half average nulling")
+%     axis(ax_dims)
+hold on
+plot(f_pos, absmagdb(os_thu(:,i)))
+hold on
+stem(f_pos, absmagdb(os_pku(i,:)))
+hold on
+%     xline(lines)
+xline([beat_index index_end])
+hold off
+drawnow;
