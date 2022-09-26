@@ -1,6 +1,6 @@
-function [ranges, speeds, toas, IQ_UP, IQ_DN] = icps_dsp(cfar_obj, ...
-    iq_u, iq_d, win, n_fft, f_pos, fd_clut)
-
+function [ranges, speeds, toas, fft_up, fft_down] = icps_dsp(cfar_obj, ...
+    iq_u, iq_d, win, n_fft, f_pos, fd_clut, n_bins)
+bin_width = (n_fft/2)/n_bins;
 % Apply window
 iq_u = iq_u.*win.';
 iq_d = iq_d.*win.';
@@ -31,11 +31,13 @@ os_pku = abs(IQ_UP).*up_os';
 os_pkd = abs(IQ_DN).*dn_os';
 
 % Pre-allocate memory
-ranges = zeros(n_bins);
-speeds = zeros(n_bins);
-toas   = zeros(n_bins);
+ranges = zeros(1, n_bins);
+speeds = zeros(1, n_bins);
+toas   = zeros(1, n_bins);
 
-for bin = 0:(nbins-1)
+fft_up = IQ_UP;
+fft_down = IQ_DN;
+for bin = 0:(n_bins-1)
         
     % find beat frequency in bin of down chirp
     bin_slice_d = os_pkd(bin*bin_width+1:(bin+1)*bin_width);

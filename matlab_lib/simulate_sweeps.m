@@ -10,8 +10,6 @@ xr_d = complex(zeros(Ns,Nsweep));
 
 Ntgt = numel(cartarget.MeanRCS);
 
-rxsig = complex(zeros(Nsamp,Ntgt));
-
 % Transmit FMCW waveform
 sig = waveform();
 txsig = transmitter(sig);
@@ -22,18 +20,18 @@ for m = 1:Nsweep
     [tgt_pos,tgt_vel] = carmotion(sweeptime);
 
     % Propagate the signal and reflect off each target
+    rxsig = complex(zeros(Nsamp,Ntgt));
     for n = 1:Ntgt
         rxsig(:,n) = channel(txsig,radar_pos,tgt_pos(:,n), ...
             radar_vel,tgt_vel(:,n));
-        rxsig(:,n) = cartarget(rxsig(:,n));
     end
-    
+    rxsig = cartarget(rxsig);
     % Sum rows - received sum of returns from each target
     rxsig = receiver(sum(rxsig,2));
 
     % Get intermediate frequency
-    xr(:,m) = dechirp(rxsig,sig);
-    
+    xd = dechirp(rxsig,sig);
+    xr(:,m) = xd;
     % Sample at ADC sampling rate
     xr_d(:,m) = decimate(xr(:,m),Dn);
 end

@@ -176,7 +176,7 @@ for t = 1:n_steps
 %         transmitter,channel,cartarget,receiver);
 
     % Output at sampling rate (decimation)
-    [~,xr] = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
+    xr = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
         transmitter,channel,cartarget,receiver, Dn, Ns);
     
     % NOTE: Up and Down are reversed for some reason in F domain
@@ -215,7 +215,7 @@ for t = 1:n_steps
     XRU_bwin = fft(xru_bwin, nfft);
 
     subplot(3,1,1)
-    plot(rng_ax,sftmagdb(XRU))
+    plot(rng_ax,absmagdb(XRU))
     title("Dechirped up sweep spectrum")
     xlabel("Range (m)")
     ylabel("Magnitude (dB)")
@@ -228,7 +228,7 @@ for t = 1:n_steps
 %     ylabel("Magnitude (dB)")
     
     subplot(3,1,2)
-    plot(rng_ax,sftmagdb(XRU_twin))
+    plot(rng_ax,absmagdb(XRU_twin))
     title("Dechirped and Taylor windowed up sweep spectrum")
     xlabel("Range (m)")
     ylabel("Magnitude (dB)")
@@ -236,7 +236,7 @@ for t = 1:n_steps
     grid on
 
     subplot(3,1,3)
-    plot(rng_ax,sftmagdb(XRU_bwin))
+    plot(rng_ax,absmagdb(XRU_bwin))
     title("Dechirped and Blackmann windowed up sweep spectrum")
     xlabel("Range (m)")
     ylabel("Magnitude (dB)")
@@ -256,16 +256,16 @@ end
 return
 %% Plots
 
-XR = fft(xr);
-Fs = 200e3;
-f = f_ax(size(XR,1),Fs);
-close all
-figure
-tiledlayout(2,1)
-nexttile
-plot(real(xr))
-nexttile
-plot(f, fftshift(20*log(abs(XR))))
+% XR = fft(xr);
+% Fs = 200e3;
+% f = f_ax(size(XR,1),Fs);
+% close all
+% figure
+% tiledlayout(2,1)
+% nexttile
+% plot(real(xr))
+% nexttile
+% plot(f, fftshift(20*log(abs(XR))))
 % plot(fbu(:,1))
 % nexttile
 % plot(r(:,1))
