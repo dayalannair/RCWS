@@ -1,4 +1,7 @@
-%% Radar Parameters
+% ========================================================================
+% Simulation Parameters
+% ========================================================================
+addpath('../../matlab_lib/')
 fc = 24.005e9;%77e9;
 c = physconst('LightSpeed');
 % c = 3e8;
@@ -16,22 +19,27 @@ fr_max = range2beat(range_max,sweep_slope,c);
 v_max = 230*1000/3600;
 fd_max = speed2dop(2*v_max,lambda);
 fb_max = fr_max+fd_max;
-fs = max(2*fb_max,bw);
+fs_wav = max(2*fb_max,2*bw);
+fs = 200e3; % adc sampling rate
 %fs = 200e3; % kills range est
 rng(2012);
 waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
-    'SampleRate',fs, 'SweepDirection','Triangle');
+    'SampleRate',fs_wav, 'SweepDirection','Triangle');
 % close all
 % figure
-% sig = waveform();
-% subplot(211); plot(0:1/fs:tm-1/fs,real(sig));
+sig = waveform();
+% subplot(211); 
+% plot(0:1/fs_wav:tm-1/fs_wav,real(sig));
 % xlabel('Time (s)'); ylabel('Amplitude (v)');
 % title('FMCW signal'); axis tight;
+% f_wav = f_ax(2*bw/1000, fs_wav);
+% SIG = fft(sig);
+% subplot(212); 
+% plot(f_wav, sftmagdb(SIG))
+
 % subplot(212); spectrogram(sig,32,16,32,fs,'yaxis');
 % title('FMCW signal spectrogram');
-
 %%
-
 ant_aperture = 6.06e-4;                         % in square meter
 ant_gain = aperture2gain(ant_aperture,lambda);  % in dB
 
@@ -45,8 +53,9 @@ transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
 receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
     'SampleRate',fs);
 
-%% Scenario
-
+% ========================================================================
+% Scenario
+% ========================================================================
 % Target parameters
 car1_x_dist = 70;
 car1_y_dist = 2; % RHS Lane
@@ -95,7 +104,9 @@ radarmotion = phased.Platform('InitialPosition', ...
     'Velocity',[0 0;0 0;0 0], ...
     'InitialOrientationAxes',rdr_orientation);
 
-%% Simulation Loop
+% ========================================================================
+% Simulation Loop
+% ========================================================================
 close all
 
 t_total = 10;
@@ -107,8 +118,10 @@ n_steps = t_total/t_step;
 [tgt_pos,tgt_vel] = carmotion(t_step);
 
 % Generate visuals
-sceneview = phased.ScenarioViewer('Title', 'Dual Radar Cross-Traffic Observation', ...
-    'PlatformNames', {'RHS Radar', 'LHS Radar', 'Car 1', 'Car 2', 'Car 3'},...
+sceneview = phased.ScenarioViewer('Title', ...
+    'Dual Radar Cross-Traffic Observation', ...
+    'PlatformNames', {'RHS Radar', 'LHS Radar', ...
+    'Car 1', 'Car 2', 'Car 3'},...
     'ShowLegend',true,...
     'BeamRange',[62.5 62.5],...
     'BeamWidth',[30 30; 30 30], ...
@@ -124,32 +137,141 @@ sceneview = phased.ScenarioViewer('Title', 'Dual Radar Cross-Traffic Observation
     'BeamSteering', [0 180;0 0]);
 
 sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
-drawnow
-%%
+drawnow;
+% ========================================================================
+% Signal Processing Configuration
+% ========================================================================
+Ns = 200;
+win = hamming(Ns);
+n_fft = 512;
 
-% Set up arrays for two targets
-fbu = zeros(n_steps, 2);
-fbd = zeros(n_steps, 2);
-r = zeros(n_steps, 2);
-v = zeros(n_steps, 2);
+% guard = 2*n_fft/n_samples;
+% guard = floor(guard/2)*2; % make even
+% % too many training cells results in too many detections
+% train = round(20*n_fft/n_samples);
+% train = floor(train/2)*2;
+train = 64;
+guard = 4;
+F = 0.1e-3; 
+
+OS = phased.CFARDetector('NumTrainingCells',train, ...
+    'NumGuardCells',guard, ...
+    'ThresholdFactor', 'Auto', ...
+    'ProbabilityFalseAlarm', F, ...
+    'Method', 'OS', ...
+    'ThresholdOutputPort', true, ...
+    'Rank',train);
+
+% Define frequency axis
+
+f = f_ax(n_fft, fs);
+f_neg = f(1:n_fft/2);
+f_pos = f((n_fft/2 + 1):end);
+
+v_max = 60/3.6; 
+fd_max = speed2dop(v_max, lambda)*2;
+% Minimum sample number for 1024 point FFT corresponding to min range = 10m
+% n_min = 83;
+% for 512 point FFT:
+n_min = 42;
+% Divide into range bins of width 64
+nbins = 16;
+bin_width = (n_fft/2)/nbins;
+fbu = zeros(n_steps,nbins);
+fbd = zeros(n_steps,nbins);
+
+rhs_rgs = zeros(n_steps,nbins);
+rhs_spd = zeros(n_steps,nbins);
+rhs_toas = zeros(n_steps,nbins);
+
+lhs_rgs = zeros(n_steps,nbins);
+lhs_spd = zeros(n_steps,nbins);
+lhs_toas = zeros(n_steps,nbins);
+
+
+lhs_fftu = zeros(256);
+lhs_fftd = zeros(256);
+
+rhs_fftu = zeros(256);
+rhs_fftd = zeros(256);
+
+
+beat_arr = zeros(n_steps,nbins);
+
+osu_pk_clean = zeros(n_steps,n_fft/2);
+osd_pk_clean = zeros(n_steps,n_fft/2);
+
+% Make slightly larger to allow for holding previous
+% >16 will always be 0 and not influence results
+% previous_det = zeros(nbins+2, 1);
+scan_width = 15;
+% f_bin_edges_idx = size(f_pos(),2)/nbins;
+
+index_end = 0;
+beat_index = 0;
+close all
+fig1 = figure('WindowState','maximized');
+tiledlayout(2,1)
+nexttile
+p1 = plot(lhs_toas);
+title("LHS time of arrival")
+nexttile
+p2 = plot(rhs_toas);
+title("RHS time of arrival")
+
+
+movegui(fig1, 'east');
+% % Set up arrays for two targets
+% fbu = zeros(n_steps, 2);
+% fbd = zeros(n_steps, 2);
+% r = zeros(n_steps, 2);
+% v = zeros(n_steps, 2);
+
+% Doppler clutter
+fd_clut = 400;
+
+Dn = fix(fs_wav/fs);
+
 
 for t = 1:n_steps
     %disp(t)
     [tgt_pos,tgt_vel] = carmotion(t_step);
     
-    sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
-    drawnow;
+%     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
+%     drawnow;
 
-%     % issue: helper updates target position and velocity within each
-%     sweep. Resolved --> issue was releasing waveforms?
+%     [r_xr, l_xr] = sim_sweeps_2rdr(Nsweep,waveform,radarmotion,carmotion,...
+%         transmitter,channel,cartarget,receiver, Dn, Ns);
+    rhs_echo = simulate_sweeps(Nsweep,waveform,radarmotion, ...
+        carmotion, transmitter,channel,cartarget,receiver, Dn, Ns);
 
-    [r_xr, l_xr] = sim_sweeps_2rdr(Nsweep,waveform,radarmotion,carmotion,...
-        transmitter,channel,cartarget,receiver);
+    lhs_echo = simulate_sweeps(Nsweep,waveform,radarmotion, ...
+        carmotion(:, 2:3), transmitter,channel,cartarget,receiver, Dn, Ns);
 
-%     fbu_r = rootmusic(pulsint(r_xr(:,1:2:end),'coherent'),1,fs);
-%     fbd_r = rootmusic(pulsint(l_xr(:,2:2:end),'coherent'),1,fs);
-%     fbu_l = rootmusic(pulsint(r_xr(:,1:2:end),'coherent'),1,fs);
-%     fbd_l = rootmusic(pulsint(l_xr(:,2:2:end),'coherent'),1,fs);
+    [rhs_rgs(t, :), rhs_spd(t, :), rhs_toas(t, :), ...
+        rhs_fftu, rhs_fftd] = icps_dsp(OS, ...
+        abs(rhs_echo(:,1)).^2, ...
+        abs(rhs_echo(:,2)).^2, ...
+        win, ...
+        n_fft, ...
+        f_pos, ...
+        fd_clut);
+
+    [lhs_rgs(t, :), lhs_spd(t, :), lhs_toas(t, :), ...
+        lhs_fftu, lhs_fftd] = icps_dsp(OS, ...
+        abs(lhs_echo(:,1)).^2, ...
+        abs(lhs_echo(:,2)).^2, ...
+        win, ...
+        n_fft, ...
+        f_pos, ...
+        fd_clut);
+    
+    set(p1, 'YData',lhs_toas)
+    set(p2, 'YData',rhs_toas)
+
+
+
+
 %     
 %     r(t, 1) = beat2range([fbu_r fbd_r],sweep_slope,c);
 %     r(t, 2) = beat2range([fbu_l fbd_l],sweep_slope,c);
