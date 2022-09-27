@@ -10,15 +10,15 @@ xr_d = complex(zeros(Ns,Nsweep));
 
 Ntgt = numel(cartarget.MeanRCS);
 
-% Transmit FMCW waveform
-sig = waveform();
-txsig = transmitter(sig);
-
 for m = 1:Nsweep
     % Update radar and target positions
     [radar_pos,radar_vel] = radarmotion(sweeptime);
     [tgt_pos,tgt_vel] = carmotion(sweeptime);
 
+    % Transmit FMCW waveform
+    sig = waveform();
+    txsig = transmitter(sig);
+    
     % Propagate the signal and reflect off each target
     rxsig = complex(zeros(Nsamp,Ntgt));
     for n = 1:Ntgt

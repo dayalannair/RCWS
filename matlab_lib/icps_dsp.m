@@ -5,9 +5,9 @@ bin_width = (n_fft/2)/n_bins;
 iq_u = iq_u.*win.';
 iq_d = iq_d.*win.';
 
-% FFT
-IQ_UP = fft(iq_u,n_fft,2);
-IQ_DN = fft(iq_d,n_fft,2);
+% FFT 
+IQ_UP = fft(iq_u,n_fft, 2);
+IQ_DN = fft(iq_d,n_fft, 2);
 
 % Halve FFTs
 IQ_UP = IQ_UP(:, 1:n_fft/2);
@@ -37,6 +37,9 @@ toas   = zeros(1, n_bins);
 
 fft_up = IQ_UP;
 fft_down = IQ_DN;
+size(fft_up)
+disp('Hello')
+disp(size(fft_up))
 for bin = 0:(n_bins-1)
         
     % find beat frequency in bin of down chirp
