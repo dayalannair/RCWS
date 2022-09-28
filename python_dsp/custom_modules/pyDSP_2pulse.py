@@ -1,7 +1,7 @@
 # from cfar_lib import os_cfar
 from operator import length_hint
 from turtle import up
-import os_cfar_v5
+from os_cfar_v4 import os_cfar
 import numpy as np
 from scipy.fft import fft
 
@@ -57,11 +57,11 @@ def dsp_2pulse(i_data1, q_data1, i_data2, q_data2, win, n_fft, num_nul, half_tra
 	# print(np.shape(IQ_UP))
 
 	# note the abs
-	SOS = 1
+	SOS = 1.5
 	# -------------------- CFAR detection ---------------------------
 	cfar_scale = 1 # additional scaling factor
-	Pfa, os_pku, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
-	Pfa, os_pkd, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
+	os_pku, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
+	os_pkd, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
 	# np.log(upth, out=upth)
 	# np.log(dnth, out=dnth)
 	# np.log(abs(IQ_UP), out=IQ_UP)

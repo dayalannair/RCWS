@@ -153,7 +153,8 @@ Q2 = raw_results[1]
 
 # rg_full = np.zeros(16*sweeps)
 n_fft = 512
-twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
+# twin = signal.windows.taylor(200, nbar=3, sll=50, norm=False)
+twin = np.hanning(200)
 nul_width_factor = 0.04
 num_nul = round((n_fft/2)*nul_width_factor)
 # OS CFAR
@@ -233,67 +234,72 @@ fig1.canvas.blit(fig1.bbox)
 try:
 	t0 = time()
 	t1 = 0
+	with open('calibration_290mm_hann_3.txt', 'w') as f:
+		while (t1<duration):
 
-	while (t1<duration):
+			t0_proc = time()
 
-		t0_proc = time()
+			return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 
-		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
+			if (return_code != 0):
+				closeProgram()
 
-		if (return_code != 0):
-			closeProgram()
+			I1 = raw_results[0]
+			Q1 = raw_results[1]
 
-		I1 = raw_results[0]
-		Q1 = raw_results[1]
+			return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
+			if (return_code != 0):
+				closeProgram()
 
-		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
-		if (return_code != 0):
-			closeProgram()
-
-		I2 = raw_results[0]
-		Q2 = raw_results[1]
-			
-		os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, \
-		sp_array = dsp_2pulse(I1, Q1, I2, Q2, twin, n_fft, num_nul, half_train, \
-		half_guard, rank, nbins, bin_width, f_ax)
-
-		for i in range(nbins):
-			if rg_array[i]>0:
-				print(rg_array[i])
+			I2 = raw_results[0]
+			Q2 = raw_results[1]
 				
-		t1_proc = time()-t0_proc
+			os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, \
+			sp_array = dsp_2pulse(I1, Q1, I2, Q2, twin, n_fft, num_nul, half_train, \
+			half_guard, rank, nbins, bin_width, f_ax)
 
-		
+			# Ignore further targets
+			
+			for i in range(nbins-8):
+				if rg_array[i]>0:
+					print(rg_array[i])
+					f.write(str(rg_array[i])+'\n')
 
-		# os_pku = 20*np.log10(abs(os_pku))
-		# os_pkd = 20*np.log10(abs(os_pkd))
+			t1_proc = time()-t0_proc
 
-		fig1.canvas.restore_region(bg1)
-		# print(len(cfar_res_up))
-		# ============== LOG SCALE =====================
-		line1.set_ydata(20*np.log10(abs(fftu)))
-		line2.set_ydata(20*np.log10(upth))
-		line3.set_ydata(20*np.log10(abs(fftd)))
-		line4.set_ydata(20*np.log10(dnth))
-		# # line5.set_ydata(os_pku)
-		# # line6.set_ydata(os_pkd)
-		
-		ax[0].draw_artist(line1)
-		ax[0].draw_artist(line2)
-		ax[1].draw_artist(line3)
-		ax[1].draw_artist(line4)
+			
 
-		fig1.canvas.blit(fig1.bbox)
-		fig1.canvas.flush_events()
-		t1 = time() - t0
+			# os_pku = 20*np.log10(abs(os_pku))
+			# os_pkd = 20*np.log10(abs(os_pkd))
 
-	# vid2.join()
-	print("Elapsed time: ", str(time()-t_0))
+			fig1.canvas.restore_region(bg1)
+			# print(len(cfar_res_up))
+			# ============== LOG SCALE =====================
+			line1.set_ydata(20*np.log10(abs(fftu)))
+			line2.set_ydata(20*np.log10(upth))
+			line3.set_ydata(20*np.log10(abs(fftd)))
+			line4.set_ydata(20*np.log10(dnth))
+			# # line5.set_ydata(os_pku)
+			# # line6.set_ydata(os_pkd)
+			
+			ax[0].draw_artist(line1)
+			ax[0].draw_artist(line2)
+			ax[1].draw_artist(line3)
+			ax[1].draw_artist(line4)
 
-	print("Complete.")
-	uRAD_USB_SDK11.turnOFF(ser)
+			fig1.canvas.blit(fig1.bbox)
+			fig1.canvas.flush_events()
+			t1 = time() - t0
+
+		# vid2.join()
+		print("Elapsed time: ", str(time()-t_0))
+
+		print("Complete.")
+		uRAD_USB_SDK11.turnOFF(ser)
+	f.close()
 	
 except KeyboardInterrupt:
+	f.close()
 	uRAD_USB_SDK11.turnOFF(ser)
 	print("Interrupted.")
 	exit()
