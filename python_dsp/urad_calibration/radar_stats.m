@@ -38,3 +38,12 @@ disp(mode(hamm1))
 % 
 % end
 
+radar_est = mode(hann1);
+
+meas_dist = 2.9;
+
+ratio = meas_dist/radar_est;
+
+
+
+

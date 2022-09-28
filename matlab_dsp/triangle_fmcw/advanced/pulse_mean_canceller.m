@@ -108,6 +108,7 @@ fbd = zeros(n_sweeps,nbins);
 rg_array = zeros(n_sweeps,nbins);
 fd_array = zeros(n_sweeps,nbins);
 sp_array = zeros(n_sweeps,nbins);
+sp_array_corr = zeros(n_sweeps,nbins);
 beat_arr = zeros(n_sweeps,nbins);
 
 osu_pk_clean = zeros(n_sweeps,n_fft/2);
@@ -121,8 +122,12 @@ scan_width = 15;
 
 index_end = 0;
 beat_index = 0;
-close all
-fig1 = figure('WindowState','maximized');
+% close all
+% fig1 = figure('WindowState','maximized');
+calib = 1.2463;
+calib = 1;
+road_width = 2;
+correction_factor = 2;
 for i = 1:n_sweeps
 
    for bin = 0:(nbins-1)
@@ -173,8 +178,10 @@ for i = 1:n_sweeps
             % if both not DC
             if and(fbu(i,bin+1) ~= 0, fbd(i,bin+1)~= 0)
                 % Doppler shift is twice the difference in beat frequency
-                fd = -fbu(i,bin+1) + fbd(i,bin+1);
+%               calibrate beats for doppler shift
+                fd = (-fbu(i,bin+1) + fbd(i,bin+1))*calib;
                 fd_array(i,bin+1) = fd/2;
+                
                 
                 % if less than max expected and filter clutter doppler
                 % removed the max condition as this is controlled by bin
@@ -182,8 +189,16 @@ for i = 1:n_sweeps
                 if ( fd/2 > 400)
                     sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
                     
-                    rg_array(i,bin+1) = beat2range( ...
+                    rg_array(i,bin+1) = calib*beat2range( ...
                         [fbu(i,bin+1) -fbd(i,bin+1)], k, c);
+
+                    % Theta in radians
+                    theta = asin(road_width/rg_array(i,bin+1))*...
+                        correction_factor;
+
+%                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
+                    real_v = fd*lambda/(4*cos(theta));
+                    sp_array_corr(i,bin+1) = round(real_v,2);
                 end
            
             end
@@ -195,33 +210,33 @@ for i = 1:n_sweeps
    % ===================================================
    % LIVE PLOT OF TARGET, THRESHOLD, AND DETECTIONS
    % ===================================================
-    tiledlayout(2,1)
-    nexttile
-    plot(absmagdb(IQ_DN(i,:)))
-    title("DOWN chirp flipped negative half average nulling")
-%     axis(ax_dims)
-    hold on
-    plot(absmagdb(os_thd(:,i)))
-    hold on
-    stem(absmagdb(os_pkd(i,:)))
-    hold on
-    xline([beat_index index_end])
-%     xline(lines)
-    hold off
-
-    nexttile
-    plot(absmagdb(IQ_UP(i,:)))
-    title("UP chirp positive half average nulling")
-%     axis(ax_dims)
-    hold on
-    plot(absmagdb(os_thu(:,i)))
-    hold on
-    stem(absmagdb(os_pku(i,:)))
-    hold on
-%     xline(lines)
-    xline([beat_index index_end])
-    hold off
-    drawnow;
+%     tiledlayout(2,1)
+%     nexttile
+%     plot(absmagdb(IQ_DN(i,:)))
+%     title("DOWN chirp flipped negative half average nulling")
+% %     axis(ax_dims)
+%     hold on
+%     plot(absmagdb(os_thd(:,i)))
+%     hold on
+%     stem(absmagdb(os_pkd(i,:)))
+%     hold on
+%     xline([beat_index index_end])
+% %     xline(lines)
+%     hold off
+% 
+%     nexttile
+%     plot(absmagdb(IQ_UP(i,:)))
+%     title("UP chirp positive half average nulling")
+% %     axis(ax_dims)
+%     hold on
+%     plot(absmagdb(os_thu(:,i)))
+%     hold on
+%     stem(absmagdb(os_pku(i,:)))
+%     hold on
+% %     xline(lines)
+%     xline([beat_index index_end])
+%     hold off
+%     drawnow;
 %   pause(0.5)
 % ======================================================================
 
@@ -254,16 +269,25 @@ for i = 1:n_sweeps
 % %        end
 %    end
 end
+%%
+
 
 sp_array_kmh = sp_array*3.6;
+sp_array_kmh_corr = sp_array_corr*3.6;
 close all
 figure
-tiledlayout(2, 1)
+tiledlayout(3, 1)
 nexttile
 plot(rg_array)
+title("Calibrated range estimations")
 nexttile
 plot(sp_array_kmh)
-
+title("Calibrated speed estimations")
+yline(60,'Label','Expected 60 km/h')
+nexttile
+plot(sp_array_kmh_corr)
+title("Calibrated speed estimations with angle correction")
+yline(60,'Label','Expected 60 km/h')
 
 
 
