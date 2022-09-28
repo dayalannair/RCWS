@@ -51,7 +51,6 @@ class OS_CFAR:
                 rhs_train = data[cutidx+self.half_guard:cutidx+self.lead]
                 # print("Size lhs = ", np.size(lhs_train))
                 # print("Size rhs = ", np.size(rhs_train))
-
             # IF too few cells on the right, take some from left of LHS    
             elif (cutidx >= (self.ns-self.lead)):
                 # LHS as normal 
@@ -69,7 +68,6 @@ class OS_CFAR:
                 lhs_train = data[cutidx-self.lead:cutidx-self.half_guard]
                 rhs_train = data[cutidx-self.lead-self.half_train:cutidx-self.lead]
 
-
             training_cells = np.concatenate((lhs_train,rhs_train))
             # print(np.size(training_cells))
             # print(k)
@@ -77,7 +75,7 @@ class OS_CFAR:
             cut = data[cutidx]
             # print("Train cells number = ", np.size(training_cells))
             training_cells.sort()
-            ZOS = training_cells[k]
+            ZOS = training_cells[self.k]
             # print(ZOS)
             TOS = self.SOS*ZOS
             # print('TOS =', TOS)
@@ -93,30 +91,30 @@ class OS_CFAR:
 
 
 
-def config_os_cfar(self.ns, self.half_train, self.half_guard, rank, self.SOS):
+# def config_os_cfar(self.ns, self.half_train, self.half_guard, rank, self.SOS):
     
-    self.lead = self.half_train + self.half_guard # max num cells considered on either side of cut
-    self.lag = self.ns - self.lead
-    # k = rank
-    N = 2*self.half_train - 2*self.half_guard
+#     self.lead = self.half_train + self.half_guard # max num cells considered on either side of cut
+#     self.lag = self.ns - self.lead
+#     # k = rank
+#     N = 2*self.half_train - 2*self.half_guard
     
-    # Try these methods
-    # k = round(3*N/4)
-    k = rank
+#     # Try these methods
+#     # k = round(3*N/4)
+#     k = rank
 
-    # print(data)
-    # print("N (num training) = ", N)
-    # print("train half = ", self.half_train)
-    # print("Guard half = ", self.half_guard)
-    # print("k = ", k)
-    # print("self.ns = ", self.ns)
-    # Pfa_numer = k*mt.factorial(N)* mt.factorial(k-1)*mt.factorial(self.SOS+N-k)
-    # Pfa_denom = (mt.factorial(k)*mt.factorial(N-k))*mt.factorial(self.SOS+N)
-    # Pfa = Pfa_numer/Pfa_denom
-    Pfa = k*mt.factorial(N)/(mt.factorial(k)*mt.factorial(N-k)) \
-        * mt.factorial(k-1)*mt.factorial(self.SOS+N-k)/mt.factorial(self.SOS+N)
+#     # print(data)
+#     # print("N (num training) = ", N)
+#     # print("train half = ", self.half_train)
+#     # print("Guard half = ", self.half_guard)
+#     # print("k = ", k)
+#     # print("self.ns = ", self.ns)
+#     # Pfa_numer = k*mt.factorial(N)* mt.factorial(k-1)*mt.factorial(self.SOS+N-k)
+#     # Pfa_denom = (mt.factorial(k)*mt.factorial(N-k))*mt.factorial(self.SOS+N)
+#     # Pfa = Pfa_numer/Pfa_denom
+#     Pfa = k*mt.factorial(N)/(mt.factorial(k)*mt.factorial(N-k)) \
+#         * mt.factorial(k-1)*mt.factorial(self.SOS+N-k)/mt.factorial(self.SOS+N)
 
-    print(Pfa)
+#     print(Pfa)
 
 
 

@@ -1,7 +1,7 @@
 # from cfar_lib import os_cfar
 from operator import length_hint
 from turtle import up
-from os_cfar_v4 import os_cfar
+import os_cfar_v5
 import numpy as np
 from scipy.fft import fft
 
