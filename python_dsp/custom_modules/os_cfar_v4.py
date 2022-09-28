@@ -30,10 +30,10 @@ def os_cfar(half_train, half_guard, rank, SOS, data, cfar_scale):
     # Pfa_numer = k*mt.factorial(N)* mt.factorial(k-1)*mt.factorial(SOS+N-k)
     # Pfa_denom = (mt.factorial(k)*mt.factorial(N-k))*mt.factorial(SOS+N)
     # Pfa = Pfa_numer/Pfa_denom
-    Pfa = k*mt.factorial(N)/(mt.factorial(k)*mt.factorial(N-k)) \
-        * mt.factorial(k-1)*mt.factorial(SOS+N-k)/mt.factorial(SOS+N)
+    # Pfa = k*mt.factorial(N)/(mt.factorial(k)*mt.factorial(N-k)) \
+    #     * mt.factorial(k-1)*mt.factorial(SOS+N-k)/mt.factorial(SOS+N)
 
-    print(Pfa)
+    # print(Pfa)
 
     for cutidx in range(ns): #cutidx = index of cell under test
 
@@ -99,7 +99,7 @@ def os_cfar(half_train, half_guard, rank, SOS, data, cfar_scale):
             # determining max value
             result[cutidx] = cut
         # ************************************************************
-    return Pfa, result, th
+    return result, th
 
 
 
