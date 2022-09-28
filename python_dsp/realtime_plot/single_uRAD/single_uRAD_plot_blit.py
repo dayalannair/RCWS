@@ -257,7 +257,10 @@ try:
 		sp_array = dsp_2pulse(I1, Q1, I2, Q2, twin, n_fft, num_nul, half_train, \
 		half_guard, rank, nbins, bin_width, f_ax)
 
-
+		for i in range(nbins):
+			if rg_array[i]>0:
+				print(rg_array[i])
+				
 		t1_proc = time()-t0_proc
 
 		

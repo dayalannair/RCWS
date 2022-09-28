@@ -57,7 +57,7 @@ def dsp_2pulse(i_data1, q_data1, i_data2, q_data2, win, n_fft, num_nul, half_tra
 	# print(np.shape(IQ_UP))
 
 	# note the abs
-	SOS = 2
+	SOS = 1
 	# -------------------- CFAR detection ---------------------------
 	cfar_scale = 1 # additional scaling factor
 	Pfa, os_pku, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
@@ -129,19 +129,24 @@ def dsp_2pulse(i_data1, q_data1, i_data2, q_data2, win, n_fft, num_nul, half_tra
 				# fd_array[bin] = fd/2
 				
 				# if less than max expected and filter clutter doppler
-				if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
-					# convert Doppler to speed. fd is twice the Doppler therefore
-					# divide by 2
-					# sp_array[bin] = fd*lmda/4
-					# Note that fbd is now positive
-					rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)
+				# NOTE: this was removed as the beat window can be
+				# adjusted to handle these cases. Max dopp already handled,
+				# min can be handled similarly
+				# For static detection, min must be 0
+				# if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
 
-					# ************* Angle correction *******************
-					# Theta in radians
-					theta = np.arcsin(road_width/rg_array[bin])*correction_factor
+				# convert Doppler to speed. fd is twice the Doppler therefore
+				# divide by 2
+				# sp_array[bin] = fd*lmda/4
+				# Note that fbd is now positive
+				rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)
 
-					# real_v = fd*lmda/(8*np.cos(theta))
-					sp_array[bin] = fd*lmda/(8*np.cos(theta))
+				# ************* Angle correction *******************
+				# Theta in radians
+				theta = np.arcsin(road_width/rg_array[bin])*correction_factor
+
+				# real_v = fd*lmda/(8*np.cos(theta))
+				sp_array[bin] = fd*lmda/(8*np.cos(theta))
 				
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************
