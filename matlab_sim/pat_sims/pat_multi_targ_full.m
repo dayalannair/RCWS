@@ -234,42 +234,114 @@ Dn = fix(fs_wav/fs);
 
 lhs_ntarg = 2;
 rhs_ntarg = 1;
+
+n_bins = 16;
+
 for t = 1:n_steps
     %disp(t)
     [tgt_pos,tgt_vel] = carmotion(t_step);
     
 %     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
 %     drawnow;
+    
+    [lhs_echo, rhs_echo] = sim_dual_radar(Nsweep,waveform,...
+    radarmotion,carmotion,transmitter, ...
+    channel,cartarget,receiver, Dn, Ns);
+%     
+%     sweeptime = waveform.SweepTime;
+% 
+%     Nsamp = round(waveform.SampleRate*sweeptime);
+%     
+% %     xr = complex(zeros(Nsamp,Nsweep));
+%     
+%     lhs_xr = complex(zeros(Ns,Nsweep));
+%     rhs_xr = complex(zeros(Ns,Nsweep));
+%     
+%     Ntgt = numel(cartarget.MeanRCS);
+%     
+%     for m = 1:Nsweep
+%         % Update radar and target positions
+%         [radar_pos,radar_vel] = radarmotion(sweeptime);
+%         [tgt_pos,tgt_vel] = carmotion(sweeptime);
+%     
+%         % Transmit FMCW waveform
+%         sig = waveform();
+%         txsig = transmitter(sig);
+%         
+%         % Propagate the signal and reflect off each target
+%         lhs_rx = complex(zeros(Nsamp,Ntgt));
+%         rhs_rx = complex(zeros(Nsamp,Ntgt));
+%     
+%     
+%         for tgt = 1:Ntgt
+%             lhs_rx(:,tgt) = channel(txsig,radar_pos(:,1), ...
+%                 tgt_pos(:,tgt), radar_vel(:,1),tgt_vel(:,tgt));
+%             
+%             rhs_rx(:,tgt) = channel(txsig,radar_pos(:,2), ...
+%                 tgt_pos(:,tgt), radar_vel(:,2),tgt_vel(:,tgt));
+% 
+% %             set(p1, 'YData', real(lhs_rx(:,tgt)))
+% %             set(p2, 'YData', real(rhs_rx(:,tgt)))
+%             pause(0.1)
+% 
+%         end
+%         
+%     
+%         % Left side radar
+%         % --------------------------------------------------------
+%         lhs_rx = cartarget(lhs_rx);
+%         % Sum rows - received sum of returns from each target
+%         lhs_rx = receiver(sum(lhs_rx,2));
+% %         set(p1, 'YData', real(lhs_rx))
+%         % Get intermediate frequency
+%         xd = dechirp(lhs_rx,sig);
+%         set(p2, 'YData', real(xd))
+% %         xr(:,m) = xd;
+% %         set(p1, 'YData', real(xr(:,m)))
+%         % Sample at ADC sampling rate
+%         lhs_xr(:,m) = decimate(xd, Dn);
+%         q = decimate(xd,1000*Dn);
+%         set(p1, 'YData', real(q))
+%         
+%         % Right side radar
+%         % --------------------------------------------------------
+%         rhs_rx = cartarget(rhs_rx);
+%         % Sum rows - received sum of returns from each target
+%         rhs_rx = receiver(sum(rhs_rx,2));
+%         % Get intermediate frequency
+%         xd = dechirp(rhs_rx,sig);
+% %         xr(:,m) = xd;
+%         % Sample at ADC sampling rate
+%         rhs_xr(:,m) = decimate(xd,Dn);
+% % 
+% %         set(p1, 'YData', real(lhs_xr(:,m)))
+% %         set(p2, 'YData', real(rhs_xr(:,m)))
+%         drawnow;
+%     end
 
+%     [rhs_sig, lhs_sig] = sim_sweeps_dual_v2(Nsweep,waveform,...
+%         carmotion, transmitter, channel, cartarget, receiver, Dn, Ns, ...
+%         radar_pos, radar_vel, lhs_ntarg, rhs_ntarg);
+%     set(p1, 'YData', real(lhs_echo(:,1)))
+%     set(p2, 'YData', real(rhs_echo(:,1)))
+%     drawnow;
 
-
-    [rhs_sig, lhs_sig] = sim_sweeps_dual_v2(Nsweep,waveform,...
-        carmotion, transmitter, channel, lhs_cartarget, ...
-        rhs_cartarget, receiver, Dn, Ns, ...
-        radar_pos, radar_vel, lhs_ntarg, rhs_ntarg);
-
-
-
+    
     [rhs_rgs(t, :), rhs_spd(t, :), rhs_toas(t, :), ...
         rhs_fftu, rhs_fftd] = icps_dsp(OS, ...
-        abs(rhs_echo(:,1)).^2, ...
-        abs(rhs_echo(:,2)).^2, ...
-        win, ...
-        n_fft, ...
-        f_pos, ...
-        fd_clut);
+        abs(rhs_echo(:,1).').^2, ...
+        abs(rhs_echo(:,2).').^2, ...
+        win, n_fft, f_pos, fd_clut, n_bins);
 
     [lhs_rgs(t, :), lhs_spd(t, :), lhs_toas(t, :), ...
         lhs_fftu, lhs_fftd] = icps_dsp(OS, ...
-        abs(lhs_echo(:,1)).^2, ...
-        abs(lhs_echo(:,2)).^2, ...
-        win, ...
-        n_fft, ...
-        f_pos, ...
-        fd_clut);
+        abs(lhs_echo(:,1).').^2, ...
+        abs(lhs_echo(:,2).').^2, ...
+        win, n_fft, f_pos, fd_clut, n_bins);
     
-    set(p1, 'YData',lhs_toas)
-    set(p2, 'YData',rhs_toas)
+    set(p1, 'YData', sftmagdb(rhs_fftu))
+    set(p2, 'YData', sftmagdb(rhs_fftd))
+    drawnow;
 
 
 

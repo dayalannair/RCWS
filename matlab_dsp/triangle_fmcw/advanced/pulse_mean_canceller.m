@@ -1,9 +1,10 @@
 % Increase SNR for moving targets by subtracting the ensemble mean of two
 % pulses
 addpath('../../../matlab_lib/');
-addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
+addpath(['../../../../../OneDrive - University of Cape Town/' ...
+    'RCWS_DATA/car_driveby/']);
 subset = 500:1100;
-subset = 1:4000;
+% subset = 1:4000;
 % subset = 1400:1900; % 40 km/h
 % 30 km/h has two targets. second one well detected
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
@@ -11,7 +12,8 @@ n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
 
 
-win = hamming(n_samples);
+% win = hamming(n_samples);
+win = hann(n_samples);
 % win = blackman(n_samples);
 % win = nuttallwin(n_samples);
 
@@ -283,16 +285,41 @@ tiledlayout(3, 1)
 nexttile
 plot(rg_array)
 title("Calibrated range estimations")
+% nexttile
+% plot(sp_array_kmh)
+% title("Calibrated speed estimations")
+% yline(60,'Label','Expected 60 km/h')
 nexttile
-plot(sp_array_kmh)
-title("Calibrated speed estimations")
-yline(60,'Label','Expected 60 km/h')
-nexttile
+
+
+
+
 plot(sp_array_kmh_corr)
 title("Calibrated speed estimations with angle correction")
 yline(60,'Label','Expected 60 km/h')
 
 
+% *** Turn safety algorithm ***
+% takes 3 seconds to turn. target must be 3 sec away.
+t_safe = 3;
+safe_sweeps = zeros(n_sweeps,1);
+safety = zeros(n_sweeps,1);
+for sweep = 1:n_sweeps
+    ratio = rg_array(sweep,:)./sp_array(sweep,:);
+    if (any(ratio<t_safe))
+        % 1 indicates sweep contained target at unsafe distance
+        % UPDATE: put the ratio/time into array to scale how
+        % safe the turn is
+        safety(sweep) = min(ratio);
+        % for colour map:
+        safe_sweeps(sweep) = t_safe-min(ratio);
+    end
+end
+nexttile
+plot(safe_sweeps)
+% close all
+% figure
+% plot(safe_sweeps)
 
 
 %% SPECTRUM PLOTTING ONLY

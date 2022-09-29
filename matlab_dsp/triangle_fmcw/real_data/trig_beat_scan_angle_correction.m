@@ -7,12 +7,14 @@ subset = 800:1100;
 % 20km/h subset
 % subset = 1:1500;
 addpath('../../../matlab_lib/');
-addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
+addpath(['../../../../../OneDrive - University of Cape Town/' ...
+    'RCWS_DATA/car_driveby/']);
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
 n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
 % Import video
-addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
+addpath(['../../../../../OneDrive - University of Cape Town/' ...
+    'RCWS_DATA/videos/']);
 
 % ************************ Tunable parameters *****************************
 % These determine the system detection performance

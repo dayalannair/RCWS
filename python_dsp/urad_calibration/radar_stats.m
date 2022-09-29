@@ -1,11 +1,14 @@
 addpath('../../matlab_lib/');
-addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/urad_calibration_data');
+addpath( ...
+    ['../../../../OneDrive - University of Cape Town' ...
+    '/RCWS_DATA/urad_calibration_data']);
 
 data_tbl = readtable('calibration_290mm_hann.txt','Delimiter' ,' ');
 hann1 = table2array(data_tbl);
 data_tbl = readtable('calibration_290mm_hann_2.txt','Delimiter' ,' ');
 hann2 = table2array(data_tbl);
-data_tbl = readtable('calibration_290mm_taylor_sll50.txt','Delimiter' ,' ');
+data_tbl = readtable('calibration_290mm_taylor_sll50.txt', ...
+    'Delimiter' ,' ');
 tayl1 = table2array(data_tbl);
 data_tbl = readtable('calibration_290mm_blackman.txt','Delimiter' ,' ');
 blac1 = table2array(data_tbl);

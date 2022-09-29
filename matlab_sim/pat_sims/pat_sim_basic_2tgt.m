@@ -219,7 +219,12 @@ for t = 1:n_steps
     
     XRU_bwin = fft(xru_bwin, nfft);
     XRD_bwin = fft(xrd_bwin, nfft);
-
+% 
+%     plot(real(xrd))
+%     drawnow;
+% % remove the two lines below to use original program
+% end
+% return;
     subplot(3,2,1)
     plot(rng_ax,sftmagdb(XRU))
     title("Dechirped up sweep spectrum")
