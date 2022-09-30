@@ -27,7 +27,7 @@ wave = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
     'SampleRate',fs_wav, 'SweepDirection','Triangle');
 % close all
 % figure
-sig = wave();
+% sig = wave();
 % subplot(211); 
 % plot(0:1/fs_wav:tm-1/fs_wav,real(sig));
 % xlabel('Time (s)'); ylabel('Amplitude (v)');
@@ -48,9 +48,11 @@ tx_gain = 9+ant_gain;                           % in dB
 rx_gain = 30+ant_gain;                          % in dB
 rx_nf = 4.5;                                    % in dB
 
+% NOTE: receiver must sample at wave sampling
+% Use decimation to represent sampling since it works
 txer = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
 receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
-    'SampleRate',fs);
+    'SampleRate',fs_wav);
 
 % ========================================================================
 % Scenario

@@ -1,5 +1,5 @@
 function [ranges, speeds, toas, fft_up, fft_down] = icps_dsp(cfar_obj, ...
-    iq_u, iq_d, win, n_fft, f_pos, fd_clut, n_bins)
+    iq_u, iq_d, win, n_fft, f_pos, fd_clut, n_bins, scan_width)
 
 bin_width = (n_fft/2)/n_bins;
 % Apply window
@@ -10,10 +10,10 @@ iq_d = iq_d.*win.';
 IQ_UP = fft(iq_u,n_fft, 2);
 IQ_DN = fft(iq_d,n_fft, 2);
 
-% close all
-% figure
-% plot(sftmagdb(IQ_UP))
-% pause()
+% Use to set fft output to full spectrum
+fft_up = IQ_UP;
+fft_down = IQ_DN;
+
 % Halve FFTs
 IQ_UP = IQ_UP(:, 1:n_fft/2);
 IQ_DN = IQ_DN(:, n_fft/2+1:end);
@@ -40,12 +40,9 @@ ranges = zeros(1, n_bins);
 speeds = zeros(1, n_bins);
 toas   = zeros(1, n_bins);
 
-fft_up = IQ_UP;
-fft_down = IQ_DN;
+% fft_up = IQ_UP;
+% fft_down = IQ_DN;
 
-% size(fft_up)
-% disp('Hello')
-% disp(size(fft_up))
 for bin = 0:(n_bins-1)
         
     % find beat frequency in bin of down chirp
@@ -54,10 +51,10 @@ for bin = 0:(n_bins-1)
     % extract peak of beat frequency
     [magd, idx_d] = max(bin_slice_d);
     
-    % if there is a non-zero maximum
+    % if there is a non-zero maximum in down chirp bin
+    % NOTE: Detection in down chirp gates rest of the processing
     if magd ~= 0
 
-        
         % index of beat frequency is the index in the bin plus
         % the index of the start of the bin
         beat_index = bin*bin_width + idx_d;
@@ -80,22 +77,25 @@ for bin = 0:(n_bins-1)
             bin_slice_u = os_pku(1:beat_index);
         end
         
+        % Obtain index and magnitude of the peak in the up chirp bin
         [magu, idx_u] = max(bin_slice_u);
         
+        % If there was a peak in the up chirp bin
+        % NOTE: This gates the rest of operations from this point
         if magu ~= 0
             fbu = f_pos(index_end + idx_u);
-        end
-        
-        % if both not DC
-        if and(fbu ~= 0, fbd ~= 0)
-            % Doppler shift is twice the difference in beat frequency
-            fd = (-fbu + fbd)/2;
 
-            if ( fd/2 > fd_clut)
-                speeds(bin+1) = dop2speed(fd/2,lambda)/2;
-                ranges(bin+1) = beat2range([fbu -fbd], k, c);
+             % if both not DC
+            if and(fbu ~= 0, fbd ~= 0)
+                % Doppler shift is twice the difference in beat frequency
+                fd = (-fbu + fbd)/2;
+                
+                % Can add angle correction
+                if ( fd/2 > fd_clut)
+                    speeds(bin+1) = dop2speed(fd/2,lambda)/2;
+                    ranges(bin+1) = beat2range([fbu -fbd], k, c);
+                end
             end
-    
         end
     end
 end

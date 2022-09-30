@@ -49,23 +49,33 @@ tx_gain = 9+ant_gain;                           % in dB
 rx_gain = 30+ant_gain;                          % in dB
 rx_nf = 4.5;                                    % in dB
 
+% NOTE: receiver must sample at wave sampling
+% Use decimation to represent sampling since it works
+
 transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
 receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
-    'SampleRate',fs);
+    'SampleRate',fs_wav);
 
 % ========================================================================
 % Scenario
 % ========================================================================
 % Target parameters
-car1_x_dist = 70;
+car1_x_dist = -50;
 car1_y_dist = 2; % RHS Lane
-car1_speed = 60/3.6;
-car2_x_dist = -50;
+car1_speed = -60/3.6;
+
+car2_x_dist = -30;
 car2_y_dist = 4; % LHS Lane
 car2_speed = -40/3.6;
-car3_x_dist = 30;
-car3_y_dist = 2; % LHS Lane
-car3_speed = 30/3.6;
+
+% car2_speed = 0;
+
+
+car3_x_dist = -30;
+car3_y_dist = 4; % LHS Lane
+car3_speed = -30/3.6;
+
+% car3_speed = 0;
 
 car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
 car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
@@ -102,9 +112,11 @@ rhs_carmotion = phased.Platform('InitialPosition', ...
                 0]);
 
 % Define propagation medium
+% NOTE: receiver must sample at wave sampling
+% Use decimation to represent sampling since it works
 channel = phased.FreeSpace('PropagationSpeed',c,...
     'OperatingFrequency',fc, ...
-    'SampleRate',fs, ...
+    'SampleRate',fs_wav, ...
     'TwoWayPropagation',true);
 
 % Define radar motion
@@ -128,37 +140,62 @@ lhs_radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
 
 rhs_radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
     'Velocity',[0;0;0], 'InitialOrientationAxes', [-1 0 0;0 1 0;0 0 1]);
+
+% rhs_radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
+%     'Velocity',[0;0;0]);
+
 % ========================================================================
 % Simulation Loop
 % ========================================================================
 close all
 
-t_total = 10;
-t_step = 0.1;
-Nsweep = 1;
+% t_total = 10;
+% t_step = 0.1;
+% Nsweep = 1;
+% n_steps = t_total/t_step;
+
+t_total = 5;
+t_step = 0.2;
+Nsweep = 1; % Number of ups and downs, not number of periods
 n_steps = t_total/t_step;
 
-[rdr_pos,rdr_vel] = radarmotion(t_step);
-[tgt_pos,tgt_vel] = carmotion(t_step);
+[lhs_rad_pos, lhs_rad_vel] = lhs_radarmotion(t_step);
+[rhs_rad_pos, rhs_rad_vel] = rhs_radarmotion(t_step);
 
+[lhs_tgt_pos, lhs_tgt_vel] = lhs_carmotion(t_step);
+[rhs_tgt_pos, rhs_tgt_vel] = rhs_carmotion(t_step);
+
+rdr_pos = cat(2, lhs_rad_pos, rhs_rad_pos);
+rdr_vel = cat(2, lhs_rad_vel, rhs_rad_vel);
+tgt_pos = cat(2, lhs_tgt_pos, rhs_tgt_pos);
+tgt_vel = cat(2, lhs_tgt_vel, rhs_tgt_vel);
+
+% size(rdr_pos)
 % Generate visuals
-% sceneview = phased.ScenarioViewer('Title', ...
-%     'Dual Radar Cross-Traffic Observation', ...
-%     'PlatformNames', {'RHS Radar', 'LHS Radar', ...
-%     'Car 1', 'Car 2', 'Car 3'},...
-%     'ShowLegend',true,...
-%     'BeamRange',[62.5 62.5],...
-%     'BeamWidth',[30 30; 30 30], ...
-%     'ShowBeam', 'All', ...
-%     'CameraPerspective', 'Custom', ...
-%     'CameraPosition', [1840.2 -1263.6 1007.01], ...
-%     'CameraOrientation', [-145.39 -24.16 0]', ...
-%     'CameraViewAngle', 1.5, ...
-%     'ShowName',false,...
-%     'ShowPosition', true,...
-%     'ShowSpeed', true,...
-%     'UpdateRate',1/t_step, ...
-%     'BeamSteering', [0 180;0 0]);
+
+
+
+sceneview = phased.ScenarioViewer('Title', ...
+    'Dual Radar Cross-Traffic Observation', ...
+    'PlatformNames', {'RHS Radar', 'LHS Radar', ...
+    'Car 1', 'Car 2', 'Car 3'},...
+    'ShowLegend',true,...
+    'BeamRange',[62.5 62.5],...
+    'BeamWidth',[30 30; 30 30], ...
+    'ShowBeam', 'All', ...
+    'CameraPerspective', 'Custom', ...
+    'CameraPosition', [1665.77 -1278.47 1273.28], ...
+    'CameraOrientation', [-142.34 -31.11 0]', ...
+    'CameraViewAngle', 1.97, ...
+    'ShowName', false,...
+    'ShowPosition', true,...
+    'ShowSpeed', true,...
+    'UpdateRate',1/t_step, ...
+    'BeamSteering', [0 180;0 0]);
+
+sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
+drawnow;
+
 
 % ========================================================================
 % Signal Processing Configuration
@@ -210,12 +247,17 @@ lhs_rgs = zeros(n_steps,nbins);
 lhs_spd = zeros(n_steps,nbins);
 lhs_toas = zeros(n_steps,nbins);
 
+% Half spectra
+% lhs_fftu = zeros(256);
+% lhs_fftd = zeros(256);
+% rhs_fftu = zeros(256);
+% rhs_fftd = zeros(256);
 
-lhs_fftu = zeros(256);
-lhs_fftd = zeros(256);
-
-rhs_fftu = zeros(256);
-rhs_fftd = zeros(256);
+% Full spectra
+lhs_fftu = zeros(512);
+lhs_fftd = zeros(512);
+rhs_fftu = zeros(512);
+rhs_fftd = zeros(512);
 
 
 beat_arr = zeros(n_steps,nbins);
@@ -223,23 +265,35 @@ beat_arr = zeros(n_steps,nbins);
 osu_pk_clean = zeros(n_steps,n_fft/2);
 osd_pk_clean = zeros(n_steps,n_fft/2);
 
-% Make slightly larger to allow for holding previous
-% >16 will always be 0 and not influence results
-% previous_det = zeros(nbins+2, 1);
-scan_width = 15;
-% f_bin_edges_idx = size(f_pos(),2)/nbins;
+% Positive range axis
+% rng_ax = beat2range((f_pos*1000)', sweep_slope, c);
+
+% Full range axis
+rng_ax = beat2range(f', sweep_slope, c);
 
 index_end = 0;
 beat_index = 0;
 close all
 fig1 = figure('WindowState','maximized');
-tiledlayout(2,1)
+tiledlayout(2,2)
 nexttile
-p1 = plot(lhs_toas);
-title("LHS time of arrival")
+p1 = plot(rng_ax, absmagdb(lhs_fftd));
+title("LHS Flipped Negative-Half Spectrum")
 nexttile
-p2 = plot(rhs_toas);
-title("RHS time of arrival")
+p2 = plot(rng_ax, absmagdb(rhs_fftd));
+title("RHS Flipped Negative-Half Spectrum")
+nexttile
+p3 = plot(rng_ax, absmagdb(lhs_fftu));
+title("LHS Positive-Half Spectrum")
+nexttile
+p4 = plot(rng_ax, absmagdb(rhs_fftu));
+title("RHS Positive-Half Spectrum")
+
+% p1 = plot(lhs_toas);
+% title("LHS time of arrival")
+% nexttile
+% p2 = plot(rhs_toas);
+% title("RHS time of arrival")
 
 
 movegui(fig1, 'east');
@@ -253,6 +307,7 @@ movegui(fig1, 'east');
 fd_clut = 400;
 
 Dn = fix(fs_wav/fs);
+scan_width = 15;
 
 lhs_ntarg = 2;
 rhs_ntarg = 1;
@@ -260,9 +315,6 @@ n_bins = 16;
 %%
 for t = 1:n_steps
     %disp(t)
-    lhs_carmotion(t_step);
-    rhs_carmotion(t_step);
-
 %     [r_xr, l_xr] = sim_sweeps_2rdr(Nsweep,waveform,radarmotion,carmotion,...
 %         transmitter,channel,cartarget,receiver, Dn, Ns);
 %     rhs_echo = simulate_sweeps(Nsweep,waveform,radarmotion, ...
@@ -275,48 +327,70 @@ for t = 1:n_steps
 %             channel,lhs_cartarget, rhs_cartarget, receiver, Dn, Ns, ...
 %             lhs_ntarg, rhs_ntarg, ...
 %             rad_pos1, rad_vel1);
-
-    l_xru = simulate_sweeps(Nsweep,waveform,lhs_radarmotion,lhs_carmotion,...
-        transmitter,channel,lhs_cartarget,receiver, Dn, Ns);
     
-    set(p1, 'YData',real(l_xru))
-    l_xrd = simulate_sweeps(Nsweep,waveform,lhs_radarmotion,lhs_carmotion,...
-        transmitter,channel,lhs_cartarget,receiver, Dn, Ns);
+    % Large step for targets
+    [lhs_rad_pos, lhs_rad_vel] = lhs_radarmotion(t_step);
+    [rhs_rad_pos, rhs_rad_vel] = rhs_radarmotion(t_step);
+    
+    [lhs_tgt_pos, lhs_tgt_vel] = lhs_carmotion(t_step);
+    [rhs_tgt_pos, rhs_tgt_vel] = rhs_carmotion(t_step);
+    
+    % Concatenate for plotting
+    rdr_pos = cat(2, lhs_rad_pos, rhs_rad_pos);
+    rdr_vel = cat(2, lhs_rad_vel, rhs_rad_vel);
+    tgt_pos = cat(2, lhs_tgt_pos, rhs_tgt_pos);
+    tgt_vel = cat(2, lhs_tgt_vel, rhs_tgt_vel);
+    
+    % Small sweep steps for targets
+    % possible issue : each sweep steps the target a little
+    % Best to do all reflections in one simulate_sweeps loop
 
-    r_xru = simulate_sweeps(Nsweep,waveform,rhs_radarmotion,rhs_carmotion,...
-        transmitter,channel,rhs_cartarget,receiver, Dn, Ns);
-    set(p2, 'YData',real(r_xru))
-    r_xrd = simulate_sweeps(Nsweep,waveform,rhs_radarmotion,rhs_carmotion,...
-        transmitter,channel,rhs_cartarget,receiver, Dn, Ns);
+    l_xru = simulate_sweeps(Nsweep,waveform, ...
+        lhs_radarmotion,lhs_carmotion,...
+        transmitter,channel,lhs_cartarget, receiver, Dn, Ns);
+    
+%     set(p1, 'YData',real(l_xru))
+    l_xrd = simulate_sweeps(Nsweep,waveform, ...
+        lhs_radarmotion,lhs_carmotion,...
+        transmitter,channel,lhs_cartarget, receiver, Dn, Ns);
+
+    r_xru = simulate_sweeps(Nsweep,waveform, ...
+        rhs_radarmotion,rhs_carmotion,...
+        transmitter,channel,rhs_cartarget, receiver, Dn, Ns);
+%     set(p2, 'YData',real(r_xru))
+
+    r_xrd = simulate_sweeps(Nsweep,waveform, ...
+        rhs_radarmotion,rhs_carmotion,...
+        transmitter,channel,rhs_cartarget, receiver, Dn, Ns);
 
 
     [rhs_rgs(t, :), rhs_spd(t, :), rhs_toas(t, :), ...
         rhs_fftu, rhs_fftd] = icps_dsp(OS, ...
-        abs(r_xru.').^2, ...
-        abs(r_xrd.').^2, ...
-        win, ...
-        n_fft, ...
-        f_pos, ...
-        fd_clut, ...
-        n_bins);
+        abs(r_xru.').^2, abs(r_xrd.').^2, ...
+        win, n_fft, f_pos, fd_clut, n_bins, scan_width);
 
     [lhs_rgs(t, :), lhs_spd(t, :), lhs_toas(t, :), ...
         lhs_fftu, lhs_fftd] = icps_dsp(OS, ...
-        abs(l_xru.').^2, ...
-        abs(l_xrd.').^2, ...
-        win, ...
-        n_fft, ...
-        f_pos, ...
-        fd_clut, ...
-        n_bins);
+        abs(l_xru.').^2, abs(l_xrd.').^2, ...
+        win, n_fft, f_pos, fd_clut, n_bins, scan_width);
     
 %     set(p1, 'YData',lhs_toas(t, :))
 %     set(p2, 'YData',rhs_toas(t, :))
-%     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
+    sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
 %     drawnow;
-
+%   
+    % Half spectra plots
 %     set(p1, 'YData',absmagdb(lhs_fftd))
-%     set(p2, 'YData',absmagdb(lhs_fftu))
+%     set(p2, 'YData',absmagdb(rhs_fftd))
+%     set(p3, 'YData',absmagdb(lhs_fftu))
+%     set(p4, 'YData',absmagdb(rhs_fftu))
+
+    % Full spectrum plots
+    set(p1, 'YData',sftmagdb(lhs_fftd))
+    set(p2, 'YData',sftmagdb(rhs_fftd))
+    set(p3, 'YData',sftmagdb(lhs_fftu))
+    set(p4, 'YData',sftmagdb(rhs_fftu))
+
     drawnow;
 %     pause(1)
 
