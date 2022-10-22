@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../../custom_modules')
 import uRAD_USB_SDK11
 import serial
 from time import time, sleep, strftime,localtime
@@ -51,8 +53,8 @@ Q_true = True 				# Quadrature Component (RAW data) requested
 # Serial Port configuration
 ser = serial.Serial()
 if (usb_communication):
-	ser.port = 'COM5'
-	# ser.port = '/dev/ttyACM0'
+	# ser.port = 'COM5'
+	ser.port = '/dev/ttyACM0'
 	ser.baudrate = 1e6
 else:
 	print("Could not find USB connection.")

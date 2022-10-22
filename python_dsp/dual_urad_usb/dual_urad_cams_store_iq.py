@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../python_modules')
+sys.path.append('../custom_modules')
 import uRAD_USB_SDK11
 import serial
 from time import time, sleep, strftime,localtime
@@ -58,7 +58,7 @@ else:
 ser2 = serial.Serial()
 if (usb_communication):
 	# ser1.port = 'COM3'
-	ser2.port = '/dev/ttyACM0'
+	ser2.port = '/dev/ttyACM1'
 	ser2.baudrate = 1e6
 else:
 	print("Could not find USB connection.")
@@ -193,6 +193,7 @@ def urad_capture(duration, port, fname):
 		if (return_code != 0):
 			closeProgram()
 
+		print(raw_results)
 		I_usb.append(raw_results[0])
 		Q_usb.append(raw_results[1])
 
