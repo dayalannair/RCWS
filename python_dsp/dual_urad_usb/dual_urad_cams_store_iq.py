@@ -52,7 +52,7 @@ if (usb_communication):
 	ser1.port = '/dev/ttyACM0'
 	ser1.baudrate = 1e6
 else:
-	print("Could not find USB connection.")
+	print("Could not find USB 1 connection.")
 	exit()
 
 ser2 = serial.Serial()
@@ -61,7 +61,7 @@ if (usb_communication):
 	ser2.port = '/dev/ttyACM1'
 	ser2.baudrate = 1e6
 else:
-	print("Could not find USB connection.")
+	print("Could not find USB 2 connection.")
 	exit()
 
 # Sleep Time (seconds) between iterations
@@ -72,6 +72,11 @@ ser1.bytesize = serial.EIGHTBITS
 ser1.parity = serial.PARITY_NONE
 ser1.stopbits = serial.STOPBITS_ONE
 ser1.timeout = 1
+
+ser2.bytesize = serial.EIGHTBITS
+ser2.parity = serial.PARITY_NONE
+ser2.stopbits = serial.STOPBITS_ONE
+ser2.timeout = 1
 
 # Method to correctly turn OFF and close uRAD
 def closeProgram():
@@ -180,7 +185,7 @@ vid2 = threading.Thread(target=capture, args=[duration, cap2, out2])
 # ================================================================
 # 							uRAD thread
 # ================================================================
-def urad_capture(duration, port, fname):
+def urad_capture(duration, fname, port):
 	print("uRAD USB thread running...")
 	I_usb = []
 	Q_usb = []
@@ -193,7 +198,6 @@ def urad_capture(duration, port, fname):
 		if (return_code != 0):
 			closeProgram()
 
-		print(raw_results)
 		I_usb.append(raw_results[0])
 		Q_usb.append(raw_results[1])
 
@@ -238,7 +242,7 @@ try:
 	vid2.join()
 	urad1.join()
 	urad2.join()
-	# print(I_usb)
+
 	print("Elapsed time: ", str(time()-t_0))
 	
 	cap1.release()

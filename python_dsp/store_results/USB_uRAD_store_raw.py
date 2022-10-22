@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../python_modules')
+sys.path.append('../custom_modules')
 import uRAD_USB_SDK11
 import serial
 from time import time, sleep, strftime,localtime
@@ -46,7 +46,7 @@ Q_true = True 				# Quadrature Component (RAW data) requested
 ser = serial.Serial()
 if (usb_communication):
 	# ser.port = 'COM3'
-	ser.port = '/dev/ttyACM0'
+	ser.port = '/dev/ttyACM1'
 	ser.baudrate = 1e6
 else:
 	print("Could not find USB connection.")
@@ -106,9 +106,7 @@ if (return_code != 0):
 	closeProgram()
 
 print("System running...")
-
-PifileName = "IQ_pi.txt"
-USBfileName = "IQ_usb.txt"
+USBfileName = "single_urad_usb_iq.txt"
 try:
 	for i in range(sweeps):
 		# fetch IQ from uRAD USB
@@ -121,7 +119,7 @@ try:
 
 	print("Elapsed time: ", str(time()-t_0))
 	print("Saving data...")
-	with open(PifileName, 'w') as rpi, open(USBfileName, 'w') as usb:
+	with open(USBfileName, 'w') as usb:
 		for sweep in range(sweeps):
 			IQ_rpi = ''
 			IQ_usb = ''
@@ -134,7 +132,6 @@ try:
 			for sample in range(up_down_length):
 				IQ_usb += '%d ' % Q_usb[sweep][sample]
 			#f.write(IQ_string + '%1.3f\n' % t_i[sweep])
-			rpi.write(IQ_rpi + '\n')
 			usb.write(IQ_usb + '\n')
 
 	uRAD_USB_SDK11.turnOFF(ser)

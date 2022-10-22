@@ -38,8 +38,8 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, ra
 	SOS = 2
 	# -------------------- CFAR detection ---------------------------
 	cfar_scale = 1 # additional scaling factor
-	Pfa, os_pku, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
-	Pfa, os_pkd, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
+	os_pku, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
+	os_pkd, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
 	# np.log(upth, out=upth)
 	# np.log(dnth, out=dnth)
 	# np.log(abs(IQ_UP), out=IQ_UP)
