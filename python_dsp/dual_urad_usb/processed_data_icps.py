@@ -231,14 +231,14 @@ def capture(duration, cap1, cap2):
 
 vid1 = threading.Thread(target=capture, args=[duration, cap1, cap2])
 
+n_rows = 4096
+rg_array = np.zeros([n_rows, nbins], dtype=int)
+sp_array = np.zeros([n_rows, nbins], dtype=int)
+sf_array = np.zeros([n_rows, nbins], dtype=int)
 
-rg_array = np.zeros(10000, dtype=int)
-sp_array = np.zeros(10000, dtype=int)
-sf_array = np.zeros(10000, dtype=int)
-
-rg_array_2 = np.zeros(10000, dtype=int)
-sp_array_2 = np.zeros(10000, dtype=int)
-sf_array_2 = np.zeros(10000, dtype=int)
+rg_array_2 = np.zeros([n_rows, nbins], dtype=int)
+sp_array_2 = np.zeros([n_rows, nbins], dtype=int)
+sf_array_2 = np.zeros([n_rows, nbins], dtype=int)
 
 def dsp_thread_usb(port, radar_index, i):
 	
@@ -273,7 +273,9 @@ def dsp_thread_usb(port, radar_index, i):
 urad1_index = 0
 urad2_index = 1
 row_index = 0
-fname = "icps_results.txt"
+frange = "range_results.txt"
+fspeed = "speed_results.txt"
+fsafet = "safety_results.txt"
 # urad1 = threading.Thread(target=dsp_thread_usb, args=[ser1, urad1_index, row_index])
 # urad2 = threading.Thread(target=dsp_thread_usb, args=[ser2, urad2_index, row_index])
 try:
@@ -302,11 +304,19 @@ try:
 	# vid2.join()
 	print("Elapsed time: ", str(time()-t_0))
 
-	with open(fname, 'w') as results:
-		for i in range(np.shape())
-		result_string = 
 
-	print("Complete.")
+	np.savetxt(frange, rg_array, fmt='%d', delimiter = ' ', newline='\n')
+	np.savetxt(fspeed, sp_array, fmt='%d', delimiter = ' ', newline='\n')
+	np.savetxt(fsafet, sf_array, fmt='%d', delimiter = ' ', newline='\n')
+	# with open(frange, 'w') as rng, open(fspeed,'w') as spd, \
+	# 	open(fsafet,'w') as sft:
+		
+	# 	for i in range(n_rows):
+	# 		rng.write(rg_array[i])
+	# 		spd.write(sp_array[i])
+	# 		sft.write(sf_array[i])		
+
+	print("Results capture complete.")
 	cap1.release()
 	cap2.release()
 	uRAD_USB_SDK11.turnOFF(ser1)
