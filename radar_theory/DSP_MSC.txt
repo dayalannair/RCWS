@@ -1,0 +1,83 @@
+ Mention the Hilbert transform and how the I and Q data is acquired. Lit review and or design chapters
+range profiles
+frame of range profiles
+waterfall
+bin straddle loss (may have added already)
+L3 slide 15 shows magnitude detectors
+electronic scanning PESA
+resource management - scheduler
+
+phase always there. even in triangle wave. Must attempt using phase in the triangle modulation on each sweep. 
+Maybe check phase change between up and down? Or phase change with respect to tx/reference signal?
+
+Mention modifying program on Pi for experimentation
+	- different waveform parameters
+
+Should we try reducing the bandwidth? 
+	- benefits of doing this?
+
+Calculate TBWP - necessary?
+ 		- maybe simulation of Top Hat fn
+
+WINDOWING
+	- reduces maximum detection range!!! = LOSS
+	- ML width incr. = reduced resolution
+	- use table in report to justify
+
+DETECTION
+	- add info on detection 
+	- Rayleigh etc to show PFa
+	- shows AMPLITUDE distribution sqrt(i2 + q2)
+	- for linear tracks, can set false alarm rate higher => classification because of this. cognitive
+
+FIR FILTER DELAY
+	-	only uses past values?
+	- needs to wait for whole sweep to be received, then apply weighting and sum?
+	- add filter diagram to report to show why there is a delay
+	- add to lit review?
+	- also slower since its done on the radar embedded system!
+	- taps = delays! essentially means the whole wave must be received, i think
+
+Uses the term filter to refer to any operation on a signal!
+	- cfar could be like a filter?
+	- beat window is like a filter
+
+Note that urad may have both FIR and IIR. FIR has only prev inputs so quicker to process?
+Mention both using the diagram from the textbook
+
+CONVOLUTION
+	- flip/time reverse signal because first sample must be fed in first!
+	- therefore value at index 0 gets convolved first etc
+
+sin and cos are harmonic sigs
+
+down side of oversampling - increased processing time!
+
+
+improving doppler resolution needs
+	1) longer chirp - more NB
+	2) higher sampling rate possibly
+
+Cant make ramp to short as the slope will be too high for the hardware!
+
+FMICW - interrupted CW
+
+
+Can use CW assuming that only one car will have sufficient positive doppler
+FMCW for range only
+
+mention how radar orientation kept upright to reduce ground bounce as seen
+in uRAD beam pattern
+
+DELAY LINE CANCELLER
+	- add to report and mention why it was not used (coherence etc)
+
+show how clutter reduced with DLC or how in our system with a fixed min doppler 
+value. 
+
+Mention that slow moving targets will not be detected due to this - as they will
+encroach on the clutter doppler zone   
+
+MY system is MTD!!!!! filters out bins where clutter doppler
+-	now thinking that for the new system, the fd min may or may not be necess
+	- still think it is incase clutter breaches threshold
