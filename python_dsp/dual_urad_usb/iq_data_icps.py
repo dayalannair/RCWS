@@ -206,6 +206,7 @@ def urad_capture(duration, fname, port):
 	# Store data
 	sweeps = len(I_usb)
 	print("uRAD USB data recorded with duration ", str(t1))
+	print("Sweeps acquired: ", sweeps)
 	print("uRAD USB storing data...")
 	up_down_length = len(I_usb[0])
 	with open(fname, 'w') as usb:

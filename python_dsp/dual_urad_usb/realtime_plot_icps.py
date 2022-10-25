@@ -295,17 +295,19 @@ ret,frame2 = cap2.read()
 
 def capture(duration, cap1, cap2):
 	# win_factor = 1
+	# RHS window
 	win1 = "Win 1"
 	cv2.namedWindow(win1, cv2.WINDOW_NORMAL)    
 	# cv2.resizeWindow(win1, win_factor*320, win_factor*240)
 	cv2.resizeWindow(win1, 320, 240)
-	cv2.moveWindow(win1, 550, 50)  
+	cv2.moveWindow(win1, 900, 50)  
 
+	# LHS window
 	win2 = "Win 2"
 	cv2.namedWindow(win2, cv2.WINDOW_NORMAL)     
 	# cv2.resizeWindow(win2, win_factor*320, win_factor*240)
 	cv2.resizeWindow(win2, 320, 240)
-	cv2.moveWindow(win2, 900, 50)  
+	cv2.moveWindow(win2, 550, 50)  
 	t0 = time()
 	t1 = 0
 	print("Video initialised")

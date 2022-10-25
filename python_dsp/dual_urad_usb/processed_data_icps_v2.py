@@ -198,7 +198,6 @@ cap2.set(4, 144)
 
 sleep(0.5)
 
-
 ret,frame1 = cap1.read()
 ret,frame2 = cap2.read()
 
@@ -206,22 +205,19 @@ fourcc = cv2.VideoWriter_fourcc(*'X264')
 lhs_vid = cv2.VideoWriter('lhs_vid.avi',fourcc, 20.0, (640,480))
 rhs_vid = cv2.VideoWriter('rhs_vid.avi',fourcc, 20.0, (640,480))
 
-def capture(duration, cap1, cap2, ):
+def capture(duration, cap, container):
 	t0 = time()
 	t1 = 0
 	print("Video initialised")
 	while (t1<duration):
-		_,frame1 = cap1.read()
-		_,frame2 = cap2.read()
-		lhs_vid.write(frame2) # cap1 is LHS camera
-		rhs_vid.write(frame1)
+		_,frame = cap.read()
+		container.write(frame) # cap1 is LHS camera
 		t1 = time() - t0
-	cap1.release()	
-	cap2.release()
-	lhs_vid.release()
-	rhs_vid.release()
-
-vid1 = threading.Thread(target=capture, args=[duration, cap1, cap2])
+	cap.release()	
+	container.release()
+	print("Video capture complete.  Data captured.")
+	print("Elapsed time: ", str(time()-t_0))
+	print("----------------------------------------------")
 
 n_rows = 4096
 rg_array = np.zeros([n_rows, nbins], dtype=int)
@@ -232,8 +228,9 @@ rg_array_2 = np.zeros([n_rows, nbins], dtype=int)
 sp_array_2 = np.zeros([n_rows, nbins], dtype=int)
 sf_array_2 = np.zeros([n_rows, nbins], dtype=int)
 
-def dsp_thread_usb(port, radar_index, i):
-	
+def urad_process(port, fspeed, frange, fsafety):
+
+	print("uRAD USB processing thread started")
 	# Global inputs
 	global n_fft
 	global twin
@@ -245,70 +242,72 @@ def dsp_thread_usb(port, radar_index, i):
 	global nbins
 	global rank
 
-	# Global outputs
-	global upth_2
-	global dnth_2
-	global fftd_2
-	global fftu_2
+	rg_array = np.zeros([n_rows, nbins], dtype=int)
+	sp_array = np.zeros([n_rows, nbins], dtype=int)
+	sf_array = np.zeros([n_rows, nbins], dtype=int)
 
-	return_code, _, raw_results = uRAD_USB_SDK11.detection(port)
-	if (return_code != 0):
-		closeProgram()
+	i = 0
 
-	if radar_index == 0:
+	t0 = time() 
+	t1 = 0
+	while (t1<duration):
+		return_code, _, raw_results = uRAD_USB_SDK11.detection(port)
+		if (return_code != 0):
+			closeProgram()
+
 		rg_array[i], sp_array[i], sf_array[i] = range_speed_safety(raw_results[0], \
 			raw_results[1], twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, fax)
-	else:
-		rg_array_2[i], sp_array_2[i], sf_array_2[i] = range_speed_safety(raw_results[0], \
-			raw_results[1], twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, fax)
-
-urad1_index = 0
-urad2_index = 1
-row_index = 0
-frange = "range_results.txt"
-fspeed = "speed_results.txt"
-fsafet = "safety_results.txt"
-# urad1 = threading.Thread(target=dsp_thread_usb, args=[ser1, urad1_index, row_index])
-# urad2 = threading.Thread(target=dsp_thread_usb, args=[ser2, urad2_index, row_index])
-try:
-	vid1.start()
-	t0 = time()
-	t1 = 0
-
-	while (t1<duration):
-
-		# MUST BE CALLED AGAIN TO RESTART THE THREAD
-		urad1 = threading.Thread(target=dsp_thread_usb, args=[ser1, urad1_index, row_index])
-		urad2 = threading.Thread(target=dsp_thread_usb, args=[ser2, urad2_index, row_index])
-
-		t0_proc = time()
 		
-		urad1.start()
-		urad2.start()
-		urad1.join()
-		urad2.join()
+		i = i + 1
 
-		row_index = row_index + 1
-		t1_proc = time()-t0_proc
 		t1 = time() - t0
-		
-	vid1.join()
-	# vid2.join()
-	print("Elapsed time: ", str(time()-t_0))
-
 
 	np.savetxt(frange, rg_array, fmt='%d', delimiter = ' ', newline='\n')
 	np.savetxt(fspeed, sp_array, fmt='%d', delimiter = ' ', newline='\n')
-	np.savetxt(fsafet, sf_array, fmt='%d', delimiter = ' ', newline='\n')
-	# with open(frange, 'w') as rng, open(fspeed,'w') as spd, \
-	# 	open(fsafet,'w') as sft:
-		
-	# 	for i in range(n_rows):
-	# 		rng.write(rg_array[i])
-	# 		spd.write(sp_array[i])
-	# 		sft.write(sf_array[i])		
+	np.savetxt(fsafety, sf_array, fmt='%d', delimiter = ' ', newline='\n')
 
+	print("uRAD USB processing thread complete. Data captured.")
+	print("Elapsed time: ", str(time()-t_0))
+	print("Samples processed: ", i)
+	print("----------------------------------------------")
+
+lhs_frange = "lhs_range_results.txt"
+lhs_fspeed = "lhs_speed_results.txt"
+lhs_fsafety = "lhs_safety_results.txt"
+
+rhs_frange = "rhs_range_results.txt"
+rhs_fspeed = "rhs_speed_results.txt"
+rhs_fsafety = "rhs_safety_results.txt"
+
+try:
+	
+	t0 = time()
+	t1 = 0
+
+	vid1 = threading.Thread(target=capture, args=[duration, cap2, lhs_vid])
+	vid2 = threading.Thread(target=capture, args=[duration, cap1, rhs_vid])
+	urad1 = threading.Thread(target=urad_process, args=[ser1, lhs_fspeed , lhs_frange, lhs_fsafety])
+	urad2 = threading.Thread(target=urad_process, args=[ser2, rhs_fspeed , rhs_frange, rhs_fsafety])
+
+	t0_proc = time()
+	print("==============================================")
+	# Start separate threads for each sensor
+	vid1.start()
+	vid2.start()
+	urad1.start()
+	urad2.start()
+	print("==============================================")
+	# wait for all threads to finish
+	vid1.join()
+	vid2.join()
+	urad1.join()
+	urad2.join()
+
+	t1_proc = time()-t0_proc
+	t1 = time() - t0
+		
 	print("Results capture complete.")
+	print("==============================================")
 	uRAD_USB_SDK11.turnOFF(ser1)
 	uRAD_USB_SDK11.turnOFF(ser2)
 

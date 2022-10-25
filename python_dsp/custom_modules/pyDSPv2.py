@@ -1,6 +1,4 @@
 # from cfar_lib import os_cfar
-from operator import length_hint
-from turtle import up
 from os_cfar_v4 import os_cfar
 import numpy as np
 from scipy.fft import fft
@@ -134,7 +132,7 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, ra
 		# safety_inv = 3-min(ratio)
 		
 	# log scale for display purposes
-	return os_pku, os_pkd, upth, dnth, IQ_UP, IQ_DN, safety_inv, beat_index, beat_min, rg_array, sp_array
+	return os_pku, os_pkd, upth, dnth, IQ_UP, IQ_DN, safety, beat_index, beat_min, rg_array, sp_array
 	# return rg_array, sp_array, safety
 	# return cfar_res_up, cfar_res_dn, 20*np.log10(upth), 20*np.log10(dnth),\
 	#      20*np.log10(abs(IQ_UP), 10),  20*np.log10(abs(IQ_DN))
@@ -237,10 +235,10 @@ def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, half_gu
 
 					# ************* Angle correction *******************
 					# Theta in radians
-					theta = np.arcsin(road_width/rg_array[bin])*correction_factor
+					# theta = np.arcsin(road_width/rg_array[bin])*correction_factor
 
-					# real_v = fd*lmda/(8*np.cos(theta))
-					sp_array[bin] = fd*lmda/(8*np.cos(theta))
+					# # real_v = fd*lmda/(8*np.cos(theta))
+					# sp_array[bin] = fd*lmda/(8*np.cos(theta))
 				
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************
