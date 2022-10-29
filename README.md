@@ -1,5 +1,17 @@
 # Radar Intersection Collision Prediction System (R-ICPS)
 
+## Report notes
+
+- Focus on MATLAB stuff in the 'advanced' directory of traingle FMCW DSP
+- Add waterfall and other plot from pulse mean canceller and compare pre and post calibration
+- finish up results, then either neaten or add to design and lit review
+- Check with supervisors etc
+- Rather have slightly more words than just on the verge of enough
+
+
+
+
+
 ## Task list
 
 - [ ] Add all work to report - remember to use issues and discussions from old repo

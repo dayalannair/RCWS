@@ -113,72 +113,75 @@ osd_pk_clean = zeros(n_sweeps,n_fft/2);
 f_bin_edges_idx = size(f_pos(),2)/nbins;
 road_width = 2;
 correction_factor = 1;
+calib = 1.2463;
+% calib = 1
 prev_det = 0;
 speed_correction = 1.2;
 %%
-for i = 1:n_sweeps
-   for bin = 0:(nbins-1)
-        % find beat in down chirp bin
-        bin_slice_d = os_pkd(i,bin*bin_width+1:(bin+1)*bin_width);
-        [magd, idx_d] = max(bin_slice_d);
-        
-        beat_index = bin*bin_width + idx_d;
-        if magd ~= 0
-            fbd(i,bin+1) = f_pos(beat_index);
-            % set up bin slice to range of expected beats
-            % See freqs from 0 to index 15 - determined from 60kmh (VERIFY)
-            % check if far enough from center
-            if (beat_index>bin_width)
-                bin_slice_u = os_pku(i,beat_index - 15:beat_index);
-            % if not, start from center
-            else
-                bin_slice_u = os_pku(i,1:beat_index);
-            end
-            % index is index in the subset
-            [magu, idx_u] = max(bin_slice_u);
-            if magu ~= 0
-                fbu(i,bin+1) = f_pos(beat_index - 15 + idx_u);
-            end
-            
-            % if both not DC
-            if and(fbu(i,bin+1) ~= 0, fbd(i,bin+1)~= 0)
-                fd = -fbu(i,bin+1) + fbd(i,bin+1);
-                fd_array(i,bin+1) = fd/2;
-                prev_det = 1;
-                
-                % if less than max expected and filter clutter doppler
-                if ((abs(fd/2) < fd_max) && (fd/2 > 400))
-                    sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
-                    rg_array(i,bin+1) = beat2range( ...
-                        [fbu(i,bin+1) -fbd(i,bin+1)], k, c);
-
-                    % Angle correction
-                   
-                    % Theta in radians
-                    theta = asin(road_width/rg_array(i,bin+1))*...
-                        correction_factor;
-
-%                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
-                    real_v = fd*lambda/(4*cos(theta));
-                    sp_array_corrected(i,bin+1) = round(real_v,2);
-                    
-                end
-           
-            else 
-                prev_det = 0;
-            end
-            % for plot
-            osu_pk_clean(i, bin*bin_width + idx_u) = magu;
-            osd_pk_clean(i, bin*bin_width + idx_d) = magd;
-       
-        % "Tracker"
-%         elseif prev_det
-%             fd = -fbu(i-1,bin+1) + fbd(i-1,bin+1);
-%             sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
-%             rg_array(i,bin+1) = beat2range( ...
-%                 [fbu(i-1,bin+1) -fbd(i-1,bin+1)], k, c);
-        end
-   end
+% PREVIOUS METHOD
+% for i = 1:n_sweeps
+%    for bin = 0:(nbins-1)
+%         % find beat in down chirp bin
+%         bin_slice_d = os_pkd(i,bin*bin_width+1:(bin+1)*bin_width);
+%         [magd, idx_d] = max(bin_slice_d);
+%         
+%         beat_index = bin*bin_width + idx_d;
+%         if magd ~= 0
+%             fbd(i,bin+1) = f_pos(beat_index);
+%             % set up bin slice to range of expected beats
+%             % See freqs from 0 to index 15 - determined from 60kmh (VERIFY)
+%             % check if far enough from center
+%             if (beat_index>bin_width)
+%                 bin_slice_u = os_pku(i,beat_index - 15:beat_index);
+%             % if not, start from center
+%             else
+%                 bin_slice_u = os_pku(i,1:beat_index);
+%             end
+%             % index is index in the subset
+%             [magu, idx_u] = max(bin_slice_u);
+%             if magu ~= 0
+%                 fbu(i,bin+1) = f_pos(beat_index - 15 + idx_u);
+%             end
+%             
+%             % if both not DC
+%             if and(fbu(i,bin+1) ~= 0, fbd(i,bin+1)~= 0)
+%                 fd = -fbu(i,bin+1) + fbd(i,bin+1)*calib;
+%                 fd_array(i,bin+1) = fd/2;
+%                 prev_det = 1;
+%                 
+%                 % if less than max expected and filter clutter doppler
+%                 if ((abs(fd/2) < fd_max) && (fd/2 > 400))
+%                     sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
+%                     rg_array(i,bin+1) = calib*beat2range( ...
+%                         [fbu(i,bin+1) -fbd(i,bin+1)], k, c);
+% 
+%                     % Angle correction
+%                    
+%                     % Theta in radians
+%                     theta = asin(road_width/rg_array(i,bin+1))*...
+%                         correction_factor;
+% 
+% %                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
+%                     real_v = fd*lambda/(4*cos(theta));
+%                     sp_array_corrected(i,bin+1) = round(real_v,2);
+%                     
+%                 end
+%            
+%             else 
+%                 prev_det = 0;
+%             end
+%             % for plot
+%             osu_pk_clean(i, bin*bin_width + idx_u) = magu;
+%             osd_pk_clean(i, bin*bin_width + idx_d) = magd;
+%        
+%         % "Tracker"
+% %         elseif prev_det
+% %             fd = -fbu(i-1,bin+1) + fbd(i-1,bin+1);
+% %             sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
+% %             rg_array(i,bin+1) = beat2range( ...
+% %                 [fbu(i-1,bin+1) -fbd(i-1,bin+1)], k, c);
+%         end
+%    end
   
    % If nothing detected
    % Issue - if another target detected, will not trigger
@@ -207,7 +210,90 @@ for i = 1:n_sweeps
 % % %        end
 % %        end
 %    end
+% end
+scan_width = 15;
+sp_array_corr = zeros(n_sweeps,nbins);
+for i = 1:n_sweeps
+
+   for bin = 0:(nbins-1)
+        
+        % find beat frequency in bin of down chirp
+        bin_slice_d = os_pkd(i,bin*bin_width+1:(bin+1)*bin_width);
+        
+        % extract peak of beat frequency
+        [magd, idx_d] = max(bin_slice_d);
+        
+        % if there is a non-zero maximum
+        if magd ~= 0
+            
+            % index of beat frequency is the index in the bin plus
+            % the index of the start of the bin
+            beat_index = bin*bin_width + idx_d;
+
+            % store beat frequency
+            fbd(i,bin+1) = f_pos(beat_index);
+           
+            % if the beat index is further than one bin from the start
+           if (beat_index>bin_width)
+               
+               % set beat scan window width
+               index_end = beat_index - scan_width;
+
+               % get up chirp spectrum window
+               bin_slice_u = os_pku(i,index_end:beat_index);
+            
+           % if not, start from DC
+           else
+                index_end = 1;
+                bin_slice_u = os_pku(i,1:beat_index);
+            end
+            
+            [magu, idx_u] = max(bin_slice_u);
+            
+            if magu ~= 0
+                
+                % store up chirp beat frequency
+                % NB - the bin index is not necessarily where the beat was
+                % found!
+                % ISSUE FIXED: index starts from index_end not bin*
+                % bin_width
+                fbu(i,bin+1) = f_pos(index_end + idx_u);
+            end
+            
+            % if both not DC
+            if and(fbu(i,bin+1) ~= 0, fbd(i,bin+1)~= 0)
+                % Doppler shift is twice the difference in beat frequency
+%               calibrate beats for doppler shift
+                fd = (-fbu(i,bin+1) + fbd(i,bin+1))*calib;
+                fd_array(i,bin+1) = fd/2;
+                
+                
+                % if less than max expected and filter clutter doppler
+                % removed the max condition as this is controlled by bin
+                % width (abs(fd/2) < fd_max) &&
+                if ( fd/2 > 400)
+                    sp_array(i,bin+1) = dop2speed(fd/2,lambda)/2;
+                    
+                    rg_array(i,bin+1) = calib*beat2range( ...
+                        [fbu(i,bin+1) -fbd(i,bin+1)], k, c);
+
+                    % Theta in radians
+                    theta = asin(road_width/rg_array(i,bin+1))*...
+                        correction_factor;
+
+%                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
+                    real_v = fd*lambda/(4*cos(theta));
+                    sp_array_corr(i,bin+1) = round(real_v,2);
+                end
+           
+            end
+            % for plot
+            osu_pk_clean(i, bin*bin_width + idx_u) = magu;
+            osd_pk_clean(i, bin*bin_width + idx_d) = magd;
+        end
+   end
 end
+
 close all
 figure
 tiledlayout(2,1)
