@@ -15,20 +15,56 @@ blac1 = table2array(data_tbl);
 data_tbl = readtable('calibration_290mm_hamming.txt','Delimiter' ,' ');
 hamm1 = table2array(data_tbl);
 
+axlims = [0,30,1.5,5.1];
 close all
 figure
 tiledlayout(1, 5)
 nexttile
-plot(hann1)
+plot(hann1, 'DisplayName','Measured')
+title("Hann Window")
+ylabel("Range (m)")
+xlabel("Detection number")
+axis(axlims)
+% yline()
+yline(2.9,'DisplayName','Actual')
+yline(mode(hann1), 'DisplayName','Mode', 'Color','Red')
+legend
 nexttile
-plot(hann2)
+plot(hann2, 'DisplayName','Measured')
+title("Hann Window")
+ylabel("Range (m)")
+xlabel("Detection number")
+yline(2.9,'DisplayName','Actual')
+yline(mode(hann2), 'DisplayName','Mode', 'Color','Red')
+axis(axlims)
+legend
 nexttile
-plot(tayl1)
+plot(tayl1, 'DisplayName','Measured')
+title("Taylor Window")
+ylabel("Range (m)")
+xlabel("Detection number")
+yline(2.9,'DisplayName','Actual')
+yline(mode(tayl1), 'DisplayName','Mode', 'Color','Red')
+axis(axlims)
+legend
 nexttile
-plot(blac1)
+plot(blac1, 'DisplayName','Measured')
+title("Blackman Window")
+ylabel("Range (m)")
+xlabel("Detection number")
+yline(2.9,'DisplayName','Actual')
+yline(mode(blac1), 'DisplayName','Mode', 'Color','Red')
+axis(axlims)
+legend
 nexttile
-plot(hamm1)
-
+plot(hamm1, 'DisplayName','Measured')
+title("Hamming Window")
+ylabel("Range (m)")
+xlabel("Detection number")
+yline(2.9,'DisplayName','Actual')
+yline(mode(hamm1), 'DisplayName','Mode', 'Color','Red')
+axis(axlims)
+legend
 disp(mode(hann1))
 disp(mode(hann2))
 disp(mode(tayl1))
