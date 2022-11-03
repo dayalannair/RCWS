@@ -1,3 +1,20 @@
+# Results
+
+## offline processing
+
+### Offline plotting raw data
+- the returns of cars passing directly infront or close to the radar have a broad SNR when the Taylor window is implemented. 
+- Most of the easy to see targets in the spectra are those moving away after passing the host 
+- need to test Hanning window
+- Many targets/ a busy road will affect detection and tracking
+- add offline processing to confirm
+
+## Real time results
+
+Sparse due to many reflective targets
+Wind?
+
+
 ## Call matlab engine
 
 This can only run on a PC with MATLAB installed. The Python script reads in data from the uRAD/s and stores in a MATLAB workspace. A MATLAB processing script is called to process the data. Results are read from the workspace.

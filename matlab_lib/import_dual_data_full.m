@@ -1,5 +1,5 @@
 function [fc, c, lambda, tm, bw, k, rpi_iq_u, rpi_iq_d,...
-    usb_iq_u, usb_iq_d, t_stamps] = import_dual_data_full()
+    usb_iq_u, usb_iq_d, t_stamps] = import_dual_data_full(f_rad1, f_rad2)
     % Parameters
     fc = 24.005e9;
     c = physconst('LightSpeed');
@@ -11,8 +11,8 @@ function [fc, c, lambda, tm, bw, k, rpi_iq_u, rpi_iq_d,...
     % NOTE: Path must be added in the program calling this function
     % i.e. path is relative to the call function so may need more or less
     % ../
-    rpi_iq_tbl=readtable('IQ_pi.txt','Delimiter' ,' ');
-    usb_iq_tbl=readtable('IQ_usb.txt','Delimiter' ,' ');
+    rpi_iq_tbl=readtable(f_rad1,'Delimiter' ,' ');
+    usb_iq_tbl=readtable(f_rad2,'Delimiter' ,' ');
 %     t_stamps = iq_tbl.Var801;
     t_stamps = [];
     size(rpi_iq_tbl)

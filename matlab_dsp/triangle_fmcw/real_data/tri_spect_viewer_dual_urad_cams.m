@@ -5,6 +5,7 @@ subset = 1:1000;
 
 addpath('../../../matlab_lib/');
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/dual_uRAD/');
+addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/road_data_03_11_2022/');
 [fc, c, lambda, tm, bw, k, rpi_iq_u, rpi_iq_d, usb_iq_u, ...
     usb_iq_d, t_stamps] = import_dual_data_full();
 
