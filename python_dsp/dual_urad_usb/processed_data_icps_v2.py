@@ -20,7 +20,7 @@ try:
 	Ns = int(sys.argv[3])
 	duration = int(sys.argv[4])
 	t = localtime()
-	now = strftime("%H-%M-%S", t)  
+	now = strftime("%H_%M_%S", t)  
 	fs = 200000
 	# runtime = sweeps*Ns/200000
 	if mode_in == "s":
@@ -190,11 +190,11 @@ print("System running...")
 cap1 = cv2.VideoCapture(0)
 cap2 = cv2.VideoCapture(2)
 
-cap1.set(3, 176)
-cap1.set(4, 144)
+cap1.set(3, 320)
+cap1.set(4, 240)
 
-cap2.set(3, 176)
-cap2.set(4, 144)
+cap2.set(3, 320)
+cap2.set(4, 240)
 
 sleep(0.5)
 
@@ -202,17 +202,25 @@ ret,frame1 = cap1.read()
 ret,frame2 = cap2.read()
 
 fourcc = cv2.VideoWriter_fourcc(*'X264')
-lhs_vid = cv2.VideoWriter('lhs_vid.avi',fourcc, 20.0, (640,480))
-rhs_vid = cv2.VideoWriter('rhs_vid.avi',fourcc, 20.0, (640,480))
+lhs_vid = cv2.VideoWriter('lhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
+rhs_vid = cv2.VideoWriter('rhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
 
 def capture(duration, cap, container):
 	t0 = time()
 	t1 = 0
-	print("Video initialised")
+	frames = []
+	print("Video thread runnning...")
 	while (t1<duration):
-		_,frame = cap.read()
-		container.write(frame) # cap1 is LHS camera
+		ret, frame = cap.read()
+		
+		if ret==True:
+			frames.append(frame)
+		
 		t1 = time() - t0
+
+	for frame in frames:
+		container.write(frame)
+
 	cap.release()	
 	container.release()
 	print("Video capture complete.  Data captured.")
@@ -271,13 +279,13 @@ def urad_process(port, fspeed, frange, fsafety):
 	print("Samples processed: ", i)
 	print("----------------------------------------------")
 
-lhs_frange = "lhs_range_results.txt"
-lhs_fspeed = "lhs_speed_results.txt"
-lhs_fsafety = "lhs_safety_results.txt"
+lhs_frange = "lhs_range_results_"+now+".txt"
+lhs_fspeed = "lhs_speed_results_"+now+".txt"
+lhs_fsafety = "lhs_safety_results_"+now+".txt"
 
-rhs_frange = "rhs_range_results.txt"
-rhs_fspeed = "rhs_speed_results.txt"
-rhs_fsafety = "rhs_safety_results.txt"
+rhs_frange = "rhs_range_results_"+now+".txt"
+rhs_fspeed = "rhs_speed_results_"+now+".txt"
+rhs_fsafety = "rhs_safety_results_"+now+".txt"
 
 try:
 	

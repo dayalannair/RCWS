@@ -16,7 +16,7 @@ try:
 	Ns = int(sys.argv[3])
 	duration = int(sys.argv[4])
 	t = localtime()
-	now = strftime("%H-%M-%S", t)  
+	now = strftime("%H_%M_%S", t)  
 	fs = 200000
 	if mode_in == "s":
 		print("********** SAWTOOTH MODE **********")
@@ -157,11 +157,11 @@ cap2.set(4, 240)
 sleep(1)
 # # Define the codec and create VideoWriter object
 fourcc = cv2.VideoWriter_fourcc(*'X264')
-out1 = cv2.VideoWriter('out1.avi',fourcc, 20.0, (320,240))
-out2 = cv2.VideoWriter('out2.avi',fourcc, 20.0, (320,240))
+out1 = cv2.VideoWriter('rhs_vid_'+now+'.avi',fourcc, 20.0, (320,240))
+out2 = cv2.VideoWriter('lhs_vid_'+now+'.avi',fourcc, 20.0, (320,240))
 
 # Camera thread function
-def capture(n, cap, out):
+def capture(duration, cap, out):
 	print("Video thread runnning...")
 	frames = []
 	t0 = time()
@@ -223,8 +223,8 @@ def urad_capture(duration, fname, port):
 	print("uRAD USB capture complete.")
 
 # Separate files for each radar
-urad1_fname = "uRAD1_iq.txt"
-urad2_fname = "uRAD2_iq.txt"
+urad1_fname = "uRAD1_iq_"+now+".txt"
+urad2_fname = "uRAD2_iq_"+now+".txt"
 
 # uRAD threads
 urad1 = threading.Thread(target=urad_capture, args=[duration, urad1_fname, ser1])
