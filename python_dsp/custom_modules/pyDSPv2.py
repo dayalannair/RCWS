@@ -61,8 +61,8 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, ra
 	# beat_arr = np.zeros(nbins)
 
 	# safety_inv = 0
-	# safety = 0
-	# beat_min = 0
+	safety = 0
+	beat_min = 0
 	beat_index = 0
 	slope = 2.4e11
 	c = 299792458
@@ -182,8 +182,8 @@ def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, half_gu
 	ratio = np.zeros(nbins)
 
 	# safety_inv = 0
-	# safety = 0
-	# beat_min = 0
+	safety = 0
+	beat_min = 0
 	beat_index = 0
 	slope = 2.4e11
 	c = 299792458
