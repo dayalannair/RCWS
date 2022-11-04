@@ -15,8 +15,8 @@ function [fc, c, lambda, tm, bw, k, rpi_iq_u, rpi_iq_d,...
     usb_iq_tbl=readtable(f_rad2,'Delimiter' ,' ');
 %     t_stamps = iq_tbl.Var801;
     t_stamps = [];
-    size(rpi_iq_tbl)
-    size(usb_iq_tbl)
+%     size(rpi_iq_tbl)
+%     size(usb_iq_tbl)
     rpi_i_up = table2array(rpi_iq_tbl(:,1:200));
     rpi_i_dn = table2array(rpi_iq_tbl(:,201:400));
     rpi_q_up = table2array(rpi_iq_tbl(:,401:600));
