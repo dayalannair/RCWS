@@ -153,9 +153,14 @@ speed_correction = 1.2;
 % -------------------------------------------------------------------------
 % Initialise plots
 % -------------------------------------------------------------------------
+fb_idx1 = 40;
+fb_idx2 = 40;
+fb_idx_end1 = 20;
+fb_idx_end2 = 20;
+scan_width = 15;
 ax_dims = [0 max(rng_ax) 80 190];
 ax_ticks = 1:2:60;
-
+%%
 close all
 fig1 = figure('WindowState','maximized');
 movegui(fig1,'west')
@@ -164,6 +169,7 @@ subplot(2,3,1);
 p1 = plot(rng_ax, absmagdb(RAD1_IQ_UP(1,:)));
 hold on
 p1th = plot(rng_ax, absmagdb(upTh1(:,1)));
+win1 = xline([fb_idx1, fb_idx_end1]);
 hold off
 title("RAD1 UP chirp positive half")
 axis(ax_dims)
@@ -174,6 +180,7 @@ subplot(2,3,2);
 p2 = plot(rng_ax, absmagdb(RAD1_IQ_DN(1,:)));
 hold on
 p2th = plot(rng_ax, absmagdb(dnTh1(:,1)));
+win2 = xline([fb_idx1, fb_idx_end1]);
 hold off
 title("RAD1 DOWN chirp flipped negative half")
 axis(ax_dims)
@@ -188,6 +195,7 @@ subplot(2,3,4);
 p3 = plot(rng_ax, absmagdb(RAD2_IQ_UP(1,:)));
 hold on
 p3th = plot(rng_ax, absmagdb(upTh2(:,1)));
+win3 = xline([fb_idx2, fb_idx_end2]);
 hold off
 title("RAD2 UP chirp positive half")
 axis(ax_dims)
@@ -198,6 +206,7 @@ subplot(2,3,5);
 p4 = plot(rng_ax, absmagdb(RAD2_IQ_DN(1,:)));
 hold on
 p4th = plot(rng_ax, absmagdb(dnTh2(:,1)));
+win4 = xline([fb_idx2, fb_idx_end2]);
 hold off
 title("RAD2 DOWN chirp flipped negative half")
 axis(ax_dims)
@@ -209,28 +218,49 @@ v2 = imshow(vidFrame);
 % -------------------------------------------------------------------------
 % Process sweeps
 % -------------------------------------------------------------------------
+calib = 1.2463;
+road_width = 2;
 tic
+vidObj.CurrentTime = 0;
 for i = 1:n_sweeps
         set(p1, 'YData', absmagdb(RAD1_IQ_UP(i,:)))
         set(p2, 'YData', absmagdb(RAD1_IQ_DN(i,:)))
         set(p3, 'YData', absmagdb(RAD2_IQ_UP(i,:)))
         set(p4, 'YData', absmagdb(RAD2_IQ_DN(i,:)))
-%         [rgMtx1, spMtx1, spMtxCorr1, pkuClean1, ...
-%         pkdClean1, fbu1, fbd1, fdMtx] = proc_sweep(bin_width, fd_max, ...
-%         lambda, k, c, dnDets(i,:), upDets(i,:));
+        
+        [rgMtx1, spMtx1, spMtxCorr1, pkuClean1, ...
+        pkdClean1, fbu1, fbd1, fdMtx1, fb_idx1] = proc_sweep(bin_width, ...
+        lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
+        f_pos, scan_width, calib, road_width);
+        
+        fb_idx_end1 = fb_idx1 - 15;
+
+        [rgMtx2, spMtx2, spMtxCorr2, pkuClean2, ...
+        pkdClean2, fbu2, fbd2, fdMtx2, fb_idx2] = proc_sweep(bin_width, ...
+        lambda, k, c, dnDets2(i,:), upDets2(i,:), nbins, n_fft, ...
+        f_pos, scan_width, calib, road_width);
+    
+        fb_idx_end2 = fb_idx2 - 15;
+        
+%         set(win1, 'YData', [fb_idx1, fb_idx_end1])
+%         set(win2, 'YData', [fb_idx1, fb_idx_end1])
+%         
+%         set(win3, 'YData', [fb_idx2, fb_idx_end2])
+%         set(win4, 'YData', [fb_idx2, fb_idx_end2])
+        win3 = xline([fb_idx2, fb_idx_end2]);
         set(p1th, 'YData', absmagdb(upTh1(:,i)))
         set(p2th, 'YData', absmagdb(dnTh1(:,i)))
         set(p3th, 'YData', absmagdb(upTh2(:,i)))
         set(p4th, 'YData', absmagdb(dnTh2(:,i)))
         
             % two frames per radar frame
-        vidFrame = readFrame(vid1);
-        vidFrame = readFrame(vid1);
-        set(v1,'CData' ,vidFrame);
-    
-        vidFrame = readFrame(vid2);
-        vidFrame = readFrame(vid2);
-        set(v2, 'CData', vidFrame);
+%         vidFrame = readFrame(vid1);
+%         vidFrame = readFrame(vid1);
+%         set(v1,'CData' ,vidFrame);
+%     
+%         vidFrame = readFrame(vid2);
+%         vidFrame = readFrame(vid2);
+%         set(v2, 'CData', vidFrame);
 
         pause(0.01);
 end
