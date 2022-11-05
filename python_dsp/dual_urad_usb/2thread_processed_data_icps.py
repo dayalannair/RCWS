@@ -231,10 +231,15 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container):
 	global nbins
 	global rank
 
-	rg_array = np.zeros([n_rows, nbins], dtype=int)
-	sp_array = np.zeros([n_rows, nbins], dtype=int)
-	sf_array = np.zeros([n_rows, nbins], dtype=int)
+	# Pre-allocated array sizes
+	# rg_array = np.zeros([n_rows, nbins], dtype=int)
+	# sp_array = np.zeros([n_rows, nbins], dtype=int)
+	# sf_array = np.zeros([n_rows, nbins], dtype=int)
 
+	# Unsized array - to see how many sweeps were acquired
+	rg_array = []
+	sp_array = []
+	sf_array = []
 	i = 0
 
 	t0 = time() 
