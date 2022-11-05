@@ -223,8 +223,8 @@ def urad_capture(duration, fname, port):
 	print("uRAD USB capture complete.")
 
 # Separate files for each radar
-urad1_fname = "uRAD1_iq_"+now+".txt"
-urad2_fname = "uRAD2_iq_"+now+".txt"
+urad1_fname = "lhs_iq_"+now+".txt"
+urad2_fname = "rhs_iq_"+now+".txt"
 
 # uRAD threads
 urad1 = threading.Thread(target=urad_capture, args=[duration, urad1_fname, ser1])
