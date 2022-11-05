@@ -217,7 +217,7 @@ sf_array_2 = np.zeros([n_rows, nbins], dtype=int)
 # ----------------------------------------------------------------------------
 # THREAD FUNCTION
 # ----------------------------------------------------------------------------
-def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container):
+def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, fcorr):
 
 	print("uRAD USB processing thread started")
 	# Global inputs
@@ -235,6 +235,7 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container):
 	rg_array = np.zeros([n_rows, nbins], dtype=int)
 	sp_array = np.zeros([n_rows, nbins], dtype=int)
 	sf_array = np.zeros([n_rows, nbins], dtype=int)
+	sp_array_corr= np.zeros([n_rows, nbins], dtype=int)
 
 	# Unsized array - to see how many sweeps were acquired
 	# rg_array = []
@@ -251,7 +252,7 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container):
 		if (return_code != 0):
 			closeProgram()
 
-		rg_array[i], sp_array[i], sf_array[i] = range_speed_safety(raw_results[0], \
+		rg_array[i], sp_array[i], sf_array[i], sp_array_corr[i]  = range_speed_safety(raw_results[0], \
 		raw_results[1], twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, fax)
 		
 		i = i + 1
@@ -277,6 +278,7 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container):
 	np.savetxt(frange, rg_array, fmt='%d', delimiter = ' ', newline='\n')
 	np.savetxt(fspeed, sp_array, fmt='%d', delimiter = ' ', newline='\n')
 	np.savetxt(fsafety, sf_array, fmt='%d', delimiter = ' ', newline='\n')
+	np.savetxt(fcorr, sf_array, fmt='%d', delimiter = ' ', newline='\n')
 
 	print("uRAD USB processing thread complete. Data captured.")
 	print("Elapsed time: ", str(time()-t_0))
@@ -288,10 +290,12 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container):
 lhs_frange = "lhs_range_results_"+now+".txt"
 lhs_fspeed = "lhs_speed_results_"+now+".txt"
 lhs_fsafety = "lhs_safety_results_"+now+".txt"
+lhs_fcorr = "lhs_spcorr_results_"+now+".txt"
 
 rhs_frange = "rhs_range_results_"+now+".txt"
 rhs_fspeed = "rhs_speed_results_"+now+".txt"
 rhs_fsafety = "rhs_safety_results_"+now+".txt"
+rhs_fcorr = "rhs_spcorr_results_"+now+".txt"
 
 try:
 	
@@ -299,9 +303,9 @@ try:
 	t1 = 0
 
 	urad1 = threading.Thread(target=proc_rad_vid, \
-		args=[ser1, lhs_fspeed , lhs_frange, lhs_fsafety, duration, cap2, lhs_vid])
+		args=[ser1, lhs_fspeed , lhs_frange, lhs_fsafety, duration, cap2, lhs_vid, lhs_fcorr])
 	urad2 = threading.Thread(target=proc_rad_vid, \
-		args=[ser2, rhs_fspeed , rhs_frange, rhs_fsafety, duration, cap1, rhs_vid])
+		args=[ser2, rhs_fspeed , rhs_frange, rhs_fsafety, duration, cap1, rhs_vid, rhs_fcorr])
 
 	t0_proc = time()
 	print("==============================================")

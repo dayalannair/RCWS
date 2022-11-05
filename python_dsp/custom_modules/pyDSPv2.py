@@ -180,6 +180,7 @@ def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, half_gu
 	rg_array = np.zeros(nbins)
 	sp_array = np.zeros(nbins)
 	ratio = np.zeros(nbins)
+	sp_array_corr = np.zeros(nbins)
 
 	# safety_inv = 0
 	safety = 0
@@ -226,19 +227,19 @@ def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, half_gu
 				# fd_array[bin] = fd/2
 				
 				# if less than max expected and filter clutter doppler
-				if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
+				if (fd/2 > 400):
 					# convert Doppler to speed. fd is twice the Doppler therefore
 					# divide by 2
-					# sp_array[bin] = fd*lmda/4
+					sp_array[bin] = fd*lmda/4
 					# Note that fbd is now positive
 					rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)
 
 					# ************* Angle correction *******************
 					# Theta in radians
-					# theta = np.arcsin(road_width/rg_array[bin])*correction_factor
+					theta = np.arcsin(road_width/rg_array[bin])*correction_factor
 
 					# # real_v = fd*lmda/(8*np.cos(theta))
-					# sp_array[bin] = fd*lmda/(8*np.cos(theta))
+					sp_array_corr[bin] = fd*lmda/(8*np.cos(theta))
 				
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************
@@ -251,4 +252,4 @@ def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, half_gu
 		safety = min(ratio)
 
 
-	return rg_array, sp_array, safety
+	return rg_array, sp_array, safety, sp_array_corr

@@ -5,9 +5,9 @@ subset = 1:1000;
 
 addpath('../../matlab_lib/');
 addpath(['../../../../OneDrive - University of ' ...
-    'Cape Town/RCWS_DATA/testing_05_11_2022/']);
+    'Cape Town/RCWS_DATA/road_test_05_11_2022/']);
 
-time = '_08_55_35';
+time = '_11_01_36';
 
 f_urad1 = strcat('lhs_iq',time,'.txt');
 f_urad2 = strcat('rhs_iq',time,'.txt');
@@ -110,9 +110,9 @@ axis(ax_dims)
 xticks(ax_ticks)
 grid on
 
-% subplot(2,3,3);
-% vidFrame = readFrame(vid_lhs);
-% v1 = imshow(vidFrame);
+subplot(2,3,3);
+vidFrame = readFrame(vid_lhs);
+v1 = imshow(vidFrame);
 
 subplot(2,3,4);
 p3 = plot(rng_ax, RHS_IQ_UP(1,:));
@@ -128,8 +128,8 @@ axis(ax_dims)
 xticks(ax_ticks)
 grid on
 subplot(2,3,6);
-% vidFrame = readFrame(vid_rhs);
-% v2 = imshow(vidFrame);
+vidFrame = readFrame(vid_rhs);
+v2 = imshow(vidFrame);
 
 tic
 for sweep = 1:n_sweeps
@@ -137,15 +137,15 @@ for sweep = 1:n_sweeps
     set(p2, 'YData',LHS_IQ_DN(sweep,:))
     set(p3, 'YData',RHS_IQ_UP(sweep,:))
     set(p4, 'YData',RHS_IQ_DN(sweep,:))
-    
+    pause(0.01)
     % two frames per radar frame
-%     vidFrame = readFrame(vid1);
-%     vidFrame = readFrame(vid1);
+%     vidFrame = readFrame(vid_lhs);
+% %     vidFrame = readFrame(vid1);
 %     set(v1,'CData' ,vidFrame);
 % 
-%     vidFrame = readFrame(vid2);
-%     vidFrame = readFrame(vid2);
+%     vidFrame = readFrame(vid_rhs);
+% %     vidFrame = readFrame(vid2);
 %     set(v2, 'CData', vidFrame);
-    pause(0.01);
+%     pause(0.01);
 end
 toc
