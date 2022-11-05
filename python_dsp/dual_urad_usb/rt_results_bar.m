@@ -8,7 +8,7 @@
 addpath(['../../../../OneDrive - University of Cape' ...
     ' Town/RCWS_DATA/testing_05_11_2022']);
 
-time = '_11_12_09';
+time = '_11_33_17';
 l_rng_t = readtable(strcat('lhs_range_results',time,'.txt'),'Delimiter' ,' ');
 l_spd_t = readtable(strcat('lhs_speed_results',time,'.txt'),'Delimiter' ,' ');
 l_sft_t = readtable(strcat('lhs_safety_results',time,'.txt'),'Delimiter' ,' ');
