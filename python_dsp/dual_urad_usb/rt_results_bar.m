@@ -8,17 +8,17 @@
 addpath(['../../../../OneDrive - University of Cape' ...
     ' Town/RCWS_DATA/testing_05_11_2022']);
 
-date = '_07_57_29';
-l_rng_t = readtable(strcat('lhs_range_results',date,'.txt'),'Delimiter' ,' ');
-l_spd_t = readtable(strcat('lhs_speed_results',date,'.txt'),'Delimiter' ,' ');
-l_sft_t = readtable(strcat('lhs_safety_results',date,'.txt'),'Delimiter' ,' ');
+time = '_07_57_29';
+l_rng_t = readtable(strcat('lhs_range_results',time,'.txt'),'Delimiter' ,' ');
+l_spd_t = readtable(strcat('lhs_speed_results',time,'.txt'),'Delimiter' ,' ');
+l_sft_t = readtable(strcat('lhs_safety_results',time,'.txt'),'Delimiter' ,' ');
 
-r_rng_t = readtable(strcat('rhs_range_results',date,'.txt'),'Delimiter' ,' ');
-r_spd_t = readtable(strcat('rhs_speed_results',date,'.txt'),'Delimiter' ,' ');
-r_sft_t = readtable(strcat('rhs_safety_results',date,'.txt'),'Delimiter' ,' ');
+r_rng_t = readtable(strcat('rhs_range_results',time,'.txt'),'Delimiter' ,' ');
+r_spd_t = readtable(strcat('rhs_speed_results',time,'.txt'),'Delimiter' ,' ');
+r_sft_t = readtable(strcat('rhs_safety_results',time,'.txt'),'Delimiter' ,' ');
 
-fvid_lhs = strcat('lhs_vid',date,'_rtproc.avi');
-fvid_rhs = strcat('rhs_vid',date,'_rtproc.avi');
+fvid_lhs = strcat('lhs_vid',time,'_rtproc.avi');
+fvid_rhs = strcat('rhs_vid',time,'_rtproc.avi');
 % flip names to flip video order
 vid_lhs = VideoReader(fvid_lhs);
 vid_rhs = VideoReader(fvid_rhs);
