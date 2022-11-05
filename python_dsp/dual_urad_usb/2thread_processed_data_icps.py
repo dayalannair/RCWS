@@ -232,14 +232,14 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container):
 	global rank
 
 	# Pre-allocated array sizes
-	# rg_array = np.zeros([n_rows, nbins], dtype=int)
-	# sp_array = np.zeros([n_rows, nbins], dtype=int)
-	# sf_array = np.zeros([n_rows, nbins], dtype=int)
+	rg_array = np.zeros([n_rows, nbins], dtype=int)
+	sp_array = np.zeros([n_rows, nbins], dtype=int)
+	sf_array = np.zeros([n_rows, nbins], dtype=int)
 
 	# Unsized array - to see how many sweeps were acquired
-	rg_array = []
-	sp_array = []
-	sf_array = []
+	# rg_array = []
+	# sp_array = []
+	# sf_array = []
 	i = 0
 
 	t0 = time() 
