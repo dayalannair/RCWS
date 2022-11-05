@@ -14,13 +14,13 @@ f_urad2 = strcat('rhs_iq',time,'.txt');
 
 [fc, c, lambda, tm, bw, k, rad1_iq_u, rad1_iq_d, rad2_iq_u, ...
     rad2_iq_d, t_stamps] = import_dual_data_full(f_urad1, f_urad2);
-
-% fvid_lhs = strcat('lhs_vid',time,'.avi');
-% fvid_rhs = strcat('rhs_vid',time,'.avi');
-% % flip names to flip video order
-% vid_lhs = VideoReader(fvid_lhs);
-% vid_rhs = VideoReader(fvid_rhs);
-
+%%
+fvid_lhs = strcat('lhs_vid',time,'.avi');
+fvid_rhs = strcat('rhs_vid',time,'.avi');
+% flip names to flip video order
+vid_lhs = VideoReader(fvid_lhs);
+vid_rhs = VideoReader(fvid_rhs);
+%%
 % FOR ROTATING RHS VID
 % vd = read(vid2);
 % v2flip = rot90(vd, 2);
@@ -109,10 +109,10 @@ title("LHS DOWN chirp flipped negative half")
 axis(ax_dims)
 xticks(ax_ticks)
 grid on
-
-subplot(2,3,3);
-vidFrame = readFrame(vid_lhs);
-v1 = imshow(vidFrame);
+% 
+% subplot(2,3,3);
+% vidFrame = readFrame(vid_lhs);
+% v1 = imshow(vidFrame);
 
 subplot(2,3,4);
 p3 = plot(rng_ax, RHS_IQ_UP(1,:));
@@ -127,9 +127,9 @@ title("RHS DOWN chirp flipped negative half")
 axis(ax_dims)
 xticks(ax_ticks)
 grid on
-subplot(2,3,6);
-vidFrame = readFrame(vid_rhs);
-v2 = imshow(vidFrame);
+% subplot(2,3,6);
+% vidFrame = readFrame(vid_rhs);
+% v2 = imshow(vidFrame);
 
 tic
 for sweep = 1:n_sweeps

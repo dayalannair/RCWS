@@ -12,6 +12,7 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
     % beat_arr = zeros(1,nbins);
     pkuClean = zeros(1,n_fft/2);
     pkdClean = zeros(1,n_fft/2);
+    beat_index = 0;
     
      for bin = 0:(nbins-1)
         
