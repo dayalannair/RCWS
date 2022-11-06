@@ -37,56 +37,66 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
                
                % set beat scan window width
                index_end = beat_index - scan_width;
-
+%                disp("greater than bin width")
+%                disp(beat_index)
+%                disp(scan_width)
                % get up chirp spectrum window
                bin_slice_u = upDets(index_end:beat_index);
             
            % if not, start from DC
            else
                 index_end = 1;
+%                 disp("less than bin width")
                 bin_slice_u = upDets(1:beat_index);
             end
             
             [magu, idx_u] = max(bin_slice_u);
             
-            if magu ~= 0
-                
+            if (magu ~= 0) && (idx_u < scan_width) % Filter static targets
+                % Fixed targets have index up = index down
                 % store up chirp beat frequency
                 % NB - the bin index is not necessarily where the beat was
                 % found!
                 % ISSUE FIXED: index starts from index_end not bin*
                 % bin_width
-                fbu(bin+1) = f_pos(index_end + idx_u);
-            end
+%                 disp(index_end + idx_u)
+%                 disp(index_end)
+%                 disp(idx_u)
+
             
-            % if both not DC
-            if and(fbu(bin+1) ~= 0, fbd(bin+1)~= 0)
-                % Doppler shift is twice the difference in beat frequency
-%               calibrate beats for doppler shift
-                fd = (-fbu(bin+1) + fbd(bin+1))*calib;
-                fdMtx(bin+1) = fd/2;
-                
-                
-                % if less than max expected and filter clutter doppler
-                % removed the max condition as this is controlled by bin
-                % width (abs(fd/2) < fd_max) &&
-                if ( fd/2 > 400)
-                    spMtx(bin+1) = dop2speed(fd/2,lambda)/2;
+                fbu(bin+1) = f_pos(index_end + idx_u); 
+
+
+                            % if both not DC
+                if and(fbu(bin+1) ~= 0, fbd(bin+1)~= 0)
+                    % Doppler shift is twice the difference in beat frequency
+    %               calibrate beats for doppler shift
+                    fd = (-fbu(bin+1) + fbd(bin+1))*calib;
+                    fdMtx(bin+1) = fd/2;
                     
-                    rgMtx(bin+1) = calib*beat2range( ...
-                        [fbu(bin+1) -fbd(bin+1)], k, c);
-
-                    % Theta in radians
-                    theta = asin(road_width/rgMtx(bin+1));
-
-%                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
-                    real_v = fd*lambda/(4*cos(theta));
-                    spMtxCorr(bin+1) = round(real_v,2);
+                    
+                    % if less than max expected and filter clutter doppler
+                    % removed the max condition as this is controlled by bin
+                    % width (abs(fd/2) < fd_max) &&
+                    if ( fd/2 > 1000)
+                        spMtx(bin+1) = dop2speed(fd/2,lambda)/2;
+                        
+                        rgMtx(bin+1) = calib*beat2range( ...
+                            [fbu(bin+1) -fbd(bin+1)], k, c);
+    
+                        % Theta in radians
+                        theta = asin(road_width/rgMtx(bin+1));
+    
+    %                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
+                        real_v = fd*lambda/(4*cos(theta));
+                        spMtxCorr(bin+1) = round(real_v,2);
+                    end
+               
                 end
-           
+                % for plot
+                pkuClean( bin*bin_width + idx_u) = magu;
+                pkdClean( bin*bin_width + idx_d) = magd;
+
             end
-            % for plot
-            pkuClean( bin*bin_width + idx_u) = magu;
-            pkdClean( bin*bin_width + idx_d) = magd;
         end
     end

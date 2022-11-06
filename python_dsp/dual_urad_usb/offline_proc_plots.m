@@ -5,11 +5,25 @@ subset = 1:1000;
 
 addpath('../../matlab_lib/');
 addpath(['../../../../OneDrive - University of ' ...
-    'Cape Town/RCWS_DATA/road_test_05_11_2022/iq_data/']);
+    'Cape Town/RCWS_DATA/road_data_05_11_2022/iq_data/']);
+
 addpath(['../../../../OneDrive - University of ' ...
-    'Cape Town/RCWS_DATA/road_test_05_11_2022/iq_vid/']);
+    'Cape Town/RCWS_DATA/road_data_05_11_2022/iq_vid/']);
+
+addpath(['../../../../OneDrive - University of ' ...
+    'Cape Town/RCWS_DATA/road_data_03_11_2022/iq_data/']);
+
+addpath(['../../../../OneDrive - University of ' ...
+    'Cape Town/RCWS_DATA/road_data_03_11_2022/iq_vid/']);
+
+
+% Time stamps for 3 November 2022
+
+time = '_12_18_12';
+
+% Time stamps for 5 November 2022
 % time = '_10_25_12';
-time = '_10_29_56';
+% time = '_10_29_56';
 % time = '_10_44_35';
 % time = '_10_53_21';
 % time = '_11_01_36';
@@ -27,12 +41,12 @@ vid_lhs = VideoReader(fvid_lhs);
 vid_rhs = VideoReader(fvid_rhs);
 
 %% FOR ROTATING RHS VID
-vd = read(vid_rhs);
-v2flip = rot90(vd, 2);
-V_flip = VideoWriter('flipped.avi','Uncompressed AVI'); 
-open(V_flip)
-writeVideo(V_flip,v2flip)
-close(V_flip)
+% vd = read(vid_rhs);
+% v2flip = rot90(vd, 2);
+% V_flip = VideoWriter('flipped.avi','Uncompressed AVI'); 
+% open(V_flip)
+% writeVideo(V_flip,v2flip)
+% close(V_flip)
 %%
 % Get dimensions of data from slower device
 n_samples = size(rad1_iq_u,2);
@@ -46,7 +60,7 @@ guard = n_fft/64;%8;
 guard = 4;
 nbar = 3;
 sll = -100;
-F = 10e-3;
+F = 5*10e-3;
 
 % Decimate faster device data
 % rad2_iq_u = rad2_iq_u(1:3:end, :);
@@ -180,7 +194,7 @@ fb_idx1 = 40;
 fb_idx2 = 40;
 fb_idx_end1 = 20;
 fb_idx_end2 = 20;
-scan_width = 15;
+scan_width = 16;
 ax_dims = [0 max(rng_ax) 80 190];
 ax_ticks = 1:2:60;
 %%
@@ -247,21 +261,33 @@ calib = 1.2463;
 road_width = 2;
 tic
 vidObj.CurrentTime = 0;
+hold_frame = 0;
 frame_count = 0;
-for i = 1:n_sweeps
-        set(p1, 'YData', absmagdb(LHS_IQ_UP(i,:)))
-        set(p2, 'YData', absmagdb(LHS_IQ_DN(i,:)))
-        set(p3, 'YData', absmagdb(RHS_IQ_UP(i,:)))
-        set(p4, 'YData', absmagdb(RHS_IQ_DN(i,:)))
+
+nswp1 = size(LHS_IQ_UP,1);
+nswp2 = size(RHS_IQ_UP,1);
+
+rgMtx1 = zeros(nswp1, nbins);
+spMtx1 = zeros(nswp1, nbins);
+spMtxCorr1 = zeros(nswp1, nbins);
+
+rgMtx2 = zeros(nswp2, nbins);
+spMtx2 = zeros(nswp2, nbins);
+spMtxCorr2 = zeros(nswp2, nbins);
+
+
+loop_count = min(nswp1,nswp2);
+
+for i = 1:loop_count
         
-        [rgMtx1, spMtx1, spMtxCorr1, pkuClean1, ...
+        [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
         pkdClean1, fbu1, fbd1, fdMtx1, fb_idx1] = proc_sweep(bin_width, ...
         lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
         f_pos, scan_width, calib, road_width);
         
         fb_idx_end1 = fb_idx1 - 15;
 
-        [rgMtx2, spMtx2, spMtxCorr2, pkuClean2, ...
+        [rgMtx2(i,:), spMtx2(i,:), spMtxCorr2(i,:), pkuClean2, ...
         pkdClean2, fbu2, fbd2, fdMtx2, fb_idx2] = proc_sweep(bin_width, ...
         lambda, k, c, dnDets2(i,:), upDets2(i,:), nbins, n_fft, ...
         f_pos, scan_width, calib, road_width);
@@ -274,23 +300,32 @@ for i = 1:n_sweeps
 %         set(win3, 'YData', [fb_idx2, fb_idx_end2])
 %         set(win4, 'YData', [fb_idx2, fb_idx_end2])
 %         win3 = xline([fb_idx2, fb_idx_end2]);
-        set(p1th, 'YData', absmagdb(upTh1(:,i)))
-        set(p2th, 'YData', absmagdb(dnTh1(:,i)))
-        set(p3th, 'YData', absmagdb(upTh2(:,i)))
-        set(p4th, 'YData', absmagdb(dnTh2(:,i)))
-        
-            % two frames per radar frame
-        if frame_count == 3
-            vidFrame = readFrame(vid_lhs);
-            set(v1,'CData' ,vidFrame);
-        
-            vidFrame = readFrame(vid_rhs);
-            set(v2, 'CData', vidFrame);
-            frame_count = 0;
-        else
-            frame_count = frame_count + 1;
-        end
-        pause(0.01);
+%         set(p1, 'YData', absmagdb(LHS_IQ_UP(i,:)))
+%         set(p2, 'YData', absmagdb(LHS_IQ_DN(i,:)))
+%         set(p3, 'YData', absmagdb(RHS_IQ_UP(i,:)))
+%         set(p4, 'YData', absmagdb(RHS_IQ_DN(i,:)))
+% 
+%         set(p1th, 'YData', absmagdb(upTh1(:,i)))
+%         set(p2th, 'YData', absmagdb(dnTh1(:,i)))
+%         set(p3th, 'YData', absmagdb(upTh2(:,i)))
+%         set(p4th, 'YData', absmagdb(dnTh2(:,i)))
+%         
+%         % When run on 4 threads, there are 3 times fewer 
+%         % video frames
+%         if hold_frame == 2
+%             vidFrame = readFrame(vid_lhs);
+%             set(v1,'CData' ,vidFrame);
+% 
+%             vidFrame = readFrame(vid_rhs);
+%             set(v2, 'CData', vidFrame);
+%             hold_frame = 0;
+% %             frame_count = frame_count + 1;
+% %             disp(['Vid frame: ', num2str(frame_count) ...
+% %                 , ' sweep: ', num2str(i)])
+%         else
+%             hold_frame = hold_frame + 1;
+%         end
+%         pause(0.01);
 end
 toc
 % RHS_IQ_UP = absmagdb(RHS_IQ_UP);
@@ -299,8 +334,18 @@ toc
 % LHS_IQ_UP = absmagdb(LHS_IQ_UP);
 % LHS_IQ_DN = absmagdb(LHS_IQ_DN);
 
-
-
+%% 
+close all
+figure
+tiledlayout(2, 2)
+nexttile
+imagesc(rgMtx1)
+nexttile
+imagesc(rgMtx2)
+nexttile
+imagesc(spMtx1)
+nexttile
+imagesc(spMtx2)
 
 
 
