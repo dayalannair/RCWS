@@ -2,8 +2,9 @@
 % This script reads in real time processed data stored in a shared OneDrive
 % repository and plots these as colour maps. 
 % Also can plot range/speed/safety vs. time
-addpath(['../../../../OneDrive - University of Cape' ...
-    ' Town/RCWS_DATA/road_test_05_11_2022/rt_proc_data/']);
+addpath('..\..\..\..\OneDrive - University of Cape Town\RCWS_DATA\road_data_05_11_2022\rt_proc_data\');
+% addpath(['../../../../OneDrive - University of Cape' ...
+%     ' Town/RCWS_DATA/road_test_05_11_2022/rt_proc_data/']);
 time = '_11_12_09';
 % time = '_11_30_27';
 % time = '_11_33_17';
@@ -37,7 +38,21 @@ r_rng = r_rng(1:sweeps_processed,:);
 r_spd = r_spd(1:sweeps_processed,:);
 
 %%
+ fc = 24.005e9;
+c = physconst('LightSpeed');
+lambda = c/fc;
+tm = 1e-3;                      % Ramp duration
+bw = 240e6;                     % Bandwidth
+k = bw/tm;                      % Sweep slope
+nbins = 16;
+bin_width = 16;
+fs = 200e3;
+n_fft = 512;
+f = f_ax(n_fft, fs);
+f_neg = f(1:n_fft/2);
+f_pos = f((n_fft/2 + 1):end);
 
+rng_ax = beat2range(f_pos',k,c);
 rg_bin_lbl = strings(1,nbins);
 rax = linspace(0,62,32);
 for bin = 0:(nbins-1)
