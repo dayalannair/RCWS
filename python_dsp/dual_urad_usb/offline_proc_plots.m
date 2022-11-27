@@ -201,59 +201,10 @@ ax_ticks = 1:2:60;
 vid_lhs = VideoReader(fvid_lhs);
 vid_rhs = VideoReader(fvid_rhs);
 close all
+vid_lhs.CurrentTime = 0;
+vid_rhs.CurrentTime = 0;
 fig1 = figure('WindowState','maximized');
 movegui(fig1,'west')
-
-subplot(2,3,1);
-p1 = plot(rng_ax, absmagdb(LHS_IQ_UP(1,:)));
-hold on
-p1th = plot(rng_ax, absmagdb(upTh1(:,1)));
-% win1 = xline([fb_idx1, fb_idx_end1]);
-hold off
-title("LHS UP chirp positive half")
-axis(ax_dims)
-xticks(ax_ticks)
-grid on
-
-subplot(2,3,2);
-p2 = plot(rng_ax, absmagdb(LHS_IQ_DN(1,:)));
-hold on
-p2th = plot(rng_ax, absmagdb(dnTh1(:,1)));
-% win2 = xline([fb_idx1, fb_idx_end1]);
-hold off
-title("LHS DOWN chirp flipped negative half")
-axis(ax_dims)
-xticks(ax_ticks)
-grid on
-
-subplot(2,3,3);
-vidFrame = readFrame(vid_lhs);
-v1 = imshow(vidFrame);
-
-subplot(2,3,4);
-p3 = plot(rng_ax, absmagdb(RHS_IQ_UP(1,:)));
-hold on
-p3th = plot(rng_ax, absmagdb(upTh2(:,1)));
-% win3 = xline([fb_idx2, fb_idx_end2]);
-hold off
-title("RHS UP chirp positive half")
-axis(ax_dims)
-xticks(ax_ticks)
-grid on
-
-subplot(2,3,5);
-p4 = plot(rng_ax, absmagdb(RHS_IQ_DN(1,:)));
-hold on
-p4th = plot(rng_ax, absmagdb(dnTh2(:,1)));
-% win4 = xline([fb_idx2, fb_idx_end2]);
-hold off
-title("RHS DOWN chirp flipped negative half")
-axis(ax_dims)
-xticks(ax_ticks)
-grid on
-subplot(2,3,6);
-vidFrame = readFrame(vid_rhs);
-v2 = imshow(vidFrame);
 % -------------------------------------------------------------------------
 % Process sweeps
 % -------------------------------------------------------------------------
@@ -262,7 +213,7 @@ road_width = 2;
 tic
 vidObj.CurrentTime = 0;
 hold_frame = 0;
-frame_count = 0;
+frame_count = 1;
 
 nswp1 = size(LHS_IQ_UP,1);
 nswp2 = size(RHS_IQ_UP,1);
@@ -293,13 +244,113 @@ for i = 1:loop_count
         f_pos, scan_width, calib, road_width);
     
         fb_idx_end2 = fb_idx2 - 15;
+
+%         % When run on 4 threads, there are 3 times fewer 
+%         % video frames
+        if hold_frame == 2
+            vidFrame = readFrame(vid_lhs);
+            set(v1,'CData' ,vidFrame);
+
+            vidFrame = readFrame(vid_rhs);
+            set(v2, 'CData', vidFrame);
+            hold_frame = 0;
+            frame_count = frame_count + 1;
+        else
+            hold_frame = hold_frame + 1;
+        end
+        % PLOT DATA
+        % -----------------------------------------------------------------
+
+        fb_idx1 = rng_ax(fb_idx1);
+        fb_idx2 = rng_ax(fb_idx2);
+        fb_idx_end1 = rng_ax(fb_idx_end1);
+        fb_idx_end2 = rng_ax(fb_idx_end2);
+
+        subplot(2,3,1);
+        p1 = plot(rng_ax, absmagdb(LHS_IQ_UP(i,:)));
+        hold on
+        p1th = plot(rng_ax, absmagdb(upTh1(:,i)));
+        xline([fb_idx1, fb_idx_end1]);
+        hold off
+        title("LHS UP chirp positive half")
+        axis(ax_dims)
+        xticks(ax_ticks)
+        grid on
         
-%         set(win1, 'YData', [fb_idx1, fb_idx_end1])
-%         set(win2, 'YData', [fb_idx1, fb_idx_end1])
+        subplot(2,3,2);
+        p2 = plot(rng_ax, absmagdb(LHS_IQ_DN(i,:)));
+        hold on
+        p2th = plot(rng_ax, absmagdb(dnTh1(:,i)));
+        xline([fb_idx1, fb_idx_end1]);
+        hold off
+        title("LHS DOWN chirp flipped negative half")
+        axis(ax_dims)
+        xticks(ax_ticks)
+        grid on
+        
+        subplot(2,3,3);
+        vidFrame = readFrame(vid_lhs);
+        v1 = imshow(vidFrame);
+        
+        subplot(2,3,4);
+        p3 = plot(rng_ax, absmagdb(RHS_IQ_UP(i,:)));
+        hold on
+        p3th = plot(rng_ax, absmagdb(upTh2(:,i)));
+        xline([fb_idx2, fb_idx_end2]);
+        hold off
+        title("RHS UP chirp positive half")
+        axis(ax_dims)
+        xticks(ax_ticks)
+        grid on
+        
+        subplot(2,3,5);
+        p4 = plot(rng_ax, absmagdb(RHS_IQ_DN(i,:)));
+        hold on
+        p4th = plot(rng_ax, absmagdb(dnTh2(:,i)));
+        xline([fb_idx2, fb_idx_end2]);
+        hold off
+        title("RHS DOWN chirp flipped negative half")
+        axis(ax_dims)
+        xticks(ax_ticks)
+        grid on
+
+        subplot(2,3,6);
+        vidFrame = readFrame(vid_rhs);
+        v2 = imshow(vidFrame);
+        drawnow;
+        % -----------------------------------------------------------------
+
+    disp(['Radar sweep : ', num2str(sweep),' Video frame : ', ...
+        num2str(frame_count)])
+%     pause(0.01);
+end
+toc
+
+
+%% FAST PLOTTING - does not handle xlines
+% for i = 1:loop_count
 %         
-%         set(win3, 'YData', [fb_idx2, fb_idx_end2])
-%         set(win4, 'YData', [fb_idx2, fb_idx_end2])
-%         win3 = xline([fb_idx2, fb_idx_end2]);
+%         [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
+%         pkdClean1, fbu1, fbd1, fdMtx1, fb_idx1] = proc_sweep(bin_width, ...
+%         lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
+%         f_pos, scan_width, calib, road_width);
+%         
+%         fb_idx_end1 = fb_idx1 - 15;
+% 
+%         [rgMtx2(i,:), spMtx2(i,:), spMtxCorr2(i,:), pkuClean2, ...
+%         pkdClean2, fbu2, fbd2, fdMtx2, fb_idx2] = proc_sweep(bin_width, ...
+%         lambda, k, c, dnDets2(i,:), upDets2(i,:), nbins, n_fft, ...
+%         f_pos, scan_width, calib, road_width);
+%     
+%         fb_idx_end2 = fb_idx2 - 15;
+%         win1.Value
+% %         set(win1,'Data',[fb_idx1, fb_idx_end1])
+% %         set(win1, 'YData', [fb_idx1, fb_idx_end1])
+% %         set(win2, 'YData', [fb_idx1, fb_idx_end1])
+% %         
+% %         set(win3, 'YData', [fb_idx2, fb_idx_end2])
+% %         set(win4, 'YData', [fb_idx2, fb_idx_end2])
+% %         win3 = xline([fb_idx2, fb_idx_end2]);
 %         set(p1, 'YData', absmagdb(LHS_IQ_UP(i,:)))
 %         set(p2, 'YData', absmagdb(LHS_IQ_DN(i,:)))
 %         set(p3, 'YData', absmagdb(RHS_IQ_UP(i,:)))
@@ -309,9 +360,9 @@ for i = 1:loop_count
 %         set(p2th, 'YData', absmagdb(dnTh1(:,i)))
 %         set(p3th, 'YData', absmagdb(upTh2(:,i)))
 %         set(p4th, 'YData', absmagdb(dnTh2(:,i)))
-%         
-%         % When run on 4 threads, there are 3 times fewer 
-%         % video frames
+% %         
+% %         % When run on 4 threads, there are 3 times fewer 
+% %         % video frames
 %         if hold_frame == 2
 %             vidFrame = readFrame(vid_lhs);
 %             set(v1,'CData' ,vidFrame);
@@ -319,15 +370,15 @@ for i = 1:loop_count
 %             vidFrame = readFrame(vid_rhs);
 %             set(v2, 'CData', vidFrame);
 %             hold_frame = 0;
-% %             frame_count = frame_count + 1;
-% %             disp(['Vid frame: ', num2str(frame_count) ...
-% %                 , ' sweep: ', num2str(i)])
+%             frame_count = frame_count + 1;
 %         else
 %             hold_frame = hold_frame + 1;
 %         end
-%         pause(0.01);
-end
-toc
+% %     disp(['Radar sweep : ', num2str(sweep),' Video frame : ', ...
+% %         num2str(frame_count)])
+% %     pause(0.01);
+% end
+% toc
 % RHS_IQ_UP = absmagdb(RHS_IQ_UP);
 % RHS_IQ_DN = absmagdb(RHS_IQ_DN);
 % 

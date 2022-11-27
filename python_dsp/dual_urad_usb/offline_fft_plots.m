@@ -148,8 +148,8 @@ for sweep = 1:n_sweeps
     end
 
 
-    disp(['Radar sweep : ', num2str(sweep)])
-    disp(['Video frame : ', num2str(vid_frame_number)])
+    disp(['Radar sweep : ', num2str(sweep),' Video frame : ', ...
+        num2str(vid_frame_number)])
     pause(0.01);
     
 end
