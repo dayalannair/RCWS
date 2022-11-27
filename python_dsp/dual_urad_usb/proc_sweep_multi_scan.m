@@ -2,12 +2,14 @@
 % the tracks
 
 function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
-    pkdClean, fbu, fbd, fdMtx, beat_indices, beat_indices_end] = proc_sweep_multi_scan(bin_width, ... 
+    pkdClean, fbu, fbd, fdMtx, beat_indices, beat_indices_end,...
+    beat_count_out] = ...
+    proc_sweep_multi_scan(bin_width, ... 
     lambda, k, c, dnDets, upDets, nbins, n_fft, f_pos, scan_width, ...
-    calib, road_width)
+    calib, road_width, beat_count_in)
     % since these are indices, MATLAB needs ones instead of zeros
-    beat_indices = ones(1,nbins);
-    beat_indices_end = ones(1,nbins); 
+    beat_indices = ones(nbins,1);
+    beat_indices_end = ones(nbins,1);
     fbu = zeros(1,nbins);
     fbd = zeros(1,nbins);
     rgMtx = zeros(1,nbins);
@@ -17,7 +19,7 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
     % beat_arr = zeros(1,nbins);
     pkuClean = zeros(1,n_fft/2);
     pkdClean = zeros(1,n_fft/2);
-    
+    beat_count_out = beat_count_in; % init counts from previous sweep
      for bin = 0:(nbins-1)
 %     for bin = (nbins-1):0
         
@@ -59,43 +61,46 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
                 % NB - the bin index is not necessarily where the beat was
                 % found!
                 % ISSUE FIXED: index starts from index_end not bin*
-                % bin_width
-%                 disp(index_end + idx_u)
-%                 disp(index_end)
-%                 disp(idx_u)
-
-            
-                fbu(bin+1) = f_pos(index_end + idx_u); 
+                   
+                % -1 because index_end is included in the slice
+                fbu(bin+1) = f_pos(index_end + idx_u - 1); 
 
 
-                            % if both not DC
-                if and(fbu(bin+1) ~= 0, fbd(bin+1)~= 0)
-                    % Doppler shift is twice the difference in beat frequency
+                % if both not DC and detection at the index is not static
+                % clutter
+                if fbu(bin+1) ~= 0 && fbd(bin+1)~= 0 && ...
+                    beat_count_out(beat_index) < 5
+                    % Doppler shift is twice the difference in beat 
+                    % frequency
     %               calibrate beats for doppler shift
                     fd = (-fbu(bin+1) + fbd(bin+1))*calib;
                     fdMtx(bin+1) = fd/2;
                     
                     
                     % if less than max expected and filter clutter doppler
-                    % removed the max condition as this is controlled by bin
+                    % removed the max condition as this is controlled by
+                    % bin
                     % width (abs(fd/2) < fd_max) &&
-                    if ( fd/2 > 1000)
-                        % Capture data after all filters passed
-                        beat_indices_end(bin+1) = index_end;
-                        beat_indices(bin+1) = beat_index;
+                    % Doppler shift is limited by scan width
+%                     if ( fd/2 > 1000)
+                    % Capture data after all filters passed
+                    beat_indices_end(bin+1) = index_end;
+                    beat_indices(bin+1) = beat_index;
+                    beat_count_out(beat_index) = ...
+                        beat_count_out(beat_index) +1;
+                    
+                    spMtx(bin+1) = dop2speed(fd/2,lambda)/2;
+                    
+                    rgMtx(bin+1) = calib*beat2range( ...
+                        [fbu(bin+1) -fbd(bin+1)], k, c);
 
-                        spMtx(bin+1) = dop2speed(fd/2,lambda)/2;
-                        
-                        rgMtx(bin+1) = calib*beat2range( ...
-                            [fbu(bin+1) -fbd(bin+1)], k, c);
-    
-                        % Theta in radians
-                        theta = asin(road_width/rgMtx(bin+1));
-    
-    %                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
-                        real_v = fd*lambda/(4*cos(theta));
-                        spMtxCorr(bin+1) = round(real_v,2);
-                    end
+                    % Theta in radians
+                    theta = asin(road_width/rgMtx(bin+1));
+
+%                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
+                    real_v = fd*lambda/(4*cos(theta));
+                    spMtxCorr(bin+1) = round(real_v,2);
+%                     end
                
                 end
                 % for plot

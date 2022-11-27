@@ -166,11 +166,12 @@ speed_correction = 1.2;
 % -------------------------------------------------------------------------
 % Initialise plots
 % -------------------------------------------------------------------------
-fb_idx1 = zeros(1,nbins);
-fb_idx2 = zeros(1,nbins);
-fb_idx_end1 = zeros(1,nbins);
-fb_idx_end2 = zeros(1,nbins);
-scan_width = 16;
+fb_idx1 = zeros(nbins,1);
+fb_idx2 = zeros(nbins,1);
+fb_idx_end1 = zeros(nbins,1);
+fb_idx_end2 = zeros(nbins,1);
+% max speed = 90 km/h. f = 2v/lambda = 4 kHz. each bin is 1 kHz apart
+scan_width = 4;
 ax_dims = [0 max(rng_ax) 80 190];
 ax_ticks = 1:2:60;
 %%
@@ -207,111 +208,138 @@ beat_count_out1 = zeros(1,256);
 beat_count_out2 = zeros(1,256);
 beat_count_in1 = zeros(1,256);
 beat_count_in2 = zeros(1,256);
+% colors = linspace(1,5,5);
+% x = linspace(0,3*pi,200);
+% colors = linspace(1,10,length(x));
+
+subplot(2,3,1);
+p1 = plot(rng_ax, absmagdb(LHS_IQ_UP(1,:)));
+hold on
+p1th = plot(rng_ax, absmagdb(upTh1(:,1)));
+% win1 = xline([fb_idx1; fb_idx_end1]);
+% b1 = bar([fb_idx1; fb_idx_end1]);
+% p1ln = plot([fb_idx1; fb_idx_end1], [100, 150]);
+% colors = 1:5;
+colors = linspace(1,8,32);
+win1 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(1, 32)*130 ,2000, colors,...
+'Marker', '|');
+%     ["m","b","r","g"]
+hold off
+title("LHS UP chirp positive half")
+axis(ax_dims)
+xticks(ax_ticks)
+grid on
+
+subplot(2,3,2);
+p2 = plot(rng_ax, absmagdb(LHS_IQ_DN(1,:)));
+hold on
+p2th = plot(rng_ax, absmagdb(dnTh1(:,1)));
+% win2 = xline([fb_idx1, fb_idx_end1]);
+hold off
+title("LHS DOWN chirp flipped negative half")
+axis(ax_dims)
+xticks(ax_ticks)
+grid on
+
+subplot(2,3,3);
+vidFrame = readFrame(vid_lhs);
+v1 = imshow(vidFrame);
+
+subplot(2,3,4);
+p3 = plot(rng_ax, absmagdb(RHS_IQ_UP(1,:)));
+hold on
+p3th = plot(rng_ax, absmagdb(upTh2(:,1)));
+% win3 = xline([fb_idx2, fb_idx_end2]);
+hold off
+title("RHS UP chirp positive half")
+axis(ax_dims)
+xticks(ax_ticks)
+grid on
+
+subplot(2,3,5);
+p4 = plot(rng_ax, absmagdb(RHS_IQ_DN(1,:)));
+hold on
+p4th = plot(rng_ax, absmagdb(dnTh2(:,1)));
+% win4 = xline([fb_idx2, fb_idx_end2]);
+hold off
+title("RHS DOWN chirp flipped negative half")
+axis(ax_dims)
+xticks(ax_ticks)
+grid on
+subplot(2,3,6);
+vidFrame = readFrame(vid_rhs);
+v2 = imshow(vidFrame);
+
 for i = 1:loop_count
         
 
-        [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
-        pkdClean1, fbu1, fbd1, fdMtx1, fb_idx1, fb_idx_end1, ...
-        beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
-        lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
-        f_pos, scan_width, calib, road_width, beat_count_in1);
-        
-        beat_count_in1 = beat_count_out1;
+    [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
+    pkdClean1, fbu1, fbd1, fdMtx1, fb_idx1, fb_idx_end1, ...
+    beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
+    lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
+    f_pos, scan_width, calib, road_width, beat_count_in1);
+    
+    beat_count_in1 = beat_count_out1;
 
-        [rgMtx2(i,:), spMtx2(i,:), spMtxCorr2(i,:), pkuClean2, ...
-        pkdClean2, fbu2, fbd2, fdMtx2, fb_idx2, fb_idx_end2, ...
-        beat_count_out2] = proc_sweep_multi_scan(bin_width, ...
-        lambda, k, c, dnDets2(i,:), upDets2(i,:), nbins, n_fft, ...
-        f_pos, scan_width, calib, road_width,beat_count_in2);
+    [rgMtx2(i,:), spMtx2(i,:), spMtxCorr2(i,:), pkuClean2, ...
+    pkdClean2, fbu2, fbd2, fdMtx2, fb_idx2, fb_idx_end2, ...
+    beat_count_out2] = proc_sweep_multi_scan(bin_width, ...
+    lambda, k, c, dnDets2(i,:), upDets2(i,:), nbins, n_fft, ...
+    f_pos, scan_width, calib, road_width,beat_count_in2);
 
-        % Reset clutter filter every 40 sweeps
-        if mod(i, 40) == 0 
-            beat_count_out1 = zeros(1,256);
-            beat_count_out2 = zeros(1,256);
-            beat_count_in1 = zeros(1,256);
-            beat_count_in2 = zeros(1,256);
-        else
-            beat_count_in2 = beat_count_out2;
-        end
+    % Reset clutter filter every 40 sweeps
+    if mod(i, 40) == 0 
+        beat_count_out1 = zeros(1,256);
+        beat_count_out2 = zeros(1,256);
+        beat_count_in1 = zeros(1,256);
+        beat_count_in2 = zeros(1,256);
+    else
+        beat_count_in2 = beat_count_out2;
+    end
 %         % When run on 4 threads, there are 3 times fewer 
 %         % video frames
-        if hold_frame == 2
-            vidFrame = readFrame(vid_lhs);
-            set(v1,'CData' ,vidFrame);
-
-            vidFrame = readFrame(vid_rhs);
-            set(v2, 'CData', vidFrame);
-            hold_frame = 0;
-            frame_count = frame_count + 1;
-        else
-            hold_frame = hold_frame + 1;
-        end
-        % PLOT DATA
-        % -----------------------------------------------------------------
-
-        fb_idx1 = rng_ax(fb_idx1);
-        fb_idx2 = rng_ax(fb_idx2);
-        fb_idx_end1 = rng_ax(fb_idx_end1);
-        fb_idx_end2 = rng_ax(fb_idx_end2);
-
-        subplot(2,3,1);
-        p1 = plot(rng_ax, absmagdb(LHS_IQ_UP(i,:)));
-        hold on
-        p1th = plot(rng_ax, absmagdb(upTh1(:,i)));
-        % concatenate columns
-        xline([fb_idx1; fb_idx_end1]);
-        hold off
-        title("LHS UP chirp positive half")
-        axis(ax_dims)
-        xticks(ax_ticks)
-        grid on
-        
-        subplot(2,3,2);
-        p2 = plot(rng_ax, absmagdb(LHS_IQ_DN(i,:)));
-        hold on
-        p2th = plot(rng_ax, absmagdb(dnTh1(:,i)));
-        xline([fb_idx1; fb_idx_end1]);
-        hold off
-        title("LHS DOWN chirp flipped negative half")
-        axis(ax_dims)
-        xticks(ax_ticks)
-        grid on
-        
-        subplot(2,3,3);
+    if hold_frame == 2
         vidFrame = readFrame(vid_lhs);
-        v1 = imshow(vidFrame);
-        
-        subplot(2,3,4);
-        p3 = plot(rng_ax, absmagdb(RHS_IQ_UP(i,:)));
-        hold on
-        p3th = plot(rng_ax, absmagdb(upTh2(:,i)));
-        xline([fb_idx2; fb_idx_end2]);
-        hold off
-        title("RHS UP chirp positive half")
-        axis(ax_dims)
-        xticks(ax_ticks)
-        grid on
-        
-        subplot(2,3,5);
-        p4 = plot(rng_ax, absmagdb(RHS_IQ_DN(i,:)));
-        hold on
-        p4th = plot(rng_ax, absmagdb(dnTh2(:,i)));
-        xline([fb_idx2; fb_idx_end2]);
-        hold off
-        title("RHS DOWN chirp flipped negative half")
-        axis(ax_dims)
-        xticks(ax_ticks)
-        grid on
+        set(v1,'CData' ,vidFrame);
 
-        subplot(2,3,6);
         vidFrame = readFrame(vid_rhs);
-        v2 = imshow(vidFrame);
-        drawnow;
-        % -----------------------------------------------------------------
+        set(v2, 'CData', vidFrame);
+        hold_frame = 0;
+        frame_count = frame_count + 1;
+    else
+        hold_frame = hold_frame + 1;
+    end
+    % PLOT DATA
+    % -----------------------------------------------------------------
 
-    disp(['Radar sweep : ', num2str(i),' Video frame : ', ...
-        num2str(frame_count)])
-%     pause(0.01);
+    fb_idx1 = rng_ax(fb_idx1);
+    fb_idx2 = rng_ax(fb_idx2);
+    fb_idx_end1 = rng_ax(fb_idx_end1);
+    fb_idx_end2 = rng_ax(fb_idx_end2);
+
+
+    set(p1, 'YData', absmagdb(LHS_IQ_UP(i,:)))
+    set(p2, 'YData', absmagdb(LHS_IQ_DN(i,:)))
+    set(p3, 'YData', absmagdb(RHS_IQ_UP(i,:)))
+    set(p4, 'YData', absmagdb(RHS_IQ_DN(i,:)))
+
+    set(p1th, 'YData', absmagdb(upTh1(:,i)))
+    set(p2th, 'YData', absmagdb(dnTh1(:,i)))
+    set(p3th, 'YData', absmagdb(upTh2(:,i)))
+    set(p4th, 'YData', absmagdb(dnTh2(:,i)))
+%         set(p1ln, 'XData', [fb_idx1; fb_idx_end1])
+%         set(b1, 'XData', [fb_idx1; fb_idx_end1]);
+    set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
+%         subplot(2,3,1);
+%         xline([fb_idx1; fb_idx_end1]);
+%         subplot(2,3,2);
+%         xline([fb_idx1; fb_idx_end1]);
+%         drawnow;
+    % -----------------------------------------------------------------
+
+%     disp(['Radar sweep : ', num2str(i),' Video frame : ', ...
+%         num2str(frame_count)])
+    pause(0.01);
 end
 toc
 
