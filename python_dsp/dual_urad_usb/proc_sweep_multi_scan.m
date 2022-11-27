@@ -1,8 +1,13 @@
+% Update of proc_sweep to store scan indices in an array to show all of 
+% the tracks
+
 function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
-    pkdClean, fbu, fbd, fdMtx, beat_index] = proc_sweep(bin_width, ... 
+    pkdClean, fbu, fbd, fdMtx, beat_indices, beat_indices_end] = proc_sweep_multi_scan(bin_width, ... 
     lambda, k, c, dnDets, upDets, nbins, n_fft, f_pos, scan_width, ...
     calib, road_width)
-
+    % since these are indices, MATLAB needs ones instead of zeros
+    beat_indices = ones(1,nbins);
+    beat_indices_end = ones(1,nbins); 
     fbu = zeros(1,nbins);
     fbd = zeros(1,nbins);
     rgMtx = zeros(1,nbins);
@@ -12,7 +17,6 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
     % beat_arr = zeros(1,nbins);
     pkuClean = zeros(1,n_fft/2);
     pkdClean = zeros(1,n_fft/2);
-    beat_index = 0;
     
      for bin = 0:(nbins-1)
 %     for bin = (nbins-1):0
@@ -43,7 +47,7 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
            else
                 index_end = 1;
                 bin_slice_u = upDets(1:beat_index);
-            end
+           end
             
             % Get magnitude and intra-bin index of beat frequency
             [magu, idx_u] = max(bin_slice_u);
@@ -76,6 +80,10 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
                     % removed the max condition as this is controlled by bin
                     % width (abs(fd/2) < fd_max) &&
                     if ( fd/2 > 1000)
+                        % Capture data after all filters passed
+                        beat_indices_end(bin+1) = index_end;
+                        beat_indices(bin+1) = beat_index;
+
                         spMtx(bin+1) = dop2speed(fd/2,lambda)/2;
                         
                         rgMtx(bin+1) = calib*beat2range( ...

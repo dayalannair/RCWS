@@ -4,32 +4,6 @@ subset = 1000:2000;
 subset = 1:1000;
 
 addpath('../../matlab_lib/');
-addpath(['../../../../OneDrive - University of ' ...
-    'Cape Town/RCWS_DATA/road_data_05_11_2022/iq_data/']);
-
-addpath(['../../../../OneDrive - University of ' ...
-    'Cape Town/RCWS_DATA/road_data_05_11_2022/iq_vid/']);
-
-addpath(['../../../../OneDrive - University of ' ...
-    'Cape Town/RCWS_DATA/road_data_03_11_2022/iq_data/']);
-
-addpath(['../../../../OneDrive - University of ' ...
-    'Cape Town/RCWS_DATA/road_data_03_11_2022/iq_vid/']);
-
-
-% Time stamps for 3 November 2022
-
-time = '_12_18_12';
-
-% Time stamps for 5 November 2022
-% time = '_10_25_12';
-% time = '_10_29_56';
-% time = '_10_44_35';
-% time = '_10_53_21';
-% time = '_11_01_36';
-
-f_urad1 = strcat('lhs_iq',time,'.txt');
-f_urad2 = strcat('rhs_iq',time,'.txt');
 
 [fc, c, lambda, tm, bw, k, rad1_iq_u, rad1_iq_d, rad2_iq_u, ...
     rad2_iq_d, t_stamps] = import_dual_data_full(f_urad1, f_urad2);
@@ -190,10 +164,10 @@ speed_correction = 1.2;
 % -------------------------------------------------------------------------
 % Initialise plots
 % -------------------------------------------------------------------------
-fb_idx1 = 40;
-fb_idx2 = 40;
-fb_idx_end1 = 20;
-fb_idx_end2 = 20;
+fb_idx1 = zeros(1,nbins);
+fb_idx2 = zeros(1,nbins);
+fb_idx_end1 = zeros(1,nbins);
+fb_idx_end2 = zeros(1,nbins);
 scan_width = 16;
 ax_dims = [0 max(rng_ax) 80 190];
 ax_ticks = 1:2:60;
@@ -226,24 +200,23 @@ rgMtx2 = zeros(nswp2, nbins);
 spMtx2 = zeros(nswp2, nbins);
 spMtxCorr2 = zeros(nswp2, nbins);
 
-
 loop_count = min(nswp1,nswp2);
 
 for i = 1:loop_count
         
         [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
-        pkdClean1, fbu1, fbd1, fdMtx1, fb_idx1] = proc_sweep(bin_width, ...
+        pkdClean1, fbu1, fbd1, fdMtx1, fb_idx1, fb_idx_end1] = proc_sweep_multi_scan(bin_width, ...
         lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
         f_pos, scan_width, calib, road_width);
         
-        fb_idx_end1 = fb_idx1 - 15;
+%         fb_idx_end1 = fb_idx1 - 15;
 
         [rgMtx2(i,:), spMtx2(i,:), spMtxCorr2(i,:), pkuClean2, ...
-        pkdClean2, fbu2, fbd2, fdMtx2, fb_idx2] = proc_sweep(bin_width, ...
+        pkdClean2, fbu2, fbd2, fdMtx2, fb_idx2, fb_idx_end2] = proc_sweep_multi_scan(bin_width, ...
         lambda, k, c, dnDets2(i,:), upDets2(i,:), nbins, n_fft, ...
         f_pos, scan_width, calib, road_width);
     
-        fb_idx_end2 = fb_idx2 - 15;
+%         fb_idx_end2 = fb_idx2 - 15;
 
 %         % When run on 4 threads, there are 3 times fewer 
 %         % video frames
@@ -270,7 +243,8 @@ for i = 1:loop_count
         p1 = plot(rng_ax, absmagdb(LHS_IQ_UP(i,:)));
         hold on
         p1th = plot(rng_ax, absmagdb(upTh1(:,i)));
-        xline([fb_idx1, fb_idx_end1]);
+        % concatenate columns
+        xline([fb_idx1; fb_idx_end1]);
         hold off
         title("LHS UP chirp positive half")
         axis(ax_dims)
@@ -281,7 +255,7 @@ for i = 1:loop_count
         p2 = plot(rng_ax, absmagdb(LHS_IQ_DN(i,:)));
         hold on
         p2th = plot(rng_ax, absmagdb(dnTh1(:,i)));
-        xline([fb_idx1, fb_idx_end1]);
+        xline([fb_idx1; fb_idx_end1]);
         hold off
         title("LHS DOWN chirp flipped negative half")
         axis(ax_dims)
@@ -296,7 +270,7 @@ for i = 1:loop_count
         p3 = plot(rng_ax, absmagdb(RHS_IQ_UP(i,:)));
         hold on
         p3th = plot(rng_ax, absmagdb(upTh2(:,i)));
-        xline([fb_idx2, fb_idx_end2]);
+        xline([fb_idx2; fb_idx_end2]);
         hold off
         title("RHS UP chirp positive half")
         axis(ax_dims)
@@ -307,7 +281,7 @@ for i = 1:loop_count
         p4 = plot(rng_ax, absmagdb(RHS_IQ_DN(i,:)));
         hold on
         p4th = plot(rng_ax, absmagdb(dnTh2(:,i)));
-        xline([fb_idx2, fb_idx_end2]);
+        xline([fb_idx2; fb_idx_end2]);
         hold off
         title("RHS DOWN chirp flipped negative half")
         axis(ax_dims)
@@ -320,7 +294,7 @@ for i = 1:loop_count
         drawnow;
         % -----------------------------------------------------------------
 
-    disp(['Radar sweep : ', num2str(sweep),' Video frame : ', ...
+    disp(['Radar sweep : ', num2str(i),' Video frame : ', ...
         num2str(frame_count)])
 %     pause(0.01);
 end
