@@ -2,16 +2,8 @@
 subset = 1000:2000;
 % first portion 60 kmh
 subset = 1:1000;
-
 addpath('../../matlab_lib/');
-addpath(['../../../../OneDrive - University of ' ...
-    'Cape Town/RCWS_DATA/road_test_05_11_2022/']);
-
-time = '_11_01_36';
-
-f_urad1 = strcat('lhs_iq',time,'.txt');
-f_urad2 = strcat('rhs_iq',time,'.txt');
-
+iq_dual_load_data;
 [fc, c, lambda, tm, bw, k, rad1_iq_u, rad1_iq_d, rad2_iq_u, ...
     rad2_iq_d, t_stamps] = import_dual_data_full(f_urad1, f_urad2);
 %%
@@ -93,26 +85,29 @@ ax_dims = [0 max(rng_ax) 80 190];
 ax_ticks = 1:2:60;
 
 close all
+vid_lhs.CurrentTime = 0;
+vid_rhs.CurrentTime = 0;
 fig1 = figure('WindowState','maximized');
 movegui(fig1,'west')
 
 subplot(2,3,1);
+vidFrame = readFrame(vid_lhs);
+v1 = imshow(vidFrame);
+
+
+subplot(2,3,2);
 p1 = plot(rng_ax, LHS_IQ_UP(1,:));
 title("LHS UP chirp positive half")
 axis(ax_dims)
 xticks(ax_ticks)
 grid on
 
-subplot(2,3,2);
+subplot(2,3,3);
 p2 = plot(rng_ax, LHS_IQ_DN(1,:));
 title("LHS DOWN chirp flipped negative half")
 axis(ax_dims)
 xticks(ax_ticks)
 grid on
-% 
-% subplot(2,3,3);
-% vidFrame = readFrame(vid_lhs);
-% v1 = imshow(vidFrame);
 
 subplot(2,3,4);
 p3 = plot(rng_ax, RHS_IQ_UP(1,:));
@@ -127,25 +122,35 @@ title("RHS DOWN chirp flipped negative half")
 axis(ax_dims)
 xticks(ax_ticks)
 grid on
-% subplot(2,3,6);
-% vidFrame = readFrame(vid_rhs);
-% v2 = imshow(vidFrame);
-
+subplot(2,3,6);
+vidFrame = readFrame(vid_rhs);
+v2 = imshow(rot90(vidFrame,2));
+frame_count = 0;
+vid_frame_number = 1;
 tic
 for sweep = 1:n_sweeps
     set(p1, 'YData',LHS_IQ_UP(sweep,:))
     set(p2, 'YData',LHS_IQ_DN(sweep,:))
     set(p3, 'YData',RHS_IQ_UP(sweep,:))
     set(p4, 'YData',RHS_IQ_DN(sweep,:))
-    pause(0.01)
-    % two frames per radar frame
-%     vidFrame = readFrame(vid_lhs);
-% %     vidFrame = readFrame(vid1);
-%     set(v1,'CData' ,vidFrame);
-% 
-%     vidFrame = readFrame(vid_rhs);
-% %     vidFrame = readFrame(vid2);
-%     set(v2, 'CData', vidFrame);
-%     pause(0.01);
+%     pause(0.01)
+    % three frames per radar frame
+    
+    if frame_count == 2
+        vidFrame = readFrame(vid_lhs);
+        set(v1,'CData' ,vidFrame);
+        vidFrame = readFrame(vid_rhs);
+        set(v2, 'CData', rot90(vidFrame,2));
+        frame_count = 0;
+        vid_frame_number = vid_frame_number + 1;
+    else
+        frame_count = frame_count + 1;
+    end
+
+
+    disp(['Radar sweep : ', num2str(sweep)])
+    disp(['Video frame : ', num2str(vid_frame_number)])
+    pause(0.01);
+    
 end
 toc

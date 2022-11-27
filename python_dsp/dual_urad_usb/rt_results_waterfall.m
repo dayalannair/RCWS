@@ -2,20 +2,7 @@
 % This script reads in real time processed data stored in a shared OneDrive
 % repository and plots these as colour maps. 
 % Also can plot range/speed/safety vs. time
-addpath('..\..\..\..\OneDrive - University of Cape Town\RCWS_DATA\road_data_05_11_2022\rt_proc_data\');
-% addpath(['../../../../OneDrive - University of Cape' ...
-%     ' Town/RCWS_DATA/road_test_05_11_2022/rt_proc_data/']);
-time = '_11_12_09';
-% time = '_11_30_27';
-% time = '_11_33_17';
 
-l_rng_t = readtable(strcat('lhs_range_results',time,'.txt'),'Delimiter' ,' ');
-l_spd_t = readtable(strcat('lhs_speed_results',time,'.txt'),'Delimiter' ,' ');
-l_sft_t = readtable(strcat('lhs_safety_results',time,'.txt'),'Delimiter' ,' ');
-
-r_rng_t = readtable(strcat('rhs_range_results',time,'.txt'),'Delimiter' ,' ');
-r_spd_t = readtable(strcat('rhs_speed_results',time,'.txt'),'Delimiter' ,' ');
-r_sft_t = readtable(strcat('rhs_safety_results',time,'.txt'),'Delimiter' ,' ');
 
 fvid_lhs = strcat('lhs_vid',time,'_rtproc.avi');
 fvid_rhs = strcat('rhs_vid',time,'_rtproc.avi');
