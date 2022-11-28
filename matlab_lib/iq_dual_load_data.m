@@ -3,6 +3,14 @@ addpath(['../../../../OneDrive - University of Cape Town/' ...
     'RCWS_DATA/road_data_05_11_2022/iq_data/']);
 addpath(['../../../../OneDrive - University of Cape Town/' ...
     'RCWS_DATA/road_data_05_11_2022/iq_vid/']);
+
+
+addpath(['../../../../OneDrive - University of Cape Town/' ...
+    'RCWS_DATA/road_data_03_11_2022/iq_data/']);
+addpath(['../../../../OneDrive - University of Cape Town/' ...
+    'RCWS_DATA/road_data_03_11_2022/iq_vid/']);
+
+
 % 2) Change the time stamp to desired data set
 % Time stamps for 3 November 2022
 

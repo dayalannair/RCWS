@@ -186,7 +186,8 @@ movegui(fig1,'west')
 % Process sweeps
 % -------------------------------------------------------------------------
 calib = 1.2463;
-road_width = 2;
+lhs_road_width = 4;
+rhs_road_width = 2;
 tic
 vidObj.CurrentTime = 0;
 hold_frame = 0;
@@ -203,7 +204,7 @@ rgMtx2 = zeros(nswp2, nbins);
 spMtx2 = zeros(nswp2, nbins);
 spMtxCorr2 = zeros(nswp2, nbins);
 
-loop_count = min(nswp1,nswp2);
+loop_count = min(nswp1, nswp2);
 beat_count_out1 = zeros(1,256);
 beat_count_out2 = zeros(1,256);
 beat_count_in1 = zeros(1,256);
@@ -211,66 +212,72 @@ beat_count_in2 = zeros(1,256);
 % colors = linspace(1,5,5);
 % x = linspace(0,3*pi,200);
 % colors = linspace(1,10,length(x));
-
+xyax = [0,16,0,60];
 subplot(2,3,1);
 vidFrame = readFrame(vid_lhs);
 v1 = imshow(vidFrame);
 
-
-
+lhs_exp_speed = 40;
+rhs_exp_speed = 60;
 subplot(2,3,2);
-p1 = plot(rng_ax, absmagdb(LHS_IQ_UP(1,:)));
-hold on
-p1th = plot(rng_ax, absmagdb(upTh1(:,1)));
-% win1 = xline([fb_idx1; fb_idx_end1]);
-% b1 = bar([fb_idx1; fb_idx_end1]);
-% p1ln = plot([fb_idx1; fb_idx_end1], [100, 150]);
-% colors = 1:5;
-x  =linspace(1,16,16);
-colors = cat(2, 2*x, 2*x);
-win1 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(1, 32)*130 ,2000, ...
-colors, 'Marker', '|', 'LineWidth',1.5);
-hold off
-title("LHS UP chirp positive half")
-axis(ax_dims)
-xticks(ax_ticks)
-grid on
+p1 = stem(rgMtx1(1,:));
+axis(xyax)
+title("LHS Range Results")
+
 
 subplot(2,3,3);
-p2 = plot(rng_ax, absmagdb(LHS_IQ_DN(1,:)));
+p2 = stem(spMtxCorr1(1,:));
 hold on
-p2th = plot(rng_ax, absmagdb(dnTh1(:,1)));
-% win2 = xline([fb_idx1, fb_idx_end1]);
+yline(lhs_exp_speed)
 hold off
-title("LHS DOWN chirp flipped negative half")
-axis(ax_dims)
-xticks(ax_ticks)
-grid on
+axis(xyax)
+title("LHS Speed Results. Expected speed = ", lhs_exp_speed)
 
 subplot(2,3,4);
-p3 = plot(rng_ax, absmagdb(RHS_IQ_UP(1,:)));
-hold on
-p3th = plot(rng_ax, absmagdb(upTh2(:,1)));
-% win3 = xline([fb_idx2, fb_idx_end2]);
-hold off
-title("RHS UP chirp positive half")
-axis(ax_dims)
-xticks(ax_ticks)
-grid on
+p3 = stem(rgMtx2(1,:));
+axis(xyax)
+title("RHS Range Results")
 
 subplot(2,3,5);
-p4 = plot(rng_ax, absmagdb(RHS_IQ_DN(1,:)));
+p4 = stem(spMtxCorr2(1,:));
 hold on
-p4th = plot(rng_ax, absmagdb(dnTh2(:,1)));
-% win4 = xline([fb_idx2, fb_idx_end2]);
+yline(rhs_exp_speed)
 hold off
-title("RHS DOWN chirp flipped negative half")
-axis(ax_dims)
-xticks(ax_ticks)
-grid on
+axis(xyax)
+title("RHS Speed Results. Expected speed = ", rhs_exp_speed)
+
 subplot(2,3,6);
 vidFrame = readFrame(vid_rhs);
 v2 = imshow(vidFrame);
+
+% subplot(2,3,1);
+% vidFrame = readFrame(vid_lhs);
+% v1 = imshow(vidFrame);
+% 
+% subplot(2,3,2);
+% p1 = plot(reshape(rgMtx1, 1, []));
+% axis([0, 3669*16, 0, 60])
+% hold on
+% cursor = scatter(0, 130 ,2000, 'Marker', '|', 'LineWidth',1.5);
+% hold off
+% title("LHS Range Results")
+% 
+% 
+% subplot(2,3,3);
+% p2 = plot(reshape(spMtxCorr1, 1, []));
+% title("LHS Speed Results")
+% 
+% subplot(2,3,4);
+% p3 = plot(reshape(rgMtx2, 1, []));
+% title("RHS Range Results")
+% 
+% subplot(2,3,5);
+% p4 = plot(reshape(spMtxCorr2, 1, []));
+% title("RHS Speed Results")
+% 
+% subplot(2,3,6);
+% vidFrame = readFrame(vid_rhs);
+% v2 = imshow(vidFrame);
 
 for i = 1:loop_count
         
@@ -279,7 +286,7 @@ for i = 1:loop_count
     pkdClean1, fbu1, fbd1, fdMtx1, fb_idx1, fb_idx_end1, ...
     beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
     lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
-    f_pos, scan_width, calib, road_width, beat_count_in1);
+    f_pos, scan_width, calib, lhs_road_width, beat_count_in1);
     
     beat_count_in1 = beat_count_out1;
 
@@ -287,7 +294,7 @@ for i = 1:loop_count
     pkdClean2, fbu2, fbd2, fdMtx2, fb_idx2, fb_idx_end2, ...
     beat_count_out2] = proc_sweep_multi_scan(bin_width, ...
     lambda, k, c, dnDets2(i,:), upDets2(i,:), nbins, n_fft, ...
-    f_pos, scan_width, calib, road_width,beat_count_in2);
+    f_pos, scan_width, calib, rhs_road_width, beat_count_in2);
 
     % Reset clutter filter every 40 sweeps
     if mod(i, 40) == 0 
@@ -313,35 +320,17 @@ for i = 1:loop_count
     end
     % PLOT DATA
     % -----------------------------------------------------------------
+    set(p1, 'YData', rgMtx1(i,:))
+    set(p2, 'YData', spMtxCorr1(i,:)*3.6)
+    set(p3, 'YData', rgMtx2(i,:))
+    set(p4, 'YData', spMtxCorr2(i,:)*3.6)
 
-    fb_idx1 = rng_ax(fb_idx1);
-    fb_idx2 = rng_ax(fb_idx2);
-    fb_idx_end1 = rng_ax(fb_idx_end1);
-    fb_idx_end2 = rng_ax(fb_idx_end2);
-
-
-    set(p1, 'YData', absmagdb(LHS_IQ_UP(i,:)))
-    set(p2, 'YData', absmagdb(LHS_IQ_DN(i,:)))
-    set(p3, 'YData', absmagdb(RHS_IQ_UP(i,:)))
-    set(p4, 'YData', absmagdb(RHS_IQ_DN(i,:)))
-
-    set(p1th, 'YData', absmagdb(upTh1(:,i)))
-    set(p2th, 'YData', absmagdb(dnTh1(:,i)))
-    set(p3th, 'YData', absmagdb(upTh2(:,i)))
-    set(p4th, 'YData', absmagdb(dnTh2(:,i)))
-%         set(p1ln, 'XData', [fb_idx1; fb_idx_end1])
-%         set(b1, 'XData', [fb_idx1; fb_idx_end1]);
-    set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
-%         subplot(2,3,1);
-%         xline([fb_idx1; fb_idx_end1]);
-%         subplot(2,3,2);
-%         xline([fb_idx1; fb_idx_end1]);
-%         drawnow;
+%     set(cursor,'XData',i)
     % -----------------------------------------------------------------
 
 %     disp(['Radar sweep : ', num2str(i),' Video frame : ', ...
 %         num2str(frame_count)])
-    pause(0.1);
+    pause(0.001);
 end
 toc
 
