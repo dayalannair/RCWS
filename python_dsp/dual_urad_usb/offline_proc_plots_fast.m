@@ -31,11 +31,11 @@ n_sweeps = size(rad1_iq_u,1);
 % ************************ Tunable parameters *****************************
 % These determine the system detection performance
 n_fft = 512;
-train = n_fft/8;%64;
-guard = n_fft/64;%8;
-guard = 4;
+train = 32;%n_fft/8;%64;
+guard = 6;%n_fft/64;%8;
+rank = round(3*train/4)+5;
 nbar = 3;
-sll = -100;
+sll = -200;
 F = 5*10e-3;
 
 % Decimate faster device data
@@ -109,7 +109,7 @@ OS1 = phased.CFARDetector('NumTrainingCells',train, ...
     'ProbabilityFalseAlarm', F, ...
     'Method', 'OS', ...
     'ThresholdOutputPort', true, ...
-    'Rank',train);
+    'Rank',rank);
 
 OS2 = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
@@ -117,7 +117,7 @@ OS2 = phased.CFARDetector('NumTrainingCells',train, ...
     'ProbabilityFalseAlarm', F, ...
     'Method', 'OS', ...
     'ThresholdOutputPort', true, ...
-    'Rank',train);
+    'Rank',rank);
 
 
 % Filter peaks/ peak detection
@@ -240,7 +240,8 @@ subplot(2,3,3);
 p2 = plot(rng_ax, absmagdb(LHS_IQ_DN(1,:)));
 hold on
 p2th = plot(rng_ax, absmagdb(dnTh1(:,1)));
-% win2 = xline([fb_idx1, fb_idx_end1]);
+win2 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(1, 32)*130 ,2000, ...
+colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
 title("LHS DOWN chirp flipped negative half")
 axis(ax_dims)
@@ -251,7 +252,8 @@ subplot(2,3,4);
 p3 = plot(rng_ax, absmagdb(RHS_IQ_UP(1,:)));
 hold on
 p3th = plot(rng_ax, absmagdb(upTh2(:,1)));
-% win3 = xline([fb_idx2, fb_idx_end2]);
+win3 = scatter(cat(1,fb_idx2, fb_idx_end2), ones(1, 32)*130 ,2000, ...
+colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
 title("RHS UP chirp positive half")
 axis(ax_dims)
@@ -262,7 +264,8 @@ subplot(2,3,5);
 p4 = plot(rng_ax, absmagdb(RHS_IQ_DN(1,:)));
 hold on
 p4th = plot(rng_ax, absmagdb(dnTh2(:,1)));
-% win4 = xline([fb_idx2, fb_idx_end2]);
+win4 = scatter(cat(1,fb_idx2, fb_idx_end2), ones(1, 32)*130 ,2000, ...
+colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
 title("RHS DOWN chirp flipped negative half")
 axis(ax_dims)
@@ -281,7 +284,7 @@ for i = 1:loop_count
     lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
     f_pos, scan_width, calib, road_width, beat_count_in1);
     
-    beat_count_in1 = beat_count_out1;
+%     beat_count_in1 = beat_count_out1;
 
     [rgMtx2(i,:), spMtx2(i,:), spMtxCorr2(i,:), pkuClean2, ...
     pkdClean2, fbu2, fbd2, fdMtx2, fb_idx2, fb_idx_end2, ...
@@ -290,14 +293,14 @@ for i = 1:loop_count
     f_pos, scan_width, calib, road_width,beat_count_in2);
 
     % Reset clutter filter every 40 sweeps
-    if mod(i, 40) == 0 
-        beat_count_out1 = zeros(1,256);
-        beat_count_out2 = zeros(1,256);
-        beat_count_in1 = zeros(1,256);
-        beat_count_in2 = zeros(1,256);
-    else
-        beat_count_in2 = beat_count_out2;
-    end
+%     if mod(i, 40) == 0 
+%         beat_count_out1 = zeros(1,256);
+%         beat_count_out2 = zeros(1,256);
+%         beat_count_in1 = zeros(1,256);
+%         beat_count_in2 = zeros(1,256);
+%     else
+%         beat_count_in2 = beat_count_out2;
+%     end
 %         % When run on 4 threads, there are 3 times fewer 
 %         % video frames
     if hold_frame == 2
@@ -332,6 +335,9 @@ for i = 1:loop_count
 %         set(p1ln, 'XData', [fb_idx1; fb_idx_end1])
 %         set(b1, 'XData', [fb_idx1; fb_idx_end1]);
     set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
+    set(win2,'XData',cat(1,fb_idx1, fb_idx_end1))
+    set(win3,'XData',cat(1,fb_idx2, fb_idx_end2))
+    set(win4,'XData',cat(1,fb_idx2, fb_idx_end2))
 %         subplot(2,3,1);
 %         xline([fb_idx1; fb_idx_end1]);
 %         subplot(2,3,2);
@@ -341,7 +347,7 @@ for i = 1:loop_count
 
 %     disp(['Radar sweep : ', num2str(i),' Video frame : ', ...
 %         num2str(frame_count)])
-    pause(0.1);
+    pause(0.0001);
 end
 toc
 

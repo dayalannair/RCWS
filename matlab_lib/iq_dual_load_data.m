@@ -20,8 +20,8 @@ addpath(['../../../../OneDrive - University of Cape Town/' ...
 % time = '_10_25_12';
 % time = '_10_29_56';
 % time = '_10_44_35';
-% time = '_10_53_21';
-time = '_11_01_36';
+time = '_10_53_21';
+% time = '_11_01_36';
 
 % 3) The following will automatically load the data from both radars
 

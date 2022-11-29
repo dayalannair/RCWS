@@ -31,19 +31,19 @@ n_sweeps = size(rad1_iq_u,1);
 % ************************ Tunable parameters *****************************
 % These determine the system detection performance
 n_fft = 512;
-train = n_fft/8;%64;
-guard = n_fft/64;%8;
-guard = 4;
+train = 16;%n_fft/8;%64;
+guard = 2;%n_fft/64;%8;
+rank = round(3*train/4);
 nbar = 3;
 sll = -100;
-F = 5*10e-3;
+F = 1*10e-3;
 
 % Decimate faster device data
 % rad2_iq_u = rad2_iq_u(1:3:end, :);
 % rad2_iq_d = rad2_iq_d(1:3:end, :);
 % Taylor Window
-twin = taylorwin(n_samples, nbar, sll);
-% twin = hann(n_samples);
+% twin = taylorwin(n_samples, nbar, sll);
+twin = hann(n_samples);
 rad1_iq_u = rad1_iq_u.*twin.';
 rad1_iq_d = rad1_iq_d.*twin.';
 rad2_iq_u = rad2_iq_u.*twin.';
@@ -109,7 +109,7 @@ OS1 = phased.CFARDetector('NumTrainingCells',train, ...
     'ProbabilityFalseAlarm', F, ...
     'Method', 'OS', ...
     'ThresholdOutputPort', true, ...
-    'Rank',train);
+    'Rank',rank);
 
 OS2 = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
@@ -117,7 +117,7 @@ OS2 = phased.CFARDetector('NumTrainingCells',train, ...
     'ProbabilityFalseAlarm', F, ...
     'Method', 'OS', ...
     'ThresholdOutputPort', true, ...
-    'Rank',train);
+    'Rank',rank);
 
 
 % Filter peaks/ peak detection
@@ -221,6 +221,7 @@ lhs_exp_speed = 40;
 rhs_exp_speed = 60;
 subplot(2,3,2);
 p1 = stem(rgMtx1(1,:));
+hold on
 axis(xyax)
 title("LHS Range Results")
 
@@ -229,12 +230,13 @@ subplot(2,3,3);
 p2 = stem(spMtxCorr1(1,:));
 hold on
 yline(lhs_exp_speed)
-hold off
+% hold off
 axis(xyax)
 title("LHS Speed Results. Expected speed = ", lhs_exp_speed)
 
 subplot(2,3,4);
 p3 = stem(rgMtx2(1,:));
+hold on
 axis(xyax)
 title("RHS Range Results")
 
@@ -242,7 +244,7 @@ subplot(2,3,5);
 p4 = stem(spMtxCorr2(1,:));
 hold on
 yline(rhs_exp_speed)
-hold off
+% hold off
 axis(xyax)
 title("RHS Speed Results. Expected speed = ", rhs_exp_speed)
 
@@ -333,7 +335,14 @@ for i = 1:loop_count
     pause(0.001);
 end
 toc
-
+%% Map of sweep v range v speed
+close all
+figure
+tiledlayout(1,2)
+nexttile
+imagesc(spMtxCorr1)
+nexttile
+imagesc(spMtxCorr2)
 
 %% FAST PLOTTING - does not handle xlines
 % for i = 1:loop_count
