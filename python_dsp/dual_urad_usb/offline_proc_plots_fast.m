@@ -7,14 +7,7 @@ addpath('../../matlab_lib/');
 
 iq_dual_load_data;
 
-[fc, c, lambda, tm, bw, k, rad1_iq_u, rad1_iq_d, rad2_iq_u, ...
-    rad2_iq_d, t_stamps] = import_dual_data_full(f_urad1, f_urad2);
-%%
-fvid_lhs = strcat('lhs_vid',time,'.avi');
-fvid_rhs = strcat('rhs_vid',time,'.avi');
-% flip names to flip video order
-vid_lhs = VideoReader(fvid_lhs);
-vid_rhs = VideoReader(fvid_rhs);
+
 
 %% FOR ROTATING RHS VID
 % vd = read(vid_rhs);
@@ -24,6 +17,14 @@ vid_rhs = VideoReader(fvid_rhs);
 % writeVideo(V_flip,v2flip)
 % close(V_flip)
 %%
+[fc, c, lambda, tm, bw, k, rad1_iq_u, rad1_iq_d, rad2_iq_u, ...
+    rad2_iq_d, t_stamps] = import_dual_data_full(f_urad1, f_urad2);
+%
+fvid_lhs = strcat('lhs_vid',time,'.avi');
+fvid_rhs = strcat('rhs_vid',time,'.avi');
+% flip names to flip video order
+vid_lhs = VideoReader(fvid_lhs);
+vid_rhs = VideoReader(fvid_rhs);
 % Get dimensions of data from slower device
 n_samples = size(rad1_iq_u,2);
 n_sweeps = size(rad1_iq_u,1);
@@ -32,11 +33,11 @@ n_sweeps = size(rad1_iq_u,1);
 % These determine the system detection performance
 n_fft = 512;
 train = 32;%n_fft/8;%64;
-guard = 6;%n_fft/64;%8;
-rank = round(3*train/4)+5;
+guard = 10;%n_fft/64;%8;
+rank = round(3*train/4)+6;
 nbar = 3;
-sll = -200;
-F = 5*10e-3;
+sll = -100;
+F = 4*10e-3;
 
 % Decimate faster device data
 % rad2_iq_u = rad2_iq_u(1:3:end, :);
@@ -80,10 +81,48 @@ RHS_IQ_DN = RHS_IQ_DN(:, n_fft/2+1:end);
 % RHS_IQ_UP = RHS_IQ_UP - r_up_bar;
 % RHS_IQ_DN = RHS_IQ_DN - r_dn_bar;
 % -------------------------------------------------------------------------
+
+% TWO SWEEP CANCELLER
+
+% 1) Extract every second sweep even and odd
+LHS_UP_ODD = LHS_IQ_UP(1:2:end,:);
+LHS_UP_EVN = LHS_IQ_UP(2:2:end,:);
+
+LHS_DN_ODD = LHS_IQ_DN(1:2:end,:);
+LHS_DN_EVN = LHS_IQ_DN(2:2:end,:);
+
+RHS_UP_ODD = RHS_IQ_UP(1:2:end,:);
+RHS_UP_EVN = RHS_IQ_UP(2:2:end,:);
+
+RHS_DN_ODD = RHS_IQ_DN(1:2:end,:);
+RHS_DN_EVN = RHS_IQ_DN(2:2:end,:);
+
+% 2) subtract elements
+LHS_IQ_UP = LHS_UP_ODD - LHS_UP_EVN;
+LHS_IQ_DN = LHS_DN_ODD - LHS_DN_EVN;
+
+RHS_IQ_UP = RHS_UP_ODD - RHS_UP_EVN;
+RHS_IQ_DN = RHS_DN_ODD - RHS_DN_EVN;
+
+% UP_DOWN_DIFF = LHS_IQ_UP - LHS_IQ_DN;
+% close all
+% figure
+% hold on
+% plot(sftmagdb(UP_DOWN_DIFF(1000,:)))
+% % plot(sftmagdb(LHS_UP_ODD(1000,:)))
+% % plot(sftmagdb(LHS_UP_EVN(1000,:)))
+% % plot(sftmagdb(LHS_IQ_UP(1000,:)))
+% hold off
+% return
+%%
+
+
 % Null feedthrough
 % METHOD 1: slice
-% RHS_IQ_UP(:, 1:num_nul) = 0;
-% RHS_IQ_DN(:, end-num_nul+1:end) = 0;
+% LHS_IQ_UP(:, 1:num_nul) = 0;
+% LHS_IQ_DN(:, end-num_nul+1:end) = 0;
+RHS_IQ_UP(:, 1:num_nul) = 0;
+RHS_IQ_DN(:, end-num_nul+1:end) = 0;
 % 
 % % METHOD 2: Remove average
 % IQ_UP2 = RHS_IQ_UP - mean(RHS_IQ_UP,2);
@@ -174,7 +213,7 @@ fb_idx_end2 = zeros(nbins,1);
 scan_width = 4;
 ax_dims = [0 max(rng_ax) 80 190];
 ax_ticks = 1:2:60;
-%%
+%
 vid_lhs = VideoReader(fvid_lhs);
 vid_rhs = VideoReader(fvid_rhs);
 close all
@@ -347,7 +386,7 @@ for i = 1:loop_count
 
 %     disp(['Radar sweep : ', num2str(i),' Video frame : ', ...
 %         num2str(frame_count)])
-    pause(0.0001);
+    pause(0.00001);
 end
 toc
 
