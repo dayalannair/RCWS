@@ -85,24 +85,24 @@ RHS_IQ_DN = RHS_IQ_DN(:, n_fft/2+1:end);
 % TWO SWEEP CANCELLER
 
 % 1) Extract every second sweep even and odd
-LHS_UP_ODD = LHS_IQ_UP(1:2:end,:);
-LHS_UP_EVN = LHS_IQ_UP(2:2:end,:);
-
-LHS_DN_ODD = LHS_IQ_DN(1:2:end,:);
-LHS_DN_EVN = LHS_IQ_DN(2:2:end,:);
-
-RHS_UP_ODD = RHS_IQ_UP(1:2:end,:);
-RHS_UP_EVN = RHS_IQ_UP(2:2:end,:);
-
-RHS_DN_ODD = RHS_IQ_DN(1:2:end,:);
-RHS_DN_EVN = RHS_IQ_DN(2:2:end,:);
-
-% 2) subtract elements
-LHS_IQ_UP = LHS_UP_ODD - LHS_UP_EVN;
-LHS_IQ_DN = LHS_DN_ODD - LHS_DN_EVN;
-
-RHS_IQ_UP = RHS_UP_ODD - RHS_UP_EVN;
-RHS_IQ_DN = RHS_DN_ODD - RHS_DN_EVN;
+% LHS_UP_ODD = LHS_IQ_UP(1:2:end,:);
+% LHS_UP_EVN = LHS_IQ_UP(2:2:end,:);
+% 
+% LHS_DN_ODD = LHS_IQ_DN(1:2:end,:);
+% LHS_DN_EVN = LHS_IQ_DN(2:2:end,:);
+% 
+% RHS_UP_ODD = RHS_IQ_UP(1:2:end,:);
+% RHS_UP_EVN = RHS_IQ_UP(2:2:end,:);
+% 
+% RHS_DN_ODD = RHS_IQ_DN(1:2:end,:);
+% RHS_DN_EVN = RHS_IQ_DN(2:2:end,:);
+% 
+% % 2) subtract elements
+% LHS_IQ_UP = LHS_UP_ODD - LHS_UP_EVN;
+% LHS_IQ_DN = LHS_DN_ODD - LHS_DN_EVN;
+% 
+% RHS_IQ_UP = RHS_UP_ODD - RHS_UP_EVN;
+% RHS_IQ_DN = RHS_DN_ODD - RHS_DN_EVN;
 
 % UP_DOWN_DIFF = LHS_IQ_UP - LHS_IQ_DN;
 % close all
@@ -119,8 +119,8 @@ RHS_IQ_DN = RHS_DN_ODD - RHS_DN_EVN;
 
 % Null feedthrough
 % METHOD 1: slice
-% LHS_IQ_UP(:, 1:num_nul) = 0;
-% LHS_IQ_DN(:, end-num_nul+1:end) = 0;
+LHS_IQ_UP(:, 1:num_nul) = 0;
+LHS_IQ_DN(:, end-num_nul+1:end) = 0;
 RHS_IQ_UP(:, 1:num_nul) = 0;
 RHS_IQ_DN(:, end-num_nul+1:end) = 0;
 % 
@@ -348,6 +348,7 @@ for i = 1:loop_count
 
         vidFrame = readFrame(vid_rhs);
         set(v2, 'CData', rot90(vidFrame, 2));
+        set(v2, 'CData', vidFrame);
         hold_frame = 0;
         frame_count = frame_count + 1;
     else
