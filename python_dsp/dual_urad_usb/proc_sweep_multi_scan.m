@@ -73,7 +73,7 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
                     % Doppler shift is twice the difference in beat 
                     % frequency
     %               calibrate beats for doppler shift
-                    fd = (-fbu(bin+1) + fbd(bin+1))*calib;
+                    fd = ((-fbu(bin+1) + fbd(bin+1))*calib)/2;
                     fdMtx(bin+1) = fd/2;
                     
                     
@@ -89,7 +89,7 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
                     beat_count_out(beat_index) = ...
                         beat_count_out(beat_index) +1;
                     
-                    spMtx(bin+1) = dop2speed(fd/2,lambda)/2;
+                    spMtx(bin+1) = fd*lambda/2;
                     
                     rgMtx(bin+1) = calib*beat2range( ...
                         [fbu(bin+1) -fbd(bin+1)], k, c);

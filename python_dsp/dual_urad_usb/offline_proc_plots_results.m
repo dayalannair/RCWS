@@ -31,19 +31,19 @@ n_sweeps = size(rad1_iq_u,1);
 % ************************ Tunable parameters *****************************
 % These determine the system detection performance
 n_fft = 512;
-train = 16;%n_fft/8;%64;
-guard = 2;%n_fft/64;%8;
-rank = round(3*train/4);
+train = 32;%n_fft/8;%64;
+guard = 10;%n_fft/64;%8;
+rank = round(3*train/4)+6;
 nbar = 3;
 sll = -100;
-F = 1*10e-3;
+F = 4*10e-3;
 
 % Decimate faster device data
 % rad2_iq_u = rad2_iq_u(1:3:end, :);
 % rad2_iq_d = rad2_iq_d(1:3:end, :);
 % Taylor Window
-% twin = taylorwin(n_samples, nbar, sll);
-twin = hann(n_samples);
+twin = taylorwin(n_samples, nbar, sll);
+% twin = hann(n_samples);
 rad1_iq_u = rad1_iq_u.*twin.';
 rad1_iq_d = rad1_iq_d.*twin.';
 rad2_iq_u = rad2_iq_u.*twin.';

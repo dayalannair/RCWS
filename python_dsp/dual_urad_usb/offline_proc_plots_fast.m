@@ -32,23 +32,28 @@ n_sweeps = size(rad1_iq_u,1);
 % ************************ Tunable parameters *****************************
 % These determine the system detection performance
 n_fft = 512;
-train = 32;%n_fft/8;%64;
-guard = 10;%n_fft/64;%8;
-rank = round(3*train/4)+6;
+train = 16;%n_fft/8;%64;
+guard = 14;%n_fft/64;%8;
+rank = round(3*train/4);
 nbar = 3;
-sll = -100;
-F = 4*10e-3;
+sll = -200;
+
+F = 1*10e-4;
 
 % Decimate faster device data
 % rad2_iq_u = rad2_iq_u(1:3:end, :);
 % rad2_iq_d = rad2_iq_d(1:3:end, :);
 % Taylor Window
-twin = taylorwin(n_samples, nbar, sll);
+% win = taylorwin(n_samples, nbar, sll);
 % twin = hann(n_samples);
-rad1_iq_u = rad1_iq_u.*twin.';
-rad1_iq_d = rad1_iq_d.*twin.';
-rad2_iq_u = rad2_iq_u.*twin.';
-rad2_iq_d = rad2_iq_d.*twin.';
+% win = blackman(n_samples);
+% win = blackmanharris(n_samples);
+% win = hamming(n_samples);
+win = kaiser(n_samples, 50);
+rad1_iq_u = rad1_iq_u.*win.';
+rad1_iq_d = rad1_iq_d.*win.';
+rad2_iq_u = rad2_iq_u.*win.';
+rad2_iq_d = rad2_iq_d.*win.';
 
 % FFT
 nul_width_factor = 0.04;
@@ -119,10 +124,13 @@ RHS_IQ_DN = RHS_IQ_DN(:, n_fft/2+1:end);
 
 % Null feedthrough
 % METHOD 1: slice
-LHS_IQ_UP(:, 1:num_nul) = 0;
-LHS_IQ_DN(:, end-num_nul+1:end) = 0;
-RHS_IQ_UP(:, 1:num_nul) = 0;
-RHS_IQ_DN(:, end-num_nul+1:end) = 0;
+LHS_IQ_UP(:, 1:num_nul) = repmat(LHS_IQ_UP(:, num_nul+1), [1, num_nul]);
+LHS_IQ_DN(:, end-num_nul+1:end) = ...
+repmat(LHS_IQ_DN(:, end-num_nul), [1, num_nul]);
+
+RHS_IQ_UP(:, 1:num_nul) = repmat(RHS_IQ_UP(:, num_nul+1), [1, num_nul]);
+RHS_IQ_DN(:, end-num_nul+1:end) = ...
+repmat(RHS_IQ_DN(:, end-num_nul), [1, num_nul]);
 % 
 % % METHOD 2: Remove average
 % IQ_UP2 = RHS_IQ_UP - mean(RHS_IQ_UP,2);
@@ -146,7 +154,7 @@ OS1 = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
-    'Method', 'OS', ...
+    'Method', 'SOCA', ...
     'ThresholdOutputPort', true, ...
     'Rank',rank);
 
@@ -154,7 +162,7 @@ OS2 = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
-    'Method', 'OS', ...
+    'Method', 'SOCA', ...
     'ThresholdOutputPort', true, ...
     'Rank',rank);
 
@@ -213,7 +221,7 @@ fb_idx_end2 = zeros(nbins,1);
 scan_width = 4;
 ax_dims = [0 max(rng_ax) 80 190];
 ax_ticks = 1:2:60;
-%
+%% PLOT FRAMES RADAR VS. VIDEO
 vid_lhs = VideoReader(fvid_lhs);
 vid_rhs = VideoReader(fvid_rhs);
 close all
@@ -225,7 +233,8 @@ movegui(fig1,'west')
 % Process sweeps
 % -------------------------------------------------------------------------
 calib = 1.2463;
-road_width = 2;
+lhs_road_width = 2;
+rhs_road_width = 4;
 tic
 vidObj.CurrentTime = 0;
 hold_frame = 0;
@@ -321,7 +330,7 @@ for i = 1:loop_count
     pkdClean1, fbu1, fbd1, fdMtx1, fb_idx1, fb_idx_end1, ...
     beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
     lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
-    f_pos, scan_width, calib, road_width, beat_count_in1);
+    f_pos, scan_width, calib, lhs_road_width, beat_count_in1);
     
 %     beat_count_in1 = beat_count_out1;
 
@@ -329,7 +338,7 @@ for i = 1:loop_count
     pkdClean2, fbu2, fbd2, fdMtx2, fb_idx2, fb_idx_end2, ...
     beat_count_out2] = proc_sweep_multi_scan(bin_width, ...
     lambda, k, c, dnDets2(i,:), upDets2(i,:), nbins, n_fft, ...
-    f_pos, scan_width, calib, road_width,beat_count_in2);
+    f_pos, scan_width, calib, rhs_road_width,beat_count_in2);
 
     % Reset clutter filter every 40 sweeps
 %     if mod(i, 40) == 0 
@@ -456,13 +465,24 @@ figure
 tiledlayout(2, 2)
 nexttile
 imagesc(rgMtx1)
+title("Busy road: LHS Range Map")
+xlabel("Range bin")
+ylabel("Sweep number")
 nexttile
 imagesc(rgMtx2)
+title("Busy road: RHS Range Map")
+xlabel("Range bin")
+ylabel("Sweep number")
 nexttile
-imagesc(spMtx1)
+imagesc(abs(spMtxCorr1))
+title("Busy road: LHS Speed Map")
+xlabel("Range bin")
+ylabel("Sweep number")
 nexttile
-imagesc(spMtx2)
-
+imagesc(abs(spMtxCorr2))
+title("Busy road: RHS Speed Map")
+xlabel("Range bin")
+ylabel("Sweep number")
 
 
 
