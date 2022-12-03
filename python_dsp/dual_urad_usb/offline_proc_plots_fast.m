@@ -5,7 +5,7 @@ subset = 1:1000;
 
 addpath('../../matlab_lib/');
 
-% iq_dual_load_data;
+iq_dual_load_data;
 
 
 
@@ -38,7 +38,7 @@ rank = round(3*train/4);
 nbar = 3;
 sll = -150;
 
-F = 1*10e-3;
+F = 8*10e-3;
 
 % Decimate faster device data
 % rad2_iq_u = rad2_iq_u(1:3:end, :);
@@ -364,9 +364,7 @@ for i = 1:loop_count
 %     else
 %         hold_frame = hold_frame + 1;
 %     end
-%     % PLOT DATA
-%     % -----------------------------------------------------------------
-% 
+%     
 %     fb_idx1 = rng_ax(fb_idx1);
 %     fb_idx2 = rng_ax(fb_idx2);
 %     fb_idx_end1 = rng_ax(fb_idx_end1);
@@ -382,18 +380,11 @@ for i = 1:loop_count
 %     set(p2th, 'YData', absmagdb(dnTh1(:,i)))
 %     set(p3th, 'YData', absmagdb(upTh2(:,i)))
 %     set(p4th, 'YData', absmagdb(dnTh2(:,i)))
-% %         set(p1ln, 'XData', [fb_idx1; fb_idx_end1])
-% %         set(b1, 'XData', [fb_idx1; fb_idx_end1]);
+% 
 %     set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
 %     set(win2,'XData',cat(1,fb_idx1, fb_idx_end1))
 %     set(win3,'XData',cat(1,fb_idx2, fb_idx_end2))
 %     set(win4,'XData',cat(1,fb_idx2, fb_idx_end2))
-% %         subplot(2,3,1);
-% %         xline([fb_idx1; fb_idx_end1]);
-% %         subplot(2,3,2);
-% %         xline([fb_idx1; fb_idx_end1]);
-% %         drawnow;
-%     % -----------------------------------------------------------------
 % 
 % %     disp(['Radar sweep : ', num2str(i),' Video frame : ', ...
 % %         num2str(frame_count)])
@@ -461,6 +452,7 @@ toc
 % LHS_IQ_DN = absmagdb(LHS_IQ_DN);
 
 %% 
+clim([0 60])
 close all
 figure
 tiledlayout(2, 2)
