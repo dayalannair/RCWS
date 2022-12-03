@@ -5,7 +5,7 @@ subset = 1:1000;
 
 addpath('../../matlab_lib/');
 
-iq_dual_load_data;
+% iq_dual_load_data;
 
 
 
@@ -36,20 +36,20 @@ train = 16;%n_fft/8;%64;
 guard = 14;%n_fft/64;%8;
 rank = round(3*train/4);
 nbar = 3;
-sll = -200;
+sll = -150;
 
-F = 1*10e-4;
+F = 1*10e-3;
 
 % Decimate faster device data
 % rad2_iq_u = rad2_iq_u(1:3:end, :);
 % rad2_iq_d = rad2_iq_d(1:3:end, :);
 % Taylor Window
-% win = taylorwin(n_samples, nbar, sll);
+win = taylorwin(n_samples, nbar, sll);
 % twin = hann(n_samples);
 % win = blackman(n_samples);
 % win = blackmanharris(n_samples);
 % win = hamming(n_samples);
-win = kaiser(n_samples, 50);
+% win = kaiser(n_samples, 6);
 rad1_iq_u = rad1_iq_u.*win.';
 rad1_iq_d = rad1_iq_d.*win.';
 rad2_iq_u = rad2_iq_u.*win.';
@@ -218,7 +218,9 @@ fb_idx2 = zeros(nbins,1);
 fb_idx_end1 = zeros(nbins,1);
 fb_idx_end2 = zeros(nbins,1);
 % max speed = 90 km/h. f = 2v/lambda = 4 kHz. each bin is 1 kHz apart
-scan_width = 4;
+% since f_D = (fbd - fbu)/2 ---> fbd - fbu < 2(4 kHz) = 8000
+% 8000/1000 = 8
+scan_width = 8;
 ax_dims = [0 max(rng_ax) 80 190];
 ax_ticks = 1:2:60;
 %% PLOT FRAMES RADAR VS. VIDEO
@@ -324,7 +326,6 @@ vidFrame = readFrame(vid_rhs);
 v2 = imshow(vidFrame);
 
 for i = 1:loop_count
-        
 
     [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
     pkdClean1, fbu1, fbd1, fdMtx1, fb_idx1, fb_idx_end1, ...
@@ -351,52 +352,52 @@ for i = 1:loop_count
 %     end
 %         % When run on 4 threads, there are 3 times fewer 
 %         % video frames
-    if hold_frame == 2
-        vidFrame = readFrame(vid_lhs);
-        set(v1,'CData' ,vidFrame);
-
-        vidFrame = readFrame(vid_rhs);
-        set(v2, 'CData', rot90(vidFrame, 2));
-        set(v2, 'CData', vidFrame);
-        hold_frame = 0;
-        frame_count = frame_count + 1;
-    else
-        hold_frame = hold_frame + 1;
-    end
-    % PLOT DATA
-    % -----------------------------------------------------------------
-
-    fb_idx1 = rng_ax(fb_idx1);
-    fb_idx2 = rng_ax(fb_idx2);
-    fb_idx_end1 = rng_ax(fb_idx_end1);
-    fb_idx_end2 = rng_ax(fb_idx_end2);
-
-
-    set(p1, 'YData', absmagdb(LHS_IQ_UP(i,:)))
-    set(p2, 'YData', absmagdb(LHS_IQ_DN(i,:)))
-    set(p3, 'YData', absmagdb(RHS_IQ_UP(i,:)))
-    set(p4, 'YData', absmagdb(RHS_IQ_DN(i,:)))
-
-    set(p1th, 'YData', absmagdb(upTh1(:,i)))
-    set(p2th, 'YData', absmagdb(dnTh1(:,i)))
-    set(p3th, 'YData', absmagdb(upTh2(:,i)))
-    set(p4th, 'YData', absmagdb(dnTh2(:,i)))
-%         set(p1ln, 'XData', [fb_idx1; fb_idx_end1])
-%         set(b1, 'XData', [fb_idx1; fb_idx_end1]);
-    set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
-    set(win2,'XData',cat(1,fb_idx1, fb_idx_end1))
-    set(win3,'XData',cat(1,fb_idx2, fb_idx_end2))
-    set(win4,'XData',cat(1,fb_idx2, fb_idx_end2))
-%         subplot(2,3,1);
-%         xline([fb_idx1; fb_idx_end1]);
-%         subplot(2,3,2);
-%         xline([fb_idx1; fb_idx_end1]);
-%         drawnow;
-    % -----------------------------------------------------------------
-
-%     disp(['Radar sweep : ', num2str(i),' Video frame : ', ...
-%         num2str(frame_count)])
-    pause(0.00001);
+%     if hold_frame == 2
+%         vidFrame = readFrame(vid_lhs);
+%         set(v1,'CData' ,vidFrame);
+% 
+%         vidFrame = readFrame(vid_rhs);
+%         set(v2, 'CData', rot90(vidFrame, 2));
+%         set(v2, 'CData', vidFrame);
+%         hold_frame = 0;
+%         frame_count = frame_count + 1;
+%     else
+%         hold_frame = hold_frame + 1;
+%     end
+%     % PLOT DATA
+%     % -----------------------------------------------------------------
+% 
+%     fb_idx1 = rng_ax(fb_idx1);
+%     fb_idx2 = rng_ax(fb_idx2);
+%     fb_idx_end1 = rng_ax(fb_idx_end1);
+%     fb_idx_end2 = rng_ax(fb_idx_end2);
+% 
+% 
+%     set(p1, 'YData', absmagdb(LHS_IQ_UP(i,:)))
+%     set(p2, 'YData', absmagdb(LHS_IQ_DN(i,:)))
+%     set(p3, 'YData', absmagdb(RHS_IQ_UP(i,:)))
+%     set(p4, 'YData', absmagdb(RHS_IQ_DN(i,:)))
+% 
+%     set(p1th, 'YData', absmagdb(upTh1(:,i)))
+%     set(p2th, 'YData', absmagdb(dnTh1(:,i)))
+%     set(p3th, 'YData', absmagdb(upTh2(:,i)))
+%     set(p4th, 'YData', absmagdb(dnTh2(:,i)))
+% %         set(p1ln, 'XData', [fb_idx1; fb_idx_end1])
+% %         set(b1, 'XData', [fb_idx1; fb_idx_end1]);
+%     set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
+%     set(win2,'XData',cat(1,fb_idx1, fb_idx_end1))
+%     set(win3,'XData',cat(1,fb_idx2, fb_idx_end2))
+%     set(win4,'XData',cat(1,fb_idx2, fb_idx_end2))
+% %         subplot(2,3,1);
+% %         xline([fb_idx1; fb_idx_end1]);
+% %         subplot(2,3,2);
+% %         xline([fb_idx1; fb_idx_end1]);
+% %         drawnow;
+%     % -----------------------------------------------------------------
+% 
+% %     disp(['Radar sweep : ', num2str(i),' Video frame : ', ...
+% %         num2str(frame_count)])
+%     pause(0.00001);
 end
 toc
 
@@ -468,21 +469,30 @@ imagesc(rgMtx1)
 title("Busy road: LHS Range Map")
 xlabel("Range bin")
 ylabel("Sweep number")
+c1 = colorbar;
+c1.Label.String = 'Range (m)';
 nexttile
 imagesc(rgMtx2)
 title("Busy road: RHS Range Map")
 xlabel("Range bin")
 ylabel("Sweep number")
+c2 = colorbar;
+c2.Label.String = 'Range (m)';
 nexttile
-imagesc(abs(spMtxCorr1))
+imagesc(abs(spMtxCorr1)*3.6)
 title("Busy road: LHS Speed Map")
 xlabel("Range bin")
 ylabel("Sweep number")
+c3 = colorbar;
+c3.Label.String = 'Speed (km/h)';
+
 nexttile
-imagesc(abs(spMtxCorr2))
+imagesc(abs(spMtxCorr2)*3.6)
 title("Busy road: RHS Speed Map")
 xlabel("Range bin")
 ylabel("Sweep number")
+c4 = colorbar;
+c4.Label.String = 'Speed (km/h)';
 
 
 
