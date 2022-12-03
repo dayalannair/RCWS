@@ -1,5 +1,15 @@
 # Radar Intersection Collision Prediction System (R-ICPS)
 
+## TO DO
+
+1. Modify Python algorithm with SOCA CFAR and PFa = 0.008
+2. Get more IQ data
+3. Test real time Python after update
+4. Design chapter
+5. Results chapter
+6. Apply Lit review fixes after Yunus reviews
+
+
 ## Report notes
 
 - Focus on MATLAB stuff in the 'advanced' directory of traingle FMCW DSP
