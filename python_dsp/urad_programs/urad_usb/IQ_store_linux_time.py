@@ -1,5 +1,6 @@
 import uRAD_USB_SDK11
 import serial
+import numpy as np
 from time import time, sleep, time_ns
 import sys
 
@@ -94,7 +95,7 @@ if (not usb_communication):
 
 #fileResults = open(resultsFileName, 'w')
 # iterations = 0
-t_0 = time_ns()
+t_0 = time()
 i = 0
 I = []
 Q = []
@@ -106,36 +107,36 @@ print("Loop running\n")
 try:
 	for i in range(sweeps):
 		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
-		#print(return_code)
 		I.append(raw_results[0])
 		Q.append(raw_results[1])
-		#t_i.append(clock())
-		t_i.append(time_ns())
+		# t_i.append(time_ns()) # time ns not working correctly
 		
 		# Signal period
 		#period = t_i[len(t_i)-1]-t_i[len(t_i)-2]
-		
+		t_i.append(time())
 		# Elapsed time
 		#period = t_i[len(t_i)-1] - t_0
 		#print(str(period/10e9))
 
 	# Elapsed time
 	period = t_i[len(t_i)-1] - t_0
-	print(str(period/10e9))
-
+	time_arr = np.array(t_i)
+	print("Elapsed time: ", str(period/10e9))
+	print("Average period: ", str(np.average(time_arr - t_0)))
+	print("Average update rate: ", str(1/np.average(time_arr - t_0)))
 	uRAD_USB_SDK11.turnOFF(ser)
-	print("Ending. Writing data to textfile...\n")
-	sweeps = len(I)
-	samples = len(I[1])
+	# print("Ending. Writing data to textfile...\n")
+	# sweeps = len(I)
+	# samples = len(I[1])
 	
-	with open(resultsFileName, 'w') as f:
-		for sweep in range(sweeps):
-			IQ_string = ''
-			for sample in range(samples):
-				IQ_string += '%d ' % I[sweep][sample]
-			for sample in range(samples):
-				IQ_string += '%d ' % Q[sweep][sample]
-			f.write(IQ_string + '%1.3f\n' % t_i[sweep]/10e9)
+	# with open(resultsFileName, 'w') as f:
+	# 	for sweep in range(sweeps):
+	# 		IQ_string = ''
+	# 		for sample in range(samples):
+	# 			IQ_string += '%d ' % I[sweep][sample]
+	# 		for sample in range(samples):
+	# 			IQ_string += '%d ' % Q[sweep][sample]
+	# 		f.write(IQ_string + '%1.3f\n' % t_i[sweep]/10e9)
 	print("Complete.")
 	
 except KeyboardInterrupt:
