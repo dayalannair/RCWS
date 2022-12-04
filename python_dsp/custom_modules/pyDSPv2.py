@@ -1,9 +1,9 @@
 # from cfar_lib import os_cfar
-from os_cfar_v4 import os_cfar
+from CFAR import soca_cfar
 import numpy as np
 from scipy.fft import fft
 
-def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, f_ax):
+def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, nbins, bin_width, f_ax):
 
 	# SQUARE LAW DETECTOR
 	# NOTE: last element in slice not included
@@ -35,9 +35,13 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, ra
 	# note the abs
 	SOS = 2
 	# -------------------- CFAR detection ---------------------------
-	cfar_scale = 1 # additional scaling factor
-	os_pku, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
-	os_pkd, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
+	# cfar_scale = 1 # additional scaling factor
+	# cfar_up, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
+	# cfar_dn, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
+
+	cfar_up, upth = soca_cfar(half_train, half_guard, SOS, abs(IQ_UP))
+	cfar_dn, dnth = soca_cfar(half_train, half_guard, SOS, abs(IQ_DN))
+
 	# np.log(upth, out=upth)
 	# np.log(dnth, out=dnth)
 	# np.log(abs(IQ_UP), out=IQ_UP)
@@ -47,8 +51,8 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, ra
 	# dnth = 20*np.log(dnth)
 	# IQ_UP = 20*np.log(abs(IQ_UP))
 	# IQ_DN = 20*np.log(abs(IQ_DN))
-	# os_pku = 20*np.log(abs(cfar_res_up))
-	# os_pkd = 20*np.log(abs(cfar_res_dn))
+	# cfar_up = 20*np.log(abs(cfar_res_up))
+	# cfar_dn = 20*np.log(abs(cfar_res_dn))
 	
 	fbu = np.zeros(nbins)
 	fbd = np.zeros(nbins)
@@ -74,7 +78,7 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, ra
 	# ********************* beat extraction for multiple targets **************************
 	for bin in range(nbins):
 		# find beat in bin
-		bin_slice_d = os_pkd[bin*bin_width:(bin+1)*bin_width]
+		bin_slice_d = cfar_dn[bin*bin_width:(bin+1)*bin_width]
 		magd = np.amax(bin_slice_d)
 		idx_d = np.argmax(bin_slice_d)
 		
@@ -86,11 +90,11 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, ra
 			# check if far enough from center
 			if (beat_index>15):
 				beat_min = beat_index - 15
-				bin_slice_u = os_pku[beat_index - 15:beat_index]
+				bin_slice_u = cfar_up[beat_index - 15:beat_index]
 			# if not, start from center
 			else:
 				beat_min = 1
-				bin_slice_u = os_pku[1:beat_index]
+				bin_slice_u = cfar_up[1:beat_index]
 				
 			# index is index in the subset
 			magu = np.amax(bin_slice_u)
@@ -132,7 +136,7 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, ra
 		# safety_inv = 3-min(ratio)
 		
 	# log scale for display purposes
-	return os_pku, os_pkd, upth, dnth, IQ_UP, IQ_DN, safety, beat_index, beat_min, rg_array, sp_array
+	return cfar_up, cfar_dn, upth, dnth, IQ_UP, IQ_DN, safety, beat_index, beat_min, rg_array, sp_array
 	# return rg_array, sp_array, safety
 	# return cfar_res_up, cfar_res_dn, 20*np.log10(upth), 20*np.log10(dnth),\
 	#      20*np.log10(abs(IQ_UP), 10),  20*np.log10(abs(IQ_DN))
@@ -170,10 +174,13 @@ def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, half_gu
 	# note the abs
 	SOS = 2
 	# -------------------- CFAR detection ---------------------------
-	cfar_scale = 1 # additional scaling factor
-	os_pku, _ = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
-	os_pkd, _ = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
+	# cfar_scale = 1 # additional scaling factor
+	# cfar_up, _ = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
+	# cfar_dn, _ = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
 	
+	cfar_up, upth = soca_cfar(half_train, half_guard, SOS, abs(IQ_UP))
+	cfar_dn, dnth = soca_cfar(half_train, half_guard, SOS, abs(IQ_DN))
+
 	fbu = np.zeros(nbins)
 	fbd = np.zeros(nbins)
 
@@ -196,7 +203,7 @@ def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, half_gu
 	# ********************* beat extraction for multiple targets **************************
 	for bin in range(nbins):
 		# find beat in bin
-		bin_slice_d = os_pkd[bin*bin_width:(bin+1)*bin_width]
+		bin_slice_d = cfar_dn[bin*bin_width:(bin+1)*bin_width]
 		magd = np.amax(bin_slice_d)
 		idx_d = np.argmax(bin_slice_d)
 		
@@ -208,11 +215,11 @@ def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, half_gu
 			# check if far enough from center
 			if (beat_index>15):
 				beat_min = beat_index - 15
-				bin_slice_u = os_pku[beat_index - 15:beat_index]
+				bin_slice_u = cfar_up[beat_index - 15:beat_index]
 			# if not, start from center
 			else:
 				beat_min = 1
-				bin_slice_u = os_pku[1:beat_index]
+				bin_slice_u = cfar_up[1:beat_index]
 				
 			# index is index in the subset
 			magu = np.amax(bin_slice_u)

@@ -160,7 +160,7 @@ half_guard = int(np.floor(half_guard/2)*2) # make even
 
 half_train = round(20*n_fft/n_samples)
 half_train = int(np.floor(half_train/2))
-rank = 2*half_train -2*half_guard
+# rank = 2*half_train -2*half_guard
 # rank = half_train*2
 Pfa_expected = 15e-3
 # factorial needs integer values
@@ -171,7 +171,7 @@ bin_width = round((n_fft/2)/nbins)
 fs = 200e3
 f_ax = np.linspace(0, round(fs/2), round(n_fft/2))
 os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, \
-	sp_array = py_trig_dsp(I,Q, twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, f_ax)
+	sp_array = py_trig_dsp(I,Q, twin, n_fft, num_nul, half_train, half_guard, nbins, bin_width, f_ax)
 plt.ion()
 print(beat_index)
 print(beat_min)
@@ -261,7 +261,7 @@ def dsp_thread_usb():
 		closeProgram()
 	os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min,\
 	rg_array, sp_array = py_trig_dsp(raw_results[0],raw_results[1], twin, n_fft, num_nul, half_train, \
-	half_guard, rank, nbins, bin_width, f_ax)
+	half_guard, nbins, bin_width, f_ax)
 
 def dsp_thread_rpi():
 	global n_fft
@@ -282,7 +282,7 @@ def dsp_thread_rpi():
 	uRAD_RP_SDK10.detection(0, 0, 0, I_pi, Q_pi, 0)
 	os_pku, os_pkd, upth_pi, dnth_pi, fftu_pi, fftd_pi, safety_inv, beat_index, beat_min,\
 	rg_array, sp_array = py_trig_dsp(I_pi,Q_pi, twin, n_fft, num_nul, half_train, \
-	half_guard, rank, nbins, bin_width, f_ax)
+	half_guard, nbins, bin_width, f_ax)
 
 bg1 = fig1.canvas.copy_from_bbox(fig1.bbox)
 
