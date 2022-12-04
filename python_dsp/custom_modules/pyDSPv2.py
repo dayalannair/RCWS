@@ -3,8 +3,8 @@ from CFAR import soca_cfar
 import numpy as np
 from scipy.fft import fft
 
-def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, nbins, bin_width, f_ax):
-
+def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, nbins, bin_width, f_ax, SOS):
+	
 	# SQUARE LAW DETECTOR
 	# NOTE: last element in slice not included
 	iq_u = np.power(i_data[  0:200],2) + np.power(q_data[  0:200],2)
@@ -33,7 +33,6 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, nb
 	IQ_DN = np.flip(IQ_DN)
 	
 	# note the abs
-	SOS = 2
 	# -------------------- CFAR detection ---------------------------
 	# cfar_scale = 1 # additional scaling factor
 	# cfar_up, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
@@ -142,7 +141,7 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, nb
 	#      20*np.log10(abs(IQ_UP), 10),  20*np.log10(abs(IQ_DN))
 
 
-def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, f_ax):
+def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, nbins, bin_width, f_ax):
 
 	# SQUARE LAW DETECTOR
 	# NOTE: last element in slice not included
@@ -171,8 +170,6 @@ def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, half_gu
 	# print(len(IQ_UP))
 	IQ_DN = np.flip(IQ_DN)
 	
-	# note the abs
-	SOS = 2
 	# -------------------- CFAR detection ---------------------------
 	# cfar_scale = 1 # additional scaling factor
 	# cfar_up, _ = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)

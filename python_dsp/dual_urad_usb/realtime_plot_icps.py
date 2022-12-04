@@ -174,19 +174,26 @@ I = raw_results[0]
 Q = raw_results[1]
 # rg_full = np.zeros(16*sweeps)
 n_fft = 512
-twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
+twin = signal.windows.taylor(200, nbar=3, sll=150, norm=False)
 nul_width_factor = 0.04
 num_nul = round((n_fft/2)*nul_width_factor)
 # OS CFAR
-n_samples = 200
-half_guard = n_fft/n_samples
-half_guard = int(np.floor(half_guard/2)*2) # make even
+ns = 200
+# half_guard = n_fft/n_samples
+# half_guard = int(np.floor(half_guard/2)*2) # make even
 
-half_train = round(20*n_fft/n_samples)
-half_train = int(np.floor(half_train/2))
-rank = 2*half_train -2*half_guard
+# half_train = round(20*n_fft/n_samples)
+# half_train = int(np.floor(half_train/2))
+# rank = 2*half_train -2*half_guard
 # rank = half_train*2
-Pfa_expected = 15e-3
+
+half_train = 8
+half_guard = 7
+
+Pfa = 0.008
+SOS = ns*(Pfa**(-1/ns)-1)
+print("Pfa: ", str(Pfa))
+print("CFAR alpha value: ", SOS)
 # factorial needs integer values
 
 
@@ -200,7 +207,7 @@ bin_width = round((n_fft/2)/nbins)
 fs = 200e3
 f_ax = np.linspace(0, round(fs/2), round(n_fft/2))
 os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, \
-	sp_array = py_trig_dsp(I,Q, twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, f_ax)
+	sp_array = py_trig_dsp(I,Q, twin, n_fft, num_nul, half_train, half_guard, nbins, bin_width, f_ax, SOS)
 plt.ion()
 # print(beat_index)
 # print(beat_min)
@@ -349,6 +356,7 @@ def dsp_thread_usb(port, radar_index):
 	global fftd_2
 	global fftu_2
 
+	global SOS
 	global I
 	global Q
 	return_code, _, raw_results = uRAD_USB_SDK11.detection(port)
@@ -358,11 +366,11 @@ def dsp_thread_usb(port, radar_index):
 	if radar_index == 0:
 		_, _, upth, dnth, fftu, fftd, _, _, _,\
 		_, _ = py_trig_dsp(raw_results[0],raw_results[1], twin, n_fft, num_nul, half_train, \
-		half_guard, rank, nbins, bin_width, f_ax)
+		half_guard, nbins, bin_width, f_ax, SOS)
 	else:
 		_, _, upth_2, dnth_2, fftu_2, fftd_2, _, _, _,\
 		_, _ = py_trig_dsp(raw_results[0],raw_results[1], twin, n_fft, num_nul, half_train, \
-		half_guard, rank, nbins, bin_width, f_ax)
+		half_guard, nbins, bin_width, f_ax, SOS)
 
 urad1_index = 0
 urad2_index = 1
