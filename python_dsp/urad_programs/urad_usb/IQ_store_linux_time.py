@@ -1,4 +1,4 @@
-import uRAD_USB_SDK11
+import uRAD_USB_SDK11_v2
 import serial
 import numpy as np
 from time import time, sleep, time_ns
@@ -63,7 +63,7 @@ ser.timeout = 1
 # Method to correctly turn OFF and close uRAD
 def closeProgram():
 	# switch OFF uRAD
-	return_code = uRAD_USB_SDK11.turnOFF(ser)
+	return_code = uRAD_USB_SDK11_v2.turnOFF(ser)
 	if (return_code != 0):
 		print("Ending")
 		exit()
@@ -76,7 +76,7 @@ except:
 	closeProgram()
 
 # switch ON uRAD
-return_code = uRAD_USB_SDK11.turnON(ser)
+return_code = uRAD_USB_SDK11_v2.turnON(ser)
 if (return_code != 0):
 	print("uRAD failed to turn on")
 	closeProgram()
@@ -85,7 +85,7 @@ if (not usb_communication):
 	sleep(timeSleep)
 
 # loadConfiguration uRAD
-return_code = uRAD_USB_SDK11.loadConfiguration(ser, mode, f0, BW, Ns, Ntar, Rmax, MTI, Mth, Alpha, distance_true, velocity_true, SNR_true, I_true, Q_true, movement_true)
+return_code = uRAD_USB_SDK11_v2.loadConfiguration(ser, mode, f0, BW, Ns, Ntar, Rmax, MTI, Mth, Alpha, distance_true, velocity_true, SNR_true, I_true, Q_true, movement_true)
 if (return_code != 0):
 	print("uRAD configuration failed")
 	closeProgram()
@@ -100,32 +100,42 @@ i = 0
 I = []
 Q = []
 t_i = []
+periods = []
 sweeps = 1024
 # infinite detection loop
 print("Loop running\n")
 
 try:
 	for i in range(sweeps):
-		return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
-		I.append(raw_results[0])
-		Q.append(raw_results[1])
+		return_code, raw_results = uRAD_USB_SDK11_v2.detection(ser)
+		t_i.append(time())
+		periods.append(t_i[i]-t_i[i-1])
+
+	elapsed = t_i[len(t_i)-1] - t_0
+	time_arr = np.array(t_i)
+	print("Elapsed time: ", str(elapsed))
+	print("Average period: ", str(np.average(periods)))
+	print("Average update rate: ", str(1/np.average(periods)))
+	uRAD_USB_SDK11_v2.turnOFF(ser)
+	
+except KeyboardInterrupt:
+	uRAD_USB_SDK11_v2.turnOFF(ser)
+	print("Interrupted.")
+	exit()
+
+
+		# I.append(raw_results[0])
+		# Q.append(raw_results[1])
 		# t_i.append(time_ns()) # time ns not working correctly
-		
 		# Signal period
 		#period = t_i[len(t_i)-1]-t_i[len(t_i)-2]
-		t_i.append(time())
+
+				# print(periods[i])
 		# Elapsed time
 		#period = t_i[len(t_i)-1] - t_0
 		#print(str(period/10e9))
 
-	# Elapsed time
-	period = t_i[len(t_i)-1] - t_0
-	time_arr = np.array(t_i)
-	print("Elapsed time: ", str(period/10e9))
-	print("Average period: ", str(np.average(time_arr - t_0)))
-	print("Average update rate: ", str(1/np.average(time_arr - t_0)))
-	uRAD_USB_SDK11.turnOFF(ser)
-	# print("Ending. Writing data to textfile...\n")
+		# print("Ending. Writing data to textfile...\n")
 	# sweeps = len(I)
 	# samples = len(I[1])
 	
@@ -137,9 +147,4 @@ try:
 	# 		for sample in range(samples):
 	# 			IQ_string += '%d ' % Q[sweep][sample]
 	# 		f.write(IQ_string + '%1.3f\n' % t_i[sweep]/10e9)
-	print("Complete.")
-	
-except KeyboardInterrupt:
-	uRAD_USB_SDK11.turnOFF(ser)
-	print("Interrupted.")
-	exit()
+
