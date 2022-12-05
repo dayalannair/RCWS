@@ -195,7 +195,9 @@ fd_max = speed2dop(v_max, lambda)*2;
 n_min = 42;
 % Divide into range bins of width 64
 nbins = 16;
+% nbins = 8;
 bin_width = (n_fft/2)/nbins;
+% bin_width = 21; % See calculations
 
 % -------------------------------------------------------------------------
 % Initialise arrays
@@ -471,7 +473,8 @@ ylabel("Sweep number")
 c2 = colorbar;
 c2.Label.String = 'Range (m)';
 nexttile
-imagesc(abs(spMtxCorr1)*3.6)
+% imagesc(abs(spMtxCorr1)*3.6)
+imagesc(abs(spMtx1)*3.6)
 title("Busy road: LHS Speed Map")
 xlabel("Range bin")
 ylabel("Sweep number")
@@ -479,7 +482,8 @@ c3 = colorbar;
 c3.Label.String = 'Speed (km/h)';
 
 nexttile
-imagesc(abs(spMtxCorr2)*3.6)
+% imagesc(abs(spMtxCorr2)*3.6)
+imagesc(abs(spMtx2)*3.6)
 title("Busy road: RHS Speed Map")
 xlabel("Range bin")
 ylabel("Sweep number")

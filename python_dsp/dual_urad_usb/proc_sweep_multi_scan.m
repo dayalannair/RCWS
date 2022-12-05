@@ -74,7 +74,7 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
                     % frequency
     %               calibrate beats for doppler shift
                     fd = ((-fbu(bin+1) + fbd(bin+1))*calib)/2;
-                    fdMtx(bin+1) = fd/2;
+                    fdMtx(bin+1) = fd;
                     
                     
                     % if less than max expected and filter clutter doppler
