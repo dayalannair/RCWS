@@ -37,9 +37,26 @@ guard = 14;%n_fft/64;%8;
 rank = round(3*train/4);
 nbar = 3;
 sll = -150;
+F = 5*10e-3;
+v_max = 60/3.6; 
+fd_max = speed2dop(v_max, lambda)*2;
+% Minimum sample number for 1024 point FFT corresponding to min range = 10m
+% n_min = 83;
+% for 512 point FFT:
+n_min = 42;
+% Divide into range bins of width 64
+% bin_width = (n_fft/2)/nbins;
+nbins = 8;
+bin_width = 32; % account for scan width = 21
+scan_width = 21; % see calcs: Delta f * 21 ~ 8 kHz
 
-F = 8*10e-3;
+% nbins = 16;
+% bin_width = 16; % account for scan width = 21
+% scan_width = 8;
 
+calib = 1.2463;
+lhs_road_width = 2;
+rhs_road_width = 4;
 % Decimate faster device data
 % rad2_iq_u = rad2_iq_u(1:3:end, :);
 % rad2_iq_d = rad2_iq_d(1:3:end, :);
@@ -57,8 +74,8 @@ rad2_iq_d = rad2_iq_d.*win.';
 
 % FFT
 nul_width_factor = 0.04;
-num_nul = round((n_fft/2)*nul_width_factor);
-
+num_nul1 = round((n_fft/2)*nul_width_factor);
+num_nul2 = round((n_fft/2)*nul_width_factor)+2; % catering for the extent
 LHS_IQ_UP = fft(rad1_iq_u,n_fft,2);
 LHS_IQ_DN = fft(rad1_iq_d,n_fft,2);
 
@@ -124,19 +141,18 @@ RHS_IQ_DN = RHS_IQ_DN(:, n_fft/2+1:end);
 
 % Null feedthrough
 % METHOD 1: slice
-LHS_IQ_UP(:, 1:num_nul) = repmat(LHS_IQ_UP(:, num_nul+1), [1, num_nul]);
-LHS_IQ_DN(:, end-num_nul+1:end) = ...
-repmat(LHS_IQ_DN(:, end-num_nul), [1, num_nul]);
+LHS_IQ_UP(:, 1:num_nul1) = repmat(LHS_IQ_UP(:, num_nul1+1), [1, num_nul1]);
+LHS_IQ_DN(:, end-num_nul1+1:end) = ...
+repmat(LHS_IQ_DN(:, end-num_nul1), [1, num_nul1]);
 
-RHS_IQ_UP(:, 1:num_nul) = repmat(RHS_IQ_UP(:, num_nul+1), [1, num_nul]);
-RHS_IQ_DN(:, end-num_nul+1:end) = ...
-repmat(RHS_IQ_DN(:, end-num_nul), [1, num_nul]);
+RHS_IQ_UP(:, 1:num_nul2) = repmat(RHS_IQ_UP(:, num_nul2+1), [1, num_nul2]);
+RHS_IQ_DN(:, end-num_nul2+1:end) = ...
+repmat(RHS_IQ_DN(:, end-num_nul2), [1, num_nul2]);
 % 
 % % METHOD 2: Remove average
 % IQ_UP2 = RHS_IQ_UP - mean(RHS_IQ_UP,2);
 % IQ_DN2 = RHS_IQ_DN - mean(RHS_IQ_DN,2);
 
-Ns = 200;
 fs = 200e3;
 f = f_ax(n_fft, fs);
 f_pos = f((n_fft/2 + 1):end);
@@ -187,34 +203,13 @@ f = f_ax(n_fft, fs);
 f_neg = f(1:n_fft/2);
 f_pos = f((n_fft/2 + 1):end);
 
-v_max = 60/3.6; 
-fd_max = speed2dop(v_max, lambda)*2;
-% Minimum sample number for 1024 point FFT corresponding to min range = 10m
-% n_min = 83;
-% for 512 point FFT:
-n_min = 42;
-% Divide into range bins of width 64
-nbins = 16;
-% nbins = 8;
-bin_width = (n_fft/2)/nbins;
-% bin_width = 21; % See calculations
-
-% -------------------------------------------------------------------------
-% Initialise arrays
-% -------------------------------------------------------------------------
-
 % Make slightly larger to allow for holding previous
 % >16 will always be 0 and not influence results
 % previous_det = zeros(nbins+2, 1);
 
 f_bin_edges_idx = size(f_pos(),2)/nbins;
-road_width = 2;
-correction_factor = 1;
 prev_det = 0;
-speed_correction = 1.2;
-% -------------------------------------------------------------------------
-% Initialise plots
-% -------------------------------------------------------------------------
+
 fb_idx1 = zeros(nbins,1);
 fb_idx2 = zeros(nbins,1);
 fb_idx_end1 = zeros(nbins,1);
@@ -222,7 +217,6 @@ fb_idx_end2 = zeros(nbins,1);
 % max speed = 90 km/h. f = 2v/lambda = 4 kHz. each bin is 1 kHz apart
 % since f_D = (fbd - fbu)/2 ---> fbd - fbu < 2(4 kHz) = 8000
 % 8000/1000 = 8
-scan_width = 8;
 ax_dims = [0 max(rng_ax) 80 190];
 ax_ticks = 1:2:60;
 %% PLOT FRAMES RADAR VS. VIDEO
@@ -236,9 +230,7 @@ movegui(fig1,'west')
 % -------------------------------------------------------------------------
 % Process sweeps
 % -------------------------------------------------------------------------
-calib = 1.2463;
-lhs_road_width = 2;
-rhs_road_width = 4;
+
 tic
 vidObj.CurrentTime = 0;
 hold_frame = 0;
@@ -247,10 +239,16 @@ frame_count = 1;
 nswp1 = size(LHS_IQ_UP,1);
 nswp2 = size(RHS_IQ_UP,1);
 
+fbu1   = zeros(nswp1, nbins);
+fbd1   = zeros(nswp1, nbins);
+fdMtx1 = zeros(nswp1, nbins);
 rgMtx1 = zeros(nswp1, nbins);
 spMtx1 = zeros(nswp1, nbins);
 spMtxCorr1 = zeros(nswp1, nbins);
 
+fbu2   = zeros(nswp1, nbins);
+fbd2   = zeros(nswp1, nbins);
+fdMtx2 = zeros(nswp1, nbins);
 rgMtx2 = zeros(nswp2, nbins);
 spMtx2 = zeros(nswp2, nbins);
 spMtxCorr2 = zeros(nswp2, nbins);
@@ -278,9 +276,9 @@ p1th = plot(rng_ax, absmagdb(upTh1(:,1)));
 % b1 = bar([fb_idx1; fb_idx_end1]);
 % p1ln = plot([fb_idx1; fb_idx_end1], [100, 150]);
 % colors = 1:5;
-x  =linspace(1,16,16);
+x  =linspace(1, nbins, nbins);
 colors = cat(2, 2*x, 2*x);
-win1 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(1, 32)*130 ,2000, ...
+win1 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*130 ,2000, ...
 colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
 title("LHS UP chirp positive half")
@@ -292,7 +290,7 @@ subplot(2,3,3);
 p2 = plot(rng_ax, absmagdb(LHS_IQ_DN(1,:)));
 hold on
 p2th = plot(rng_ax, absmagdb(dnTh1(:,1)));
-win2 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(1, 32)*130 ,2000, ...
+win2 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*130 ,2000, ...
 colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
 title("LHS DOWN chirp flipped negative half")
@@ -304,7 +302,7 @@ subplot(2,3,4);
 p3 = plot(rng_ax, absmagdb(RHS_IQ_UP(1,:)));
 hold on
 p3th = plot(rng_ax, absmagdb(upTh2(:,1)));
-win3 = scatter(cat(1,fb_idx2, fb_idx_end2), ones(1, 32)*130 ,2000, ...
+win3 = scatter(cat(1,fb_idx2, fb_idx_end2), ones(2*nbins, 1)*130 ,2000, ...
 colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
 title("RHS UP chirp positive half")
@@ -316,7 +314,7 @@ subplot(2,3,5);
 p4 = plot(rng_ax, absmagdb(RHS_IQ_DN(1,:)));
 hold on
 p4th = plot(rng_ax, absmagdb(dnTh2(:,1)));
-win4 = scatter(cat(1,fb_idx2, fb_idx_end2), ones(1, 32)*130 ,2000, ...
+win4 = scatter(cat(1,fb_idx2, fb_idx_end2), ones(2*nbins, 1)*130 ,2000, ...
 colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
 title("RHS DOWN chirp flipped negative half")
@@ -330,7 +328,7 @@ v2 = imshow(vidFrame);
 for i = 1:loop_count
 
     [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
-    pkdClean1, fbu1, fbd1, fdMtx1, fb_idx1, fb_idx_end1, ...
+    pkdClean1, fbu1(i,:), fbd1(i,:), fdMtx1(i,:), fb_idx1, fb_idx_end1, ...
     beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
     lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
     f_pos, scan_width, calib, lhs_road_width, beat_count_in1);
@@ -338,10 +336,13 @@ for i = 1:loop_count
 %     beat_count_in1 = beat_count_out1;
 
     [rgMtx2(i,:), spMtx2(i,:), spMtxCorr2(i,:), pkuClean2, ...
-    pkdClean2, fbu2, fbd2, fdMtx2, fb_idx2, fb_idx_end2, ...
+    pkdClean2, fbu2(i,:), fbd2(i,:), fdMtx2(i,:), fb_idx2, fb_idx_end2, ...
     beat_count_out2] = proc_sweep_multi_scan(bin_width, ...
     lambda, k, c, dnDets2(i,:), upDets2(i,:), nbins, n_fft, ...
     f_pos, scan_width, calib, rhs_road_width,beat_count_in2);
+
+    %     disp(['Radar sweep : ', num2str(i),' Video frame : ', ...
+%         num2str(frame_count)])
 
     % Reset clutter filter every 40 sweeps
 %     if mod(i, 40) == 0 
@@ -354,10 +355,12 @@ for i = 1:loop_count
 %     end
 %         % When run on 4 threads, there are 3 times fewer 
 %         % video frames
+
+% 
+%     disp(['Sweep: ',num2str(i)])
 %     if hold_frame == 2
 %         vidFrame = readFrame(vid_lhs);
 %         set(v1,'CData' ,vidFrame);
-% 
 %         vidFrame = readFrame(vid_rhs);
 %         set(v2, 'CData', rot90(vidFrame, 2));
 %         set(v2, 'CData', vidFrame);
@@ -366,30 +369,22 @@ for i = 1:loop_count
 %     else
 %         hold_frame = hold_frame + 1;
 %     end
-%     
 %     fb_idx1 = rng_ax(fb_idx1);
 %     fb_idx2 = rng_ax(fb_idx2);
 %     fb_idx_end1 = rng_ax(fb_idx_end1);
 %     fb_idx_end2 = rng_ax(fb_idx_end2);
-% 
-% 
 %     set(p1, 'YData', absmagdb(LHS_IQ_UP(i,:)))
 %     set(p2, 'YData', absmagdb(LHS_IQ_DN(i,:)))
 %     set(p3, 'YData', absmagdb(RHS_IQ_UP(i,:)))
 %     set(p4, 'YData', absmagdb(RHS_IQ_DN(i,:)))
-% 
 %     set(p1th, 'YData', absmagdb(upTh1(:,i)))
 %     set(p2th, 'YData', absmagdb(dnTh1(:,i)))
 %     set(p3th, 'YData', absmagdb(upTh2(:,i)))
 %     set(p4th, 'YData', absmagdb(dnTh2(:,i)))
-% 
 %     set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
 %     set(win2,'XData',cat(1,fb_idx1, fb_idx_end1))
 %     set(win3,'XData',cat(1,fb_idx2, fb_idx_end2))
 %     set(win4,'XData',cat(1,fb_idx2, fb_idx_end2))
-% 
-% %     disp(['Radar sweep : ', num2str(i),' Video frame : ', ...
-% %         num2str(frame_count)])
 %     pause(0.00001);
 end
 toc
@@ -460,11 +455,14 @@ figure
 tiledlayout(2, 2)
 nexttile
 imagesc(rgMtx1)
+% imagesc(flip(rgMtx1,2))
+set(gca,'XDir','reverse')
 title("Busy road: LHS Range Map")
 xlabel("Range bin")
 ylabel("Sweep number")
 c1 = colorbar;
 c1.Label.String = 'Range (m)';
+
 nexttile
 imagesc(rgMtx2)
 title("Busy road: RHS Range Map")
@@ -472,9 +470,12 @@ xlabel("Range bin")
 ylabel("Sweep number")
 c2 = colorbar;
 c2.Label.String = 'Range (m)';
+
 nexttile
 % imagesc(abs(spMtxCorr1)*3.6)
-imagesc(abs(spMtx1)*3.6)
+imagesc(spMtx1*3.6)
+% imagesc(flip(spMtx1,2)*3.6)
+set(gca,'XDir','reverse')
 title("Busy road: LHS Speed Map")
 xlabel("Range bin")
 ylabel("Sweep number")
@@ -489,9 +490,12 @@ xlabel("Range bin")
 ylabel("Sweep number")
 c4 = colorbar;
 c4.Label.String = 'Speed (km/h)';
+return;
 
-
-
+%%
+% Convert spMtx to km/h
+spMtxkmh1 = spMtx1*3.6
+spMtxkmh2 = spMtx2*3.6
 % tic
 % for i = 1:n_sweeps
 %    
