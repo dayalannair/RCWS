@@ -37,7 +37,7 @@ guard = 14;%n_fft/64;%8;
 rank = round(3*train/4);
 nbar = 3;
 sll = -150;
-F = 5*10e-3;
+F = 5*10e-4;
 v_max = 60/3.6; 
 fd_max = speed2dop(v_max, lambda)*2;
 % Minimum sample number for 1024 point FFT corresponding to min range = 10m
@@ -46,13 +46,13 @@ fd_max = speed2dop(v_max, lambda)*2;
 n_min = 42;
 % Divide into range bins of width 64
 % bin_width = (n_fft/2)/nbins;
-nbins = 8;
-bin_width = 32; % account for scan width = 21
-scan_width = 21; % see calcs: Delta f * 21 ~ 8 kHz
+% nbins = 8;
+% bin_width = 32; % account for scan width = 21
+% scan_width = 21; % see calcs: Delta f * 21 ~ 8 kHz
 
-% nbins = 16;
-% bin_width = 16; % account for scan width = 21
-% scan_width = 8;
+nbins = 16;
+bin_width = 16; % account for scan width = 21
+scan_width = 8;
 
 calib = 1.2463;
 lhs_road_width = 2;
@@ -90,19 +90,19 @@ LHS_IQ_DN = LHS_IQ_DN(:, n_fft/2+1:end);
 RHS_IQ_UP = RHS_IQ_UP(:, 1:n_fft/2);
 RHS_IQ_DN = RHS_IQ_DN(:, n_fft/2+1:end);
 
-% Ensemble mean canceller
+%% Ensemble mean canceller
 % -------------------------------------------------------------------------
-% l_up_bar = mean(LHS_IQ_UP);
-% l_dn_bar = mean(LHS_IQ_DN);
+l_up_bar = mean(LHS_IQ_UP);
+l_dn_bar = mean(LHS_IQ_DN);
+
+r_up_bar = mean(RHS_IQ_UP);
+r_dn_bar = mean(RHS_IQ_DN);
 % 
-% r_up_bar = mean(RHS_IQ_UP);
-% r_dn_bar = mean(RHS_IQ_DN);
-% 
-% LHS_IQ_UP = LHS_IQ_UP - l_up_bar;
-% LHS_IQ_DN = LHS_IQ_DN - l_dn_bar;
-% RHS_IQ_UP = RHS_IQ_UP - r_up_bar;
-% RHS_IQ_DN = RHS_IQ_DN - r_dn_bar;
-% -------------------------------------------------------------------------
+LHS_IQ_UP = LHS_IQ_UP - l_up_bar;
+LHS_IQ_DN = LHS_IQ_DN - l_dn_bar;
+RHS_IQ_UP = RHS_IQ_UP - r_up_bar;
+RHS_IQ_DN = RHS_IQ_DN - r_dn_bar;
+%% -------------------------------------------------------------------------
 
 % TWO SWEEP CANCELLER
 
