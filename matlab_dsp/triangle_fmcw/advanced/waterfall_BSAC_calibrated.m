@@ -328,7 +328,8 @@ for sweep = 1:n_sweeps
         % safe the turn is
         safety(sweep) = min(ratio);
         % for colour map:
-        safe_sweeps(sweep) = t_safe-min(ratio);
+%         safe_sweeps(sweep) = t_safe-min(ratio);
+        safe_sweeps(sweep) = min(ratio);
     end
 end
 % close all
@@ -345,21 +346,25 @@ close all
 figure
 tiledlayout(1,2)
 nexttile
-imagesc(sp_array.*3.6)
-set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl, 'CLim', [0 60])
+imagesc([], 0:0.2:3.24, sp_array.*3.6)
+set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl, 'CLim', [0 60], ...
+    'YTick', 0:0.4:3.24)
 grid
-title("Speed v. Time v. Range")
+title("Time v. Range v. Speed")
 xlabel("Range bin (meters)")
-ylabel("Sweep number in window (represents time)")
+ylabel("Time (s)")
 a = colorbar;
 a.Label.String = 'Radial velocity (km/h)';
 nexttile
-imagesc(safe_sweeps)
-title("Safety Meter")
-ylabel("Sweep number in window  (represents time)")
-b = colorbar;
-b.Label.String = 'Degree of safety (4 - t_{arrival})';
-set(gca,'CLim', [0 1])
+% imagesc([],0:0.2:3.24,safe_sweeps)
+plot(linspace(0,3.24,size(safe_sweeps,1)), safe_sweeps)
+title("Time of Arrival v. Time")
+ylabel("Time of Arrival (s)")
+xlabel("Time (s)")
+% b = colorbar;
+% b.Label.String = 'Degree of safety (acceleration time - TOA)';
+% set(gca,'CLim', [0 1], 'YTick', 0:0.2:3.24)
+% gca.XAxis.Visible = 'off'
 return;
 
 %%
