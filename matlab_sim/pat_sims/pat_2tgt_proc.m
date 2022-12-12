@@ -128,8 +128,8 @@ sceneview = phased.ScenarioViewer('BeamRange',62.5,...
     'ShowPosition', true,...
     'ShowSpeed', true,...
     'ShowRadialSpeed',false,...
-    'UpdateRate',1/t_step);%, ...
-%     'Position',[1000 100 1000 900]);
+    'UpdateRate',1/t_step, ...
+    'Position',[1000 100 1000 900]);
 
 [rdr_pos,rdr_vel] = radarmotion(1);
 
@@ -143,11 +143,34 @@ Dn = fix(fs_wav/fs_adc);
 Ns = 200;
 nfft = 512;
 faxis_kHz = f_ax(nfft, fs_adc)/1000;
+n_fft = 512;
+train = 16;%n_fft/8;%64;
+guard = 14;%n_fft/64;%8;
+rank = round(3*train/4);
+nbar = 3;
+sll = -150;
+F = 5*10e-4;
+v_max = 60/3.6; 
+fd_max = speed2dop(v_max, lambda)*2;
+% Minimum sample number for 1024 point FFT corresponding to min range = 10m
+% n_min = 83;
+% for 512 point FFT:
+n_min = 42;
+% Divide into range bins of width 64
+% bin_width = (n_fft/2)/nbins;
+% nbins = 8;
+% bin_width = 32; % account for scan width = 21
+% scan_width = 21; % see calcs: Delta f * 21 ~ 8 kHz
 
+nbins = 16;
+bin_width = 16; % account for scan width = 21
+scan_width = 8;
+
+calib = 1.2463;
+lhs_road_width = 2;
+rhs_road_width = 4;
 
 % Taylor window
-nbar = 4;
-sll = -38;
 twin = taylorwin(Ns, nbar, sll);
 % wind = taylorwin(n_samples, nbar, sll);
 % Gaussian
@@ -161,13 +184,110 @@ bwin = blackman(Ns);
 % Range axis
 rng_ax = beat2range((faxis_kHz*1000)', sweep_slope, c);
 
+fs = 200e3;
+f = f_ax(n_fft, fs);
+f_neg = f(1:n_fft/2);
+f_pos = f((n_fft/2 + 1):end);
+
+OS1 = phased.CFARDetector('NumTrainingCells',train, ...
+    'NumGuardCells',guard, ...
+    'ThresholdFactor', 'Auto', ...
+    'ProbabilityFalseAlarm', F, ...
+    'Method', 'SOCA', ...
+    'ThresholdOutputPort', true, ...
+    'Rank',rank);
+
+OS2 = phased.CFARDetector('NumTrainingCells',train, ...
+    'NumGuardCells',guard, ...
+    'ThresholdFactor', 'Auto', ...
+    'ProbabilityFalseAlarm', F, ...
+    'Method', 'SOCA', ...
+    'ThresholdOutputPort', true, ...
+    'Rank',rank);
+
 %%
 close all
-% f1 = figure('WindowState','normal', 'Position',[0 100 1000 900]);
-f1 = figure('WindowState','normal');
+f1 = figure('WindowState','normal', 'Position',[0 100 1000 900]);
 movegui(f1, "west")
 
+f_bin_edges_idx = size(f_pos(),2)/nbins;
+prev_det = 0;
+
+fb_idx1 = zeros(nbins,1);
+fb_idx2 = zeros(nbins,1);
+fb_idx_end1 = zeros(nbins,1);
+fb_idx_end2 = zeros(nbins,1);
+ax_dims = [0 max(rng_ax) 80 190];
+ax_ticks = 1:2:60;
+
+fbu1   = zeros(nswp1, nbins);
+fbd1   = zeros(nswp1, nbins);
+fdMtx1 = zeros(nswp1, nbins);
+rgMtx1 = zeros(nswp1, nbins);
+spMtx1 = zeros(nswp1, nbins);
+spMtxCorr1 = zeros(nswp1, nbins);
+
+loop_count = min(nswp1,nswp2);
+beat_count_out1 = zeros(1,256);
+beat_count_out2 = zeros(1,256);
+beat_count_in1 = zeros(1,256);
+beat_count_in2 = zeros(1,256);
+
+subplot(1,2,1);
+p1 = plot(rng_ax, absmagdb(LHS_IQ_UP(1,:)));
+hold on
+p1th = plot(rng_ax, absmagdb(upTh1(:,1)));
+x  =linspace(1, nbins, nbins);
+colors = cat(2, 2*x, 2*x);
+win1 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*130 ,2000, ...
+colors, 'Marker', '|', 'LineWidth',1.5);
+hold off
+title("LHS UP chirp positive half")
+axis(ax_dims)
+xticks(ax_ticks)
+grid on
+
+subplot(1,2,2);
+p2 = plot(rng_ax, absmagdb(LHS_IQ_DN(1,:)));
+hold on
+p2th = plot(rng_ax, absmagdb(dnTh1(:,1)));
+win2 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*130 ,2000, ...
+colors, 'Marker', '|', 'LineWidth',1.5);
+hold off
+title("LHS DOWN chirp flipped negative half")
+axis(ax_dims)
+xticks(ax_ticks)
+grid on
+
+subplot(2,3,4);
+p3 = plot(rng_ax, absmagdb(RHS_IQ_UP(1,:)));
+hold on
+p3th = plot(rng_ax, absmagdb(upTh2(:,1)));
+win3 = scatter(cat(1,fb_idx2, fb_idx_end2), ones(2*nbins, 1)*130 ,2000, ...
+colors, 'Marker', '|', 'LineWidth',1.5);
+hold off
+title("RHS UP chirp positive half")
+axis(ax_dims)
+xticks(ax_ticks)
+grid on
+
+subplot(2,3,5);
+p4 = plot(rng_ax, absmagdb(RHS_IQ_DN(1,:)));
+hold on
+p4th = plot(rng_ax, absmagdb(dnTh2(:,1)));
+win4 = scatter(cat(1,fb_idx2, fb_idx_end2), ones(2*nbins, 1)*130 ,2000, ...
+colors, 'Marker', '|', 'LineWidth',1.5);
+hold off
+title("RHS DOWN chirp flipped negative half")
+axis(ax_dims)
+xticks(ax_ticks)
+grid on
+subplot(2,3,6);
+vidFrame = readFrame(vid_rhs);
+v2 = imshow(vidFrame);
+i = 0;
 for t = 1:n_steps
+    i = i + 1;
     %disp(t)
     [tgt_pos,tgt_vel] = carmotion(t_step);
 
@@ -184,139 +304,40 @@ for t = 1:n_steps
     xrd = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
         transmitter,channel,cartarget,receiver, Dn, Ns);
     
-    % NOTE: Up and Down are reversed for some reason in F domain
-    % find out why. For now set one to the other
-    % NOTE: Somehow resolved using range axis
-%     xru_int = pulsint(xr(:,1:2:end),'coherent');
-%     xrd_int = pulsint(xr(:,2:2:end),'coherent');
-%     xru_int = xr(:,1);
-%     xrd_int = xr(:,2);
     % Window
     xru_twin = xru.*twin;
     xrd_twin = xrd.*twin;
-    
-    xru_bwin = xru.*bwin;
-    xrd_bwin = xrd.*bwin;
 
-%     fbu_rng = rootmusic(xru_int,2,fs_wav);
-%     fbd_rng = rootmusic(xrd_int,2,fs_wav);
-%     
-%     r(t, 1) = beat2range([fbu_rng(1) fbd_rng(1)],sweep_slope,c);
-%     r(t, 2) = beat2range([fbu_rng(2) fbd_rng(2)],sweep_slope,c);
-% 
-%     fd = -(fbu_rng(1)+fbd_rng(1))/2;
-%     v(t, 1) = dop2speed(fd,lambda)/2;
-% 
-%     fd = -(fbu_rng(2)+fbd_rng(2))/2;
-%     v(t, 2) = dop2speed(fd,lambda)/2;
-%
-%     fbu(t,:) = fbu_rng;
-%     fbd(t,:) = fbd_rng;
     XRU = fft(xru, nfft);
     XRD = fft(xrd, nfft);
     
     XRU_twin = fft(xru_twin, nfft);
     XRD_twin = fft(xrd_twin, nfft);
+
+    IQ_UP = XRU_twin(:, 1:n_fft/2);
+    IQ_DN = XRD_twin(:, n_fft/2+1:end);
     
-    XRU_bwin = fft(xru_bwin, nfft);
-    XRD_bwin = fft(xrd_bwin, nfft);
-% --------------------------------------------------------
-% Plotting received signals
-% --------------------------------------------------------
-%     plot(real(xrd))
-%     drawnow;
-% % remove the two lines below to use original program
-% end
-% return;
-% --------------------------------------------------------
-    subplot(3,2,1)
-    plot(rng_ax,sftmagdb(XRU))
-    title("Dechirped up sweep spectrum")
-    xlabel("Range (m)")
-    ylabel("Magnitude (dB)")
-    grid on
-%     axis([-62.5 62.5 -90 -20])
-%     subplot(2,2,2)
-%     plot(faxis_kHz,sftmagdb(XRD))
-%     title("Dechirped down sweep spectrum")
-%     xlabel("Frequency (kHz)")
-%     ylabel("Magnitude (dB)")
+    IQ_UP(:, 1:num_nul1) = repmat(IQ_UP(:, num_nul1+1), [1, num_nul1]);
+    IQ_DN(:, end-num_nul1+1:end) = ...
+    repmat(IQ_DN(:, end-num_nul1), [1, num_nul1]);
+
+    [up_os1, upTh1] = OS1(abs(IQ_UP)', 1:n_fft/2);
+    [dn_os1, dnTh1] = OS1(abs(IQ_DN)', 1:n_fft/2);
+
+    upDets1 = abs(IQ_UP).*up_os1';
+    dnDets1 = abs(IQ_DN).*dn_os1';
     
-    subplot(3,2,3)
-    plot(rng_ax,sftmagdb(XRU_twin))
-    title("Dechirped and Taylor windowed up sweep spectrum")
-    xlabel("Range (m)")
-    ylabel("Magnitude (dB)")
-%     axis([-62.5 62.5 -110 -20])
-    grid on
-
-    subplot(3,2,5)
-    plot(rng_ax,sftmagdb(XRU_bwin))
-    title("Dechirped and Blackmann windowed up sweep spectrum")
-    xlabel("Range (m)")
-    ylabel("Magnitude (dB)")
-
-   % ==================================================================
-   % Down chirps
-    subplot(3,2,2)
-    plot(rng_ax,sftmagdb(XRD))
-    title("Dechirped down sweep spectrum")
-    xlabel("Range (m)")
-    ylabel("Magnitude (dB)")
-    grid on
-%     axis([-62.5 62.5 -90 -20])
-%     subplot(2,2,2)
-%     plot(faxis_kHz,sftmagdb(XRD))
-%     title("Dechirped down sweep spectrum")
-%     xlabel("Frequency (kHz)")
-%     ylabel("Magnitude (dB)")
+    [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
+    pkdClean1, fbu1(i,:), fbd1(i,:), fdMtx1(i,:), fb_idx1, fb_idx_end1, ...
+    beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
+    lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
+    f_pos, scan_width, calib, lhs_road_width, beat_count_in1);
     
-    subplot(3,2,4)
-    plot(rng_ax,sftmagdb(XRD_twin))
-    title("Dechirped and Taylor windowed down sweep spectrum")
-    xlabel("Range (m)")
-    ylabel("Magnitude (dB)")
-%     axis([-62.5 62.5 -110 -20])
-    grid on
-
-    subplot(3,2,6)
-    plot(rng_ax,sftmagdb(XRD_bwin))
-    title("Dechirped and Blackmann windowed down sweep spectrum")
-    xlabel("Range (m)")
-    ylabel("Magnitude (dB)")
-%     axis([-62.5 62.5 -200 -20])
-
-
-    grid on
-    sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
+    set(p1, 'YData', absmagdb(IQ_UP))
+    set(p2, 'YData', absmagdb(IQ_DN))
+    set(p1th, 'YData', absmagdb(upTh1))
+    set(p2th, 'YData', absmagdb(dnTh1))
+    pause(0.0001)
     
-%     subplot(2,2,4)
-%     plot(faxis_kHz,sftmagdb(XRD_win))
-%     title("Dechirped down sweep spectrum")
-%     xlabel("Frequency (kHz)")
-%     ylabel("Magnitude (dB)")
-%     drawnow;
-%     pause(0.5)
+
 end
-
-return
-%% Plots
-
-% XR = fft(xr);
-% Fs = 200e3;
-% f = f_ax(size(XR,1),Fs);
-% close all
-% figure
-% tiledlayout(2,1)
-% nexttile
-% plot(real(xr))
-% nexttile
-% plot(f, fftshift(20*log(abs(XR))))
-% plot(fbu(:,1))
-% nexttile
-% plot(r(:,1))
-% nexttile
-% plot(v(:,1))
-
-
-

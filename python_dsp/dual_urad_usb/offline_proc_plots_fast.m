@@ -92,16 +92,16 @@ RHS_IQ_DN = RHS_IQ_DN(:, n_fft/2+1:end);
 
 %% Ensemble mean canceller
 % -------------------------------------------------------------------------
-l_up_bar = mean(LHS_IQ_UP);
-l_dn_bar = mean(LHS_IQ_DN);
-
-r_up_bar = mean(RHS_IQ_UP);
-r_dn_bar = mean(RHS_IQ_DN);
+% l_up_bar = mean(LHS_IQ_UP);
+% l_dn_bar = mean(LHS_IQ_DN);
 % 
-LHS_IQ_UP = LHS_IQ_UP - l_up_bar;
-LHS_IQ_DN = LHS_IQ_DN - l_dn_bar;
-RHS_IQ_UP = RHS_IQ_UP - r_up_bar;
-RHS_IQ_DN = RHS_IQ_DN - r_dn_bar;
+% r_up_bar = mean(RHS_IQ_UP);
+% r_dn_bar = mean(RHS_IQ_DN);
+% % 
+% LHS_IQ_UP = LHS_IQ_UP - l_up_bar;
+% LHS_IQ_DN = LHS_IQ_DN - l_dn_bar;
+% RHS_IQ_UP = RHS_IQ_UP - r_up_bar;
+% RHS_IQ_DN = RHS_IQ_DN - r_dn_bar;
 %% -------------------------------------------------------------------------
 
 % TWO SWEEP CANCELLER
