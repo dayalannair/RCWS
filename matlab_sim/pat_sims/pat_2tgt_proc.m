@@ -11,6 +11,7 @@ tm = 1e-3;
 % bw2 = rangeres2bw(range_res,c);
 bw = 240e6;
 sweep_slope = bw/tm;
+k = sweep_slope;
 addpath('../../matlab_lib/');
 fr_max = range2beat(range_max,sweep_slope,c);
 v_max = 230*1000/3600;
@@ -41,7 +42,7 @@ tx_ppower = db2pow(5)*1e-3;                     % in watts
 tx_gain = 9+ant_gain;                           % in dB
 
 rx_gain = 30+ant_gain;                          % in dB
-rx_nf = 4.5;                                    % in dB
+rx_nf = 50.5;                                    % in dB
 
 transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
 receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
@@ -88,8 +89,8 @@ car2_speed = 80/3.6;
 car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
 car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
 
-car1_rcs = db2pow(min(10*log10(car1_dist)+5,20));
-car2_rcs = db2pow(min(10*log10(car2_dist)+5,20));
+car1_rcs = db2pow(min(10*log10(car1_dist)+5,20))/500;
+car2_rcs = db2pow(min(10*log10(car2_dist)+5,20))/500;
 
 % Define reflected signal
 cartarget = phased.RadarTarget('MeanRCS',[car1_rcs car2_rcs], ...
@@ -181,13 +182,13 @@ bwin = blackman(Ns);
 % kbeta = 5;
 % win = kaiser(n_samples, kbeta);
 
-% Range axis
-rng_ax = beat2range((faxis_kHz*1000)', sweep_slope, c);
-
 fs = 200e3;
 f = f_ax(n_fft, fs);
 f_neg = f(1:n_fft/2);
 f_pos = f((n_fft/2 + 1):end);
+
+% Range axis
+rng_ax = beat2range((f_pos)', sweep_slope, c);
 
 OS1 = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
@@ -217,9 +218,9 @@ fb_idx1 = zeros(nbins,1);
 fb_idx2 = zeros(nbins,1);
 fb_idx_end1 = zeros(nbins,1);
 fb_idx_end2 = zeros(nbins,1);
-ax_dims = [0 max(rng_ax) 80 190];
+ax_dims = [0 max(rng_ax) -120 -10];
 ax_ticks = 1:2:60;
-
+nswp1  = n_steps;
 fbu1   = zeros(nswp1, nbins);
 fbd1   = zeros(nswp1, nbins);
 fdMtx1 = zeros(nswp1, nbins);
@@ -227,16 +228,28 @@ rgMtx1 = zeros(nswp1, nbins);
 spMtx1 = zeros(nswp1, nbins);
 spMtxCorr1 = zeros(nswp1, nbins);
 
-loop_count = min(nswp1,nswp2);
 beat_count_out1 = zeros(1,256);
 beat_count_out2 = zeros(1,256);
 beat_count_in1 = zeros(1,256);
 beat_count_in2 = zeros(1,256);
 
-subplot(1,2,1);
-p1 = plot(rng_ax, absmagdb(LHS_IQ_UP(1,:)));
+% IQ_UP = zeros(nswp1, 512);
+% IQ_DN = zeros(nswp1, 512);
+% upTh1 = zeros(nswp1, 512);
+% dnTh1 = zeros(nswp1, 512);
+
+IQ_UP = zeros(1, 512);
+IQ_DN = zeros(1, 512);
+upTh1 = zeros(512, 1);
+dnTh1 = zeros(512, 1);
+
+nul_width_factor = 0.04;
+num_nul1 = round((n_fft/2)*nul_width_factor);
+
+subplot(2,2,1);
+p1 = plot(rng_ax, absmagdb(IQ_UP(1:256)));
 hold on
-p1th = plot(rng_ax, absmagdb(upTh1(:,1)));
+p1th = plot(rng_ax, absmagdb(upTh1(1:256)));
 x  =linspace(1, nbins, nbins);
 colors = cat(2, 2*x, 2*x);
 win1 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*130 ,2000, ...
@@ -247,10 +260,10 @@ axis(ax_dims)
 xticks(ax_ticks)
 grid on
 
-subplot(1,2,2);
-p2 = plot(rng_ax, absmagdb(LHS_IQ_DN(1,:)));
+subplot(2,2,2);
+p2 = plot(rng_ax, absmagdb(IQ_DN(1:256)));
 hold on
-p2th = plot(rng_ax, absmagdb(dnTh1(:,1)));
+p2th = plot(rng_ax, absmagdb(dnTh1(1:256)));
 win2 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*130 ,2000, ...
 colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
@@ -259,32 +272,12 @@ axis(ax_dims)
 xticks(ax_ticks)
 grid on
 
-subplot(2,3,4);
-p3 = plot(rng_ax, absmagdb(RHS_IQ_UP(1,:)));
-hold on
-p3th = plot(rng_ax, absmagdb(upTh2(:,1)));
-win3 = scatter(cat(1,fb_idx2, fb_idx_end2), ones(2*nbins, 1)*130 ,2000, ...
-colors, 'Marker', '|', 'LineWidth',1.5);
-hold off
-title("RHS UP chirp positive half")
-axis(ax_dims)
-xticks(ax_ticks)
-grid on
+subplot(2,2,3)
+p3 = imagesc(rgMtx1);
 
-subplot(2,3,5);
-p4 = plot(rng_ax, absmagdb(RHS_IQ_DN(1,:)));
-hold on
-p4th = plot(rng_ax, absmagdb(dnTh2(:,1)));
-win4 = scatter(cat(1,fb_idx2, fb_idx_end2), ones(2*nbins, 1)*130 ,2000, ...
-colors, 'Marker', '|', 'LineWidth',1.5);
-hold off
-title("RHS DOWN chirp flipped negative half")
-axis(ax_dims)
-xticks(ax_ticks)
-grid on
-subplot(2,3,6);
-vidFrame = readFrame(vid_rhs);
-v2 = imshow(vidFrame);
+subplot(2,2,4)
+p4 = imagesc(spMtx1);
+
 i = 0;
 for t = 1:n_steps
     i = i + 1;
@@ -311,8 +304,8 @@ for t = 1:n_steps
     XRU = fft(xru, nfft);
     XRD = fft(xrd, nfft);
     
-    XRU_twin = fft(xru_twin, nfft);
-    XRD_twin = fft(xrd_twin, nfft);
+    XRU_twin = fft(xru_twin, nfft).';
+    XRD_twin = fft(xrd_twin, nfft).';
 
     IQ_UP = XRU_twin(:, 1:n_fft/2);
     IQ_DN = XRD_twin(:, n_fft/2+1:end);
@@ -320,6 +313,8 @@ for t = 1:n_steps
     IQ_UP(:, 1:num_nul1) = repmat(IQ_UP(:, num_nul1+1), [1, num_nul1]);
     IQ_DN(:, end-num_nul1+1:end) = ...
     repmat(IQ_DN(:, end-num_nul1), [1, num_nul1]);
+    
+    IQ_DN = flip(IQ_DN,2);
 
     [up_os1, upTh1] = OS1(abs(IQ_UP)', 1:n_fft/2);
     [dn_os1, dnTh1] = OS1(abs(IQ_DN)', 1:n_fft/2);
@@ -330,14 +325,18 @@ for t = 1:n_steps
     [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
     pkdClean1, fbu1(i,:), fbd1(i,:), fdMtx1(i,:), fb_idx1, fb_idx_end1, ...
     beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
-    lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
+    lambda, k, c, dnDets1, upDets1, nbins, n_fft, ...
     f_pos, scan_width, calib, lhs_road_width, beat_count_in1);
     
     set(p1, 'YData', absmagdb(IQ_UP))
     set(p2, 'YData', absmagdb(IQ_DN))
     set(p1th, 'YData', absmagdb(upTh1))
     set(p2th, 'YData', absmagdb(dnTh1))
-    pause(0.0001)
+
+    set(p3, 'CData', rgMtx1)
+    set(p4, 'CData', spMtx1)
+    pause(0.00001)
+    disp('Running')
     
 
 end

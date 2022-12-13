@@ -238,7 +238,8 @@ end
 
 %%
 close all
-fig1 = figure('WindowState','maximized');
+% fig1 = figure('WindowState','maximized');
+fig1 = figure;
 movegui(fig1,'west')
 sweep_window = 200;
 loop_cnt = 0;
@@ -257,18 +258,24 @@ for sweep = 1:15:(n_sweeps-sweep_window)
     imagesc(sp_array(sweep:sweep+sweep_window,:).*3.6)
     set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl, 'CLim', [0 60])
     grid
-    title("Speed v. Time v. Range")
+    title("Time v. Range v. Speed")
     xlabel("Range bin (meters)")
     ylabel("Sweep number in window (represents time)")
     a = colorbar;
     a.Label.String = 'Radial velocity (km/h)';
     nexttile
-    imagesc(safe_sweeps(sweep:sweep+sweep_window))
-    title("Safety Meter")
-    ylabel("Sweep number in window  (represents time)")
-    b = colorbar;
-    b.Label.String = 'Degree of safety (4 - t_{arrival})';
-    set(gca,'CLim', [0 1])
+%     imagesc(safe_sweeps(sweep:sweep+sweep_window))
+%     title("Safety Meter")
+%     ylabel("Sweep number in window  (represents time)")
+%     b = colorbar;
+%     b.Label.String = 'Degree of safety (4 - t_{arrival})';
+%     set(gca,'CLim', [0 1])
+%     plot(linspace(0,3.24,size(safe_sweeps,1)), safe_sweeps)
+    stem(safe_sweeps(sweep:sweep+sweep_window))
+    title("Time of Arrival v. Time")
+    ylabel("Time of Arrival (s)")
+    xlabel("Time (s)")
+
     nexttile
 %   take every 6th frame based on num vid frames and num radar frames
     for w = 1:6
