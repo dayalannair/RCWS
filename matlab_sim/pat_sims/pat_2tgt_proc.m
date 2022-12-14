@@ -33,20 +33,48 @@ waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
 % subplot(212); spectrogram(sig,32,16,32,fs_wav,'yaxis');
 % title('FMCW signal spectrogram');
 
-%%
+%% Antenna
 
 ant_aperture = 6.06e-4;                         % in square meter
-ant_gain = aperture2gain(ant_aperture,lambda);  % in dB
-
-tx_ppower = db2pow(5)*1e-3;                     % in watts
+% ant_gain = aperture2gain(ant_aperture,lambda);  % in dB
+ant_gain = 16.6;
+% tx_ppower = db2pow(5)*1e-3;                     % in watts
+% watts = 10^((dbm-30)/10)
+Ppeak = 20; % dBm
+tx_ppower = 10^((Ppeak-30)/10);
 tx_gain = 9+ant_gain;                           % in dB
 
 rx_gain = 30+ant_gain;                          % in dB
 rx_nf = 50.5;                                    % in dB
 
 transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
+fmin = 24.005e9;
+fmax = 24.245e9;
+cosineElement = phased.CosineAntennaElement;
+cosineElement.FrequencyRange = [fmin fmax];
+% cosinePattern = figure;
+% pattern(cosineElement,fc)
+Nrow = 4;
+Ncol = 4;
+fmcwCosineArray = phased.URA;
+fmcwCosineArray.Element = cosineElement;
+fmcwCosineArray.Size = [Nrow Ncol];
+fmcwCosineArray.ElementSpacing = [0.5*lambda 0.5*lambda];
+% cosineArrayPattern = figure;
+% pattern(fmcwCosineArray,fc);
+radiator = phased.Radiator('Sensor',fmcwCosineArray, ...
+    'OperatingFrequency', fc);
+
+% Collector for receive array
+collector = phased.Collector('Sensor',fmcwCosineArray, ...
+    'OperatingFrequency',fc);
+
 receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
-    'SampleRate',fs_wav);
+    'SampleRate',fs_wav, 'NoiseComplexity','Complex');
+
+transceiver = radarTransceiver('Waveform',waveform,'Transmitter', ...
+    transmitter, 'TransmitAntenna',radiator,'ReceiveAntenna',collector, ...
+    'Receiver',receiver);
 
 %% Scenario
 
@@ -86,9 +114,11 @@ car2_x_dist = 60;
 car2_y_dist = -2;
 car2_speed = 80/3.6;
 
+% Target positions
 car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
 car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
 
+% Target RCS
 car1_rcs = db2pow(min(10*log10(car1_dist)+5,20))/500;
 car2_rcs = db2pow(min(10*log10(car2_dist)+5,20))/500;
 
@@ -283,60 +313,65 @@ for t = 1:n_steps
     i = i + 1;
     %disp(t)
     [tgt_pos,tgt_vel] = carmotion(t_step);
-
-%     % issue: helper updates target position and velocity within each
-%     sweep. Resolved --> issue was releasing waveforms?
-
-%     xr = simulate_sweeps2(Nsweep,waveform,radarmotion,carmotion,...
-%         transmitter,channel,cartarget,receiver);
-
     % Output at sampling rate (decimation)
+    % Transmit and receive up-chirp
     xru = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
-        transmitter,channel,cartarget,receiver, Dn, Ns);
-
+        transmitter,channel,cartarget,transceiver, Dn, Ns);
+    % Transmit and receive down-chirp
     xrd = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
-        transmitter,channel,cartarget,receiver, Dn, Ns);
+        transmitter,channel,cartarget,transceiver, Dn, Ns);
     
     % Window
     xru_twin = xru.*twin;
     xrd_twin = xrd.*twin;
-
-    XRU = fft(xru, nfft);
-    XRD = fft(xrd, nfft);
     
+    % 512-point FFT
     XRU_twin = fft(xru_twin, nfft).';
     XRD_twin = fft(xrd_twin, nfft).';
 
+    % Halve spectra
     IQ_UP = XRU_twin(:, 1:n_fft/2);
     IQ_DN = XRD_twin(:, n_fft/2+1:end);
     
+    % Null feed through
     IQ_UP(:, 1:num_nul1) = repmat(IQ_UP(:, num_nul1+1), [1, num_nul1]);
     IQ_DN(:, end-num_nul1+1:end) = ...
     repmat(IQ_DN(:, end-num_nul1), [1, num_nul1]);
     
+    % Flip down spectrum
     IQ_DN = flip(IQ_DN,2);
-
+    
+    % CFAR
     [up_os1, upTh1] = OS1(abs(IQ_UP)', 1:n_fft/2);
     [dn_os1, dnTh1] = OS1(abs(IQ_DN)', 1:n_fft/2);
-
+    
+    % Extract magnitude of detections/set non-detections to zero
     upDets1 = abs(IQ_UP).*up_os1';
     dnDets1 = abs(IQ_DN).*dn_os1';
     
+    % Processing
     [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
     pkdClean1, fbu1(i,:), fbd1(i,:), fdMtx1(i,:), fb_idx1, fb_idx_end1, ...
     beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
     lambda, k, c, dnDets1, upDets1, nbins, n_fft, ...
     f_pos, scan_width, calib, lhs_road_width, beat_count_in1);
     
+    % Update plots
     set(p1, 'YData', absmagdb(IQ_UP))
     set(p2, 'YData', absmagdb(IQ_DN))
     set(p1th, 'YData', absmagdb(upTh1))
     set(p2th, 'YData', absmagdb(dnTh1))
-
     set(p3, 'CData', rgMtx1)
     set(p4, 'CData', spMtx1)
-    pause(0.00001)
-    disp('Running')
-    
 
+    % Update 3D scene viewer
+    sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
+    pause(0.00001)
 end
+
+%     % issue: helper updates target position and velocity within each
+%     sweep. Resolved --> issue was releasing waveforms?
+
+%     xr = simulate_sweeps2(Nsweep,waveform,radarmotion,carmotion,...
+%         transmitter,channel,cartarget,transceiver);
+

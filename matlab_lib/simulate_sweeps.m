@@ -1,5 +1,5 @@
 function xr_d = simulate_sweeps(Nsweep,waveform,...
-    radarmotion,carmotion,transmitter,channel,cartarget,receiver, Dn, Ns)
+    radarmotion,carmotion,transmitter,channel,cartarget,transceiver, Dn, Ns)
 
 sweeptime = waveform.SweepTime;
 
@@ -27,7 +27,8 @@ for m = 1:Nsweep
     end
     rxsig = cartarget(rxsig);
     % Sum rows - received sum of returns from each target
-    rxsig = receiver(sum(rxsig,2));
+%     rxsig = transceiver(sum(rxsig,2));
+      rxsig = transceiver([tgt_pos,tgt_vel], waveform.sweepTime);
 
     % Get intermediate frequency
     xd = dechirp(rxsig,sig);
