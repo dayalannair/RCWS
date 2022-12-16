@@ -247,6 +247,8 @@ IQ_DN = zeros(1, 512);
 upTh1 = zeros(512, 1);
 dnTh1 = zeros(512, 1);
 
+BIN_MAG = -60;
+
 nul_width_factor = 0.04;
 num_nul1 = round((n_fft/2)*nul_width_factor);
 
@@ -256,8 +258,8 @@ hold on
 p1th = plot(rng_ax, absmagdb(upTh1(1:256)));
 x  =linspace(1, nbins, nbins);
 colors = cat(2, 2*x, 2*x);
-win1 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*130 ,2000, ...
-colors, 'Marker', '|', 'LineWidth',1.5);
+win1 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*BIN_MAG , ...
+    2000, colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
 title("LHS UP chirp positive half")
 axis(ax_dims)
@@ -268,8 +270,8 @@ subplot(2,2,2);
 p2 = plot(rng_ax, absmagdb(IQ_DN(1:256)));
 hold on
 p2th = plot(rng_ax, absmagdb(dnTh1(1:256)));
-win2 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*130 ,2000, ...
-colors, 'Marker', '|', 'LineWidth',1.5);
+win2 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*BIN_MAG , ...
+    2000, colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
 title("LHS DOWN chirp flipped negative half")
 axis(ax_dims)
