@@ -43,6 +43,7 @@ tx_gain = 9+ant_gain;                           % in dB
 
 rx_gain = 30+ant_gain;                          % in dB
 rx_nf = 50.5;                                    % in dB
+rx_nf = 0;
 
 transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
 receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
@@ -81,10 +82,13 @@ receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
 % CASE 4: Target overtake
 car1_x_dist = 40;
 car1_y_dist = 2;
+car1_y_dist = 0;
 car1_speed = 20/3.6;
 car2_x_dist = 60;
 car2_y_dist = -2;
+car2_y_dist = 0;
 car2_speed = 80/3.6;
+car2_speed = 0;
 
 car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
 car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
@@ -293,22 +297,21 @@ for t = 1:n_steps
     % Output at sampling rate (decimation)
     xru = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
         transmitter,channel,cartarget,receiver, Dn, Ns);
+    
+    [tgt_pos,tgt_vel] = carmotion(t_step + tm);
 
     xrd = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
         transmitter,channel,cartarget,receiver, Dn, Ns);
     
     % Window
-    xru_twin = xru.*twin;
-    xrd_twin = xrd.*twin;
+    xru = xru.*twin;
+    xrd = xrd.*twin;
 
-    XRU = fft(xru, nfft);
-    XRD = fft(xrd, nfft);
-    
-    XRU_twin = fft(xru_twin, nfft).';
-    XRD_twin = fft(xrd_twin, nfft).';
+    XRU = fft(xru, nfft).';
+    XRD = fft(xrd, nfft).';
 
-    IQ_UP = XRU_twin(:, 1:n_fft/2);
-    IQ_DN = XRD_twin(:, n_fft/2+1:end);
+    IQ_UP = XRU(:, 1:n_fft/2);
+    IQ_DN = XRD(:, n_fft/2+1:end);
     
     IQ_UP(:, 1:num_nul1) = repmat(IQ_UP(:, num_nul1+1), [1, num_nul1]);
     IQ_DN(:, end-num_nul1+1:end) = ...
@@ -332,11 +335,18 @@ for t = 1:n_steps
     set(p2, 'YData', absmagdb(IQ_DN))
     set(p1th, 'YData', absmagdb(upTh1))
     set(p2th, 'YData', absmagdb(dnTh1))
-
+    set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
+    set(win2,'XData',cat(1,fb_idx1, fb_idx_end1))
     set(p3, 'CData', rgMtx1)
     set(p4, 'CData', spMtx1)
-    pause(0.00001)
-    disp('Running')
-    
-
+    pause(0.000000001)
+%     disp('Running')
 end
+
+%% Results
+
+spMtx1Kmh = spMtx1*3.6;
+spMtxCorr1Kmh = spMtxCorr1*3.6;
+
+
+
