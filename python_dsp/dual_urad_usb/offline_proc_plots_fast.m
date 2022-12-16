@@ -5,7 +5,7 @@ subset = 1:1000;
 
 addpath('../../matlab_lib/');
 
-iq_dual_load_data;
+% iq_dual_load_data;
 
 
 
@@ -37,7 +37,7 @@ guard = 14;%n_fft/64;%8;
 rank = round(3*train/4);
 nbar = 3;
 sll = -150;
-F = 5*10e-4;
+F = 5*10e-3;
 v_max = 60/3.6; 
 fd_max = speed2dop(v_max, lambda)*2;
 % Minimum sample number for 1024 point FFT corresponding to min range = 10m
@@ -55,8 +55,8 @@ bin_width = 16; % account for scan width = 21
 scan_width = 8;
 
 calib = 1.2463;
-lhs_road_width = 2;
-rhs_road_width = 4;
+lhs_road_width = 4;
+rhs_road_width = 2;
 % Decimate faster device data
 % rad2_iq_u = rad2_iq_u(1:3:end, :);
 % rad2_iq_d = rad2_iq_d(1:3:end, :);
@@ -345,47 +345,47 @@ for i = 1:loop_count
 %         num2str(frame_count)])
 
     % Reset clutter filter every 40 sweeps
-%     if mod(i, 40) == 0 
-%         beat_count_out1 = zeros(1,256);
-%         beat_count_out2 = zeros(1,256);
-%         beat_count_in1 = zeros(1,256);
-%         beat_count_in2 = zeros(1,256);
-%     else
-%         beat_count_in2 = beat_count_out2;
-%     end
-%         % When run on 4 threads, there are 3 times fewer 
-%         % video frames
+    if mod(i, 40) == 0 
+        beat_count_out1 = zeros(1,256);
+        beat_count_out2 = zeros(1,256);
+        beat_count_in1 = zeros(1,256);
+        beat_count_in2 = zeros(1,256);
+    else
+        beat_count_in2 = beat_count_out2;
+    end
+        % When run on 4 threads, there are 3 times fewer 
+        % video frames
 
-% 
-%     disp(['Sweep: ',num2str(i)])
-%     if hold_frame == 2
-%         vidFrame = readFrame(vid_lhs);
-%         set(v1,'CData' ,vidFrame);
-%         vidFrame = readFrame(vid_rhs);
-%         set(v2, 'CData', rot90(vidFrame, 2));
-%         set(v2, 'CData', vidFrame);
-%         hold_frame = 0;
-%         frame_count = frame_count + 1;
-%     else
-%         hold_frame = hold_frame + 1;
-%     end
-%     fb_idx1 = rng_ax(fb_idx1);
-%     fb_idx2 = rng_ax(fb_idx2);
-%     fb_idx_end1 = rng_ax(fb_idx_end1);
-%     fb_idx_end2 = rng_ax(fb_idx_end2);
-%     set(p1, 'YData', absmagdb(LHS_IQ_UP(i,:)))
-%     set(p2, 'YData', absmagdb(LHS_IQ_DN(i,:)))
-%     set(p3, 'YData', absmagdb(RHS_IQ_UP(i,:)))
-%     set(p4, 'YData', absmagdb(RHS_IQ_DN(i,:)))
-%     set(p1th, 'YData', absmagdb(upTh1(:,i)))
-%     set(p2th, 'YData', absmagdb(dnTh1(:,i)))
-%     set(p3th, 'YData', absmagdb(upTh2(:,i)))
-%     set(p4th, 'YData', absmagdb(dnTh2(:,i)))
-%     set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
-%     set(win2,'XData',cat(1,fb_idx1, fb_idx_end1))
-%     set(win3,'XData',cat(1,fb_idx2, fb_idx_end2))
-%     set(win4,'XData',cat(1,fb_idx2, fb_idx_end2))
-%     pause(0.00001);
+
+    disp(['Sweep: ',num2str(i)])
+    if hold_frame == 2
+        vidFrame = readFrame(vid_lhs);
+        set(v1,'CData' ,vidFrame);
+        vidFrame = readFrame(vid_rhs);
+        set(v2, 'CData', rot90(vidFrame, 2));
+        set(v2, 'CData', vidFrame);
+        hold_frame = 0;
+        frame_count = frame_count + 1;
+    else
+        hold_frame = hold_frame + 1;
+    end
+    fb_idx1 = rng_ax(fb_idx1);
+    fb_idx2 = rng_ax(fb_idx2);
+    fb_idx_end1 = rng_ax(fb_idx_end1);
+    fb_idx_end2 = rng_ax(fb_idx_end2);
+    set(p1, 'YData', absmagdb(LHS_IQ_UP(i,:)))
+    set(p2, 'YData', absmagdb(LHS_IQ_DN(i,:)))
+    set(p3, 'YData', absmagdb(RHS_IQ_UP(i,:)))
+    set(p4, 'YData', absmagdb(RHS_IQ_DN(i,:)))
+    set(p1th, 'YData', absmagdb(upTh1(:,i)))
+    set(p2th, 'YData', absmagdb(dnTh1(:,i)))
+    set(p3th, 'YData', absmagdb(upTh2(:,i)))
+    set(p4th, 'YData', absmagdb(dnTh2(:,i)))
+    set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
+    set(win2,'XData',cat(1,fb_idx1, fb_idx_end1))
+    set(win3,'XData',cat(1,fb_idx2, fb_idx_end2))
+    set(win4,'XData',cat(1,fb_idx2, fb_idx_end2))
+    pause(0.00001);
 end
 toc
 

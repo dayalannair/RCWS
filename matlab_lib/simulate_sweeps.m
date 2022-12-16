@@ -1,5 +1,5 @@
 function xr_d = simulate_sweeps(Nsweep,waveform,...
-    radarmotion,carmotion,transmitter,channel,cartarget,receiver, Dn, Ns)
+    radarmotion,carmotion,transmitter,channel,cartarget,receiver, Dn, Ns, tm)
 
 sweeptime = waveform.SweepTime;
 
@@ -16,8 +16,8 @@ txsig = transmitter(sig);
 
 for m = 1:Nsweep
     % Update radar and target positions
-    [radar_pos,radar_vel] = radarmotion(sweeptime);
-    [tgt_pos,tgt_vel] = carmotion(sweeptime);
+    [radar_pos,radar_vel] = radarmotion(sweeptime + tm);
+    [tgt_pos,tgt_vel] = carmotion(sweeptime + tm);
     
     % Propagate the signal and reflect off each target
     rxsig = complex(zeros(Nsamp,Ntgt));

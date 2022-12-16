@@ -33,7 +33,7 @@ waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
 % subplot(212); spectrogram(sig,32,16,32,fs_wav,'yaxis');
 % title('FMCW signal spectrogram');
 
-%%
+%% Antenna
 
 ant_aperture = 6.06e-4;                         % in square meter
 ant_gain = aperture2gain(ant_aperture,lambda);  % in dB
@@ -43,7 +43,7 @@ tx_gain = 9+ant_gain;                           % in dB
 
 rx_gain = 30+ant_gain;                          % in dB
 rx_nf = 50.5;                                    % in dB
-rx_nf = 0;
+% rx_nf = 0;
 
 transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
 receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
@@ -153,7 +153,7 @@ train = 16;%n_fft/8;%64;
 guard = 14;%n_fft/64;%8;
 rank = round(3*train/4);
 nbar = 3;
-sll = -150;
+sll = -80;
 F = 5*10e-4;
 v_max = 60/3.6; 
 fd_max = speed2dop(v_max, lambda)*2;
@@ -163,20 +163,22 @@ fd_max = speed2dop(v_max, lambda)*2;
 n_min = 42;
 % Divide into range bins of width 64
 % bin_width = (n_fft/2)/nbins;
-% nbins = 8;
-% bin_width = 32; % account for scan width = 21
-% scan_width = 21; % see calcs: Delta f * 21 ~ 8 kHz
+nbins = 8;
+bin_width = 32; % account for scan width = 21
+scan_width = 21; % see calcs: Delta f * 21 ~ 8 kHz
 
-nbins = 16;
-bin_width = 16; % account for scan width = 21
-scan_width = 8;
+% nbins = 16;
+% bin_width = 16; % account for scan width = 21
+% scan_width = 8;
 
 calib = 1.2463;
 lhs_road_width = 2;
 rhs_road_width = 4;
 
 % Taylor window
-twin = taylorwin(Ns, nbar, sll);
+% win = taylorwin(Ns, nbar, sll);
+win = hanning(Ns);
+% win = hamming(Ns);
 % wind = taylorwin(n_samples, nbar, sll);
 % Gaussian
 % win = gausswin(n_samples);
@@ -253,12 +255,13 @@ nul_width_factor = 0.04;
 num_nul1 = round((n_fft/2)*nul_width_factor);
 
 subplot(2,2,1);
-p1 = plot(rng_ax, absmagdb(IQ_UP(1:256)));
+% p1 = plot(rng_ax, absmagdb(IQ_UP(1:256)));
+p1 = plot(rng_ax, absmagdb(pkuClean1));
 hold on
 p1th = plot(rng_ax, absmagdb(upTh1(1:256)));
 x  =linspace(1, nbins, nbins);
 colors = cat(2, 2*x, 2*x);
-win1 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*BIN_MAG , ...
+win1 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*BIN_MAG, ...
     2000, colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
 title("LHS UP chirp positive half")
@@ -267,10 +270,11 @@ xticks(ax_ticks)
 grid on
 
 subplot(2,2,2);
-p2 = plot(rng_ax, absmagdb(IQ_DN(1:256)));
+% p2 = plot(rng_ax, absmagdb(IQ_DN(1:256)));
+p2 = plot(rng_ax, absmagdb(pkdClean1));
 hold on
 p2th = plot(rng_ax, absmagdb(dnTh1(1:256)));
-win2 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*BIN_MAG , ...
+win2 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*BIN_MAG, ...
     2000, colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
 title("LHS DOWN chirp flipped negative half")
@@ -286,7 +290,7 @@ p4 = imagesc(spMtx1);
 
 i = 0;
 for t = 1:n_steps
-    i = i + 1;
+    i = t;
     %disp(t)
     [tgt_pos,tgt_vel] = carmotion(t_step);
 
@@ -298,16 +302,16 @@ for t = 1:n_steps
 
     % Output at sampling rate (decimation)
     xru = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
-        transmitter,channel,cartarget,receiver, Dn, Ns);
+        transmitter, channel, cartarget, receiver, Dn, Ns, 0);
     
     [tgt_pos,tgt_vel] = carmotion(t_step + tm);
 
     xrd = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
-        transmitter,channel,cartarget,receiver, Dn, Ns);
+        transmitter, channel, cartarget, receiver, Dn, Ns, tm);
     
     % Window
-    xru = xru.*twin;
-    xrd = xrd.*twin;
+    xru = xru.*win;
+    xrd = xrd.*win;
 
     XRU = fft(xru, nfft).';
     XRD = fft(xrd, nfft).';
@@ -333,12 +337,20 @@ for t = 1:n_steps
     lambda, k, c, dnDets1, upDets1, nbins, n_fft, ...
     f_pos, scan_width, calib, lhs_road_width, beat_count_in1);
     
-    set(p1, 'YData', absmagdb(IQ_UP))
-    set(p2, 'YData', absmagdb(IQ_DN))
-    set(p1th, 'YData', absmagdb(upTh1))
-    set(p2th, 'YData', absmagdb(dnTh1))
+    fb_idx1 = rng_ax(fb_idx1);
+    fb_idx_end1 = rng_ax(fb_idx_end1);
     set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
     set(win2,'XData',cat(1,fb_idx1, fb_idx_end1))
+
+%     set(p1, 'YData', absmagdb(IQ_UP))
+%     set(p2, 'YData', absmagdb(IQ_DN))
+
+    set(p1, 'YData', pkuClean1)
+    set(p2, 'YData', pkdClean2)
+
+    set(p1th, 'YData', absmagdb(upTh1))
+    set(p2th, 'YData', absmagdb(dnTh1))
+
     set(p3, 'CData', rgMtx1)
     set(p4, 'CData', spMtx1)
     pause(0.000000001)
