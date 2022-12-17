@@ -255,23 +255,25 @@ nul_width_factor = 0.04;
 num_nul1 = round((n_fft/2)*nul_width_factor);
 
 subplot(2,2,1);
-% p1 = plot(rng_ax, absmagdb(IQ_UP(1:256)));
-p1 = plot(rng_ax, absmagdb(pkuClean1));
+p1 = plot(rng_ax, absmagdb(IQ_UP(1:256)));
+% p1 = plot(rng_ax, absmagdb(pkuClean1));
 hold on
 p1th = plot(rng_ax, absmagdb(upTh1(1:256)));
+% p1th = plot(zeros(200,1));
 x  =linspace(1, nbins, nbins);
 colors = cat(2, 2*x, 2*x);
 win1 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*BIN_MAG, ...
     2000, colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
 title("LHS UP chirp positive half")
+% axis([0 200 0 1.0e-04])
 axis(ax_dims)
-xticks(ax_ticks)
+% xticks(ax_ticks)
 grid on
 
 subplot(2,2,2);
-% p2 = plot(rng_ax, absmagdb(IQ_DN(1:256)));
-p2 = plot(rng_ax, absmagdb(pkdClean1));
+p2 = plot(rng_ax, absmagdb(IQ_DN(1:256)));
+% p2 = plot(rng_ax, absmagdb(pkdClean1));
 hold on
 p2th = plot(rng_ax, absmagdb(dnTh1(1:256)));
 win2 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*BIN_MAG, ...
@@ -342,14 +344,15 @@ for t = 1:n_steps
     set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
     set(win2,'XData',cat(1,fb_idx1, fb_idx_end1))
 
-%     set(p1, 'YData', absmagdb(IQ_UP))
-%     set(p2, 'YData', absmagdb(IQ_DN))
+    set(p1, 'YData', absmagdb(IQ_UP))
+    set(p2, 'YData', absmagdb(IQ_DN))
 
-    set(p1, 'YData', pkuClean1)
-    set(p2, 'YData', pkdClean2)
+%     set(p1, 'YData', pkuClean1)
+%     set(p2, 'YData', pkdClean2)
 
     set(p1th, 'YData', absmagdb(upTh1))
     set(p2th, 'YData', absmagdb(dnTh1))
+%     set(p1th, 'YData', abs(xrd))
 
     set(p3, 'CData', rgMtx1)
     set(p4, 'CData', spMtx1)
