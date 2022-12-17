@@ -1,58 +1,48 @@
 %% Radar Parameters
-fc = 24.005e9;%77e9;
-%c = physconst('LightSpeed');
-c = 3e8;
+fc = 24.005e9;
+c = physconst('LightSpeed');
 lambda = c/fc;
-%range_max = 200;
 range_max = 62.5;
-%tm = 2e-3;
 tm = 1e-3;
-% range_res = 0.5;
-% bw2 = rangeres2bw(range_res,c);
 bw = 240e6;
-sweep_slope = bw/tm;
-k = sweep_slope;
+k = bw/tm;
+Ns = 200;
 addpath('../../matlab_lib/');
-fr_max = range2beat(range_max,sweep_slope,c);
-v_max = 230*1000/3600;
-fd_max = speed2dop(2*v_max,lambda);
+fs_adc = 200e3;
+fr_max = fs_adc/2; % = range2beat(75*Ns/(bw*1e-6),k, c)
+fd_max = speed2dop(2*75,lambda);
 fb_max = fr_max+fd_max;
 fs_wav = max(2*fb_max,bw);
-fs_adc = 200e3;
-% fs_wav =1*240e6;
-%fs_wav = 200e3; % kills range est
 rng(2012);
 waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
     'SampleRate',fs_wav, 'SweepDirection','Triangle');
 % close all
 % figure
 % sig = waveform();
-% subplot(211); plot(0:1/fs_wav:tm-1/fs_wav,real(sig));
-% xlabel('Time (s)'); ylabel('Amplitude (v)');
-% title('First 10 \mus of the FMCW signal'); axis([0 1e-5 -1 1]);
-% subplot(212); spectrogram(sig,32,16,32,fs_wav,'yaxis');
+% subplot(211); 
+% plot(0:1/fs_wav:tm-1/fs_wav,real(sig));
+% xlabel('Time (s)'); 
+% ylabel('Amplitude (v)');
+% title('First 10 \mus of the FMCW signal'); 
+% axis([0 1e-5 -1 1]);
+% subplot(212); 
+% spectrogram(sig,32,16,32,fs_wav,'yaxis');
 % title('FMCW signal spectrogram');
 
 %% Antenna
-
-ant_aperture = 6.06e-4;                         % in square meter
 % ant_gain = aperture2gain(ant_aperture,lambda);  % in dB
 ant_gain = 16.6;
-% tx_ppower = db2pow(5)*1e-3;                     % in watts
-% watts = 10^((dbm-30)/10)
 Ppeak = 20; % dBm
 % Ppeak = 100;
 tx_ppower = 10^((Ppeak-30)/10);
 tx_gain = 9+ant_gain;                           % in dB
 
 rx_gain = 30+ant_gain;                          % in dB
-rx_nf = 50.5;                                    % in dB
+rx_nf = 10.5;                                    % in dB
 
 transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
-fmin = 24.005e9;
-fmax = 24.245e9;
 cosineElement = phased.CosineAntennaElement;
-cosineElement.FrequencyRange = [fmin fmax];
+cosineElement.FrequencyRange = [fc (fc+bw)];
 % cosinePattern = figure;
 % pattern(cosineElement,fc)
 Nrow = 4;
@@ -75,7 +65,7 @@ receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
 
 transceiver = radarTransceiver('Waveform',waveform,'Transmitter', ...
     transmitter, 'TransmitAntenna',radiator,'ReceiveAntenna',collector, ...
-    'Receiver',receiver);
+    'Receiver', receiver);
 
 %% Scenario
 
@@ -123,7 +113,7 @@ car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
 car1_rcs = db2pow(min(10*log10(car1_dist)+5,20))*1000;
 car2_rcs = db2pow(min(10*log10(car2_dist)+5,20))*1000;
 
-car_rcs_signat = rcsSignature("Pattern",[2, 2]); % Default Swerling 0
+car_rcs_signat = rcsSignature("Pattern",[200, 200]); % Default Swerling 0
 
 % Define reflected signal
 cartarget = phased.RadarTarget('MeanRCS',[car1_rcs car2_rcs], ...
@@ -174,7 +164,6 @@ r = zeros(n_steps, 2);
 v = zeros(n_steps, 2);
 
 Dn = fix(fs_wav/fs_adc);
-Ns = 200;
 nfft = 512;
 faxis_kHz = f_ax(nfft, fs_adc)/1000;
 n_fft = 512;
@@ -206,14 +195,6 @@ rhs_road_width = 4;
 
 % Taylor window
 twin = taylorwin(Ns, nbar, sll);
-% wind = taylorwin(n_samples, nbar, sll);
-% Gaussian
-% win = gausswin(n_samples);
-% Blackmann 
-bwin = blackman(Ns);
-% % Kaiser
-% kbeta = 5;
-% win = kaiser(n_samples, kbeta);
 
 fs = 200e3;
 f = f_ax(n_fft, fs);
@@ -221,7 +202,7 @@ f_neg = f(1:n_fft/2);
 f_pos = f((n_fft/2 + 1):end);
 
 % Range axis
-rng_ax = beat2range((f_pos)', sweep_slope, c);
+rng_ax = beat2range((f_pos)', k, c);
 
 OS1 = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
