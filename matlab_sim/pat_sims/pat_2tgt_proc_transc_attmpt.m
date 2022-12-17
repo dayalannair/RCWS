@@ -123,6 +123,8 @@ car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
 car1_rcs = db2pow(min(10*log10(car1_dist)+5,20))*1000;
 car2_rcs = db2pow(min(10*log10(car2_dist)+5,20))*1000;
 
+car_rcs_signat = rcsSignature("Pattern",[2, 2]); % Default Swerling 0
+
 % Define reflected signal
 cartarget = phased.RadarTarget('MeanRCS',[car1_rcs car2_rcs], ...
     'PropagationSpeed',c,'OperatingFrequency',fc);
@@ -314,21 +316,23 @@ for t = 1:n_steps
     i = i + 1;
     %disp(t)
     [tgt_pos,tgt_vel] = carmotion(t_step);
-    tgt1 = struct('Position', tgt_pos(:,1).', 'Velocity', tgt_vel(:,1).');
-    tgt2 = struct('Position', tgt_pos(:,2).', 'Velocity', tgt_vel(:,2).');
+    tgt1 = struct('Position', tgt_pos(:,1).', 'Velocity', ...
+        tgt_vel(:,1).', 'Signature', car_rcs_signat);
+    tgt2 = struct('Position', tgt_pos(:,2).', 'Velocity', ...
+        tgt_vel(:,2).', 'Signature', car_rcs_signat);
     % Output at sampling rate (decimation)
     % Transmit and receive up-chirp
 %     xru = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
 %         transmitter,channel,cartarget,transceiver, Dn, Ns, time);
     simTime = t;
-%     xru = sim_transceiver(transceiver, Dn, simTime, tgt1, tgt2);
-    xru = sim_transceiver(transceiver, Dn, simTime, cartarget);
+    xru = sim_transceiver(transceiver, Dn, simTime, tgt1, tgt2);
+%     xru = sim_transceiver(transceiver, Dn, simTime, cartarget);
     % Transmit and receive down-chirp
 %     xrd = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
 %         transmitter,channel,cartarget,transceiver, Dn, Ns, time);
     simTime = t + 1e-3;
-%     xrd = sim_transceiver(transceiver, Dn, simTime, tgt1, tgt2);
-    xrd = sim_transceiver(transceiver, Dn, simTime, cartarget);
+    xrd = sim_transceiver(transceiver, Dn, simTime, tgt1, tgt2);
+%     xrd = sim_transceiver(transceiver, Dn, simTime, cartarget);
 %     
     % Window
     xru_twin = xru.'.*twin;
