@@ -68,8 +68,13 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
 
                 % if both not DC and detection at the index is not static
                 % clutter
-                if fbu(bin+1) ~= 0 && fbd(bin+1)~= 0 && ...
-                    beat_count_out(beat_index) < 5
+
+                % Count clutter and filter
+%                 if fbu(bin+1) ~= 0 && fbd(bin+1)~= 0 && ...
+%                     beat_count_out(beat_index) < 5
+                
+                % If fbu < fbd, it is not 0 and the target has +ve Dopp
+                if fbu(bin+1) < fbd(bin+1) 
                     % Doppler shift is twice the difference in beat 
                     % frequency
     %               calibrate beats for doppler shift
