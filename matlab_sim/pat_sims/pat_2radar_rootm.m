@@ -47,7 +47,7 @@ tx_ppower = db2pow(5)*1e-3;                     % in watts
 tx_gain = 9+ant_gain;                           % in dB
 
 rx_gain = 30+ant_gain;                          % in dB
-rx_nf = 50.5;                                    % in dB
+rx_nf = 30.5;                                    % in dB
 % rx_nf = 0;                               % in dB
 
 % NOTE: receiver must sample at wave sampling
@@ -122,7 +122,7 @@ rdr_orientation(:,:,2) = [-1 0 0;0 1 0;0 0 1];
 % rad_pos1 = [0; 0; 0.5];
 % rad_vel1 = [0; 0; 0];
 % 
-% radmo = phased.Platform('InitialPosition', ...
+% radmo =4 phased.Platform('InitialPosition', ...
 %     radar_pos,...
 %     'Velocity',radar_vel, ...
 %     'InitialOrientationAxes',rdr_orientation);
@@ -295,8 +295,17 @@ Dn = fix(fs_wav/fs);
 lhs_ntarg = 2;
 rhs_ntarg = 1;
 n_bins = 16;
+
+% fbu1   = zeros(nswp1, nbins);
+% fbd1   = zeros(nswp1, nbins);
+% fdMtx1 = zeros(nswp1, nbins);
+% rgMtx1 = zeros(nswp1, nbins);
+% spMtx1 = zeros(nswp1, nbins);
+% spMtxCorr1 = zeros(nswp1, nbins);
+
 %%
 for t = 1:n_steps
+    i = t;
     %disp(t)
     lhs_carmo(t_step);
     rhs_carmo(t_step);
@@ -316,7 +325,7 @@ for t = 1:n_steps
         txer,chann,lhs_cartarg,receiver, Dn, Ns, 0);
 
     l_xrd = simulate_sweeps(Nsweep,wave,lhs_radmo,lhs_carmo,...
-        txer,chann,lhs_cartarg,receiver, Dn, Ns, 0);
+        txer,chann,lhs_cartarg,receiver, Dn, Ns, tm);
 
 %     r_xru = simulate_sweeps(Nsweep,wave,rhs_radmo,rhs_carmo,...
 %         txer,chann,rhs_cartarg,receiver, Dn, Ns, tm);
@@ -354,16 +363,31 @@ for t = 1:n_steps
         f_pos, ...
         fd_clut, ...
         n_bins);
+
+%     [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
+%     pkdClean1, fbu1(i,:), fbd1(i,:), fdMtx1(i,:), fb_idx1, fb_idx_end1, ...
+%     beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
+%     lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
+%     f_pos, scan_width, calib, lhs_road_width, beat_count_in1);
+
+
+%     fbu_rng = rootmusic(l_xru,1,fs);
+%     fbd_rng = rootmusic(l_xrd,1,fs);
+% 
+%     rng_est = beat2range([fbu_rng fbd_rng],sweep_slope,c)
+%     fd = -(fbu_rng+fbd_rng)/2;
+%     v_est = dop2speed(fd,lambda)/2
+
     
 %     set(p1, 'YData',lhs_toas(t, :))
 %     set(p2, 'YData',rhs_toas(t, :))
 %     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
 %     drawnow;
 
-%     set(p1, 'YData', absmagdb(lhs_fftd))
-%     set(p2, 'YData', absmagdb(lhs_fftu))
+    set(p1, 'YData', absmagdb(lhs_fftd))
+    set(p2, 'YData', absmagdb(lhs_fftu))
 
-    set(p1, 'YData', real(l_xrd))
+%     set(p1, 'YData', real(l_xrd))
 %     set(p2, 'YData', real(r_xrd))
     drawnow;
     pause(0.5)

@@ -11,8 +11,8 @@ IQ_UP = fft(iq_u,n_fft, 2);
 IQ_DN = fft(iq_d,n_fft, 2);
 
 % Use to set fft output to full spectrum
-fft_up = IQ_UP;
-fft_down = IQ_DN;
+% fft_up = IQ_UP;
+% fft_down = IQ_DN;
 
 % Halve FFTs
 IQ_UP = IQ_UP(:, 1:n_fft/2);
@@ -40,8 +40,8 @@ ranges = zeros(1, n_bins);
 speeds = zeros(1, n_bins);
 toas   = zeros(1, n_bins);
 
-% fft_up = IQ_UP;
-% fft_down = IQ_DN;
+fft_up = IQ_UP;
+fft_down = IQ_DN;
 
 for bin = 0:(n_bins-1)
         
@@ -82,8 +82,8 @@ for bin = 0:(n_bins-1)
         
         % If there was a peak in the up chirp bin
         % NOTE: This gates the rest of operations from this point
-        if magu ~= 0
-            fbu = f_pos(index_end + idx_u);
+        if magu ~= 0 && (idx_u ~= idx_d) 
+            fbu = f_pos(index_end + idx_u - 1);
 
              % if both not DC
             if and(fbu ~= 0, fbd ~= 0)
@@ -92,7 +92,7 @@ for bin = 0:(n_bins-1)
                 
                 % Can add angle correction
                 if ( fd/2 > fd_clut)
-                    speeds(bin+1) = dop2speed(fd/2,lambda)/2;
+                    speeds(bin+1) = fd*lambda/2;
                     ranges(bin+1) = beat2range([fbu -fbd], k, c);
                 end
             end
