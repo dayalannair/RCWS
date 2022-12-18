@@ -1,69 +1,4 @@
-%% Radar Parameters
-fc = 24.005e9;
-c = physconst('LightSpeed');
-lambda = c/fc;
-range_max = 62.5;
-tm = 1e-3;
-bw = 240e6;
-k = bw/tm;
-Ns = 200;
-addpath('../../matlab_lib/');
-fs_adc = 200e3;
-fr_max = fs_adc/2; % = range2beat(75*Ns/(bw*1e-6),k, c)
-fd_max = speed2dop(2*75,lambda);
-fb_max = fr_max+fd_max;
-fs_wav = max(2*fb_max,bw);
-rng(2012);
-waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
-    'SampleRate',fs_wav, 'SweepDirection','Triangle');
-% close all
-% figure
-% sig = waveform();
-% subplot(211); 
-% plot(0:1/fs_wav:tm-1/fs_wav,real(sig));
-% xlabel('Time (s)'); 
-% ylabel('Amplitude (v)');
-% title('First 10 \mus of the FMCW signal'); 
-% axis([0 1e-5 -1 1]);
-% subplot(212); 
-% spectrogram(sig,32,16,32,fs_wav,'yaxis');
-% title('FMCW signal spectrogram');
-
-%% Antenna
-ant_gain = 16.6;
-Ppeak = 20; % dBm
-% Ppeak = 100;
-tx_ppower = 10^((Ppeak-30)/10);
-tx_gain = 9+ant_gain;                           % in dB
-
-rx_gain = 30+ant_gain;                          % in dB
-rx_nf = 10.5;                                    % in dB
-
-transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
-cosineElement = phased.CosineAntennaElement;
-cosineElement.FrequencyRange = [fc (fc+bw)];
-
-Nrow = 4;
-Ncol = 4;
-fmcwCosineArray = phased.URA;
-fmcwCosineArray.Element = cosineElement;
-fmcwCosineArray.Size = [Nrow Ncol];
-% Change spacing for uRAD
-fmcwCosineArray.ElementSpacing = [0.5*lambda 0.5*lambda];
-radiator = phased.Radiator('Sensor',fmcwCosineArray, ...
-    'OperatingFrequency', fc);
-
-% Collector for receive array
-collector = phased.Collector('Sensor',fmcwCosineArray, ...
-    'OperatingFrequency',fc);
-
-receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
-    'SampleRate',fs_wav, 'NoiseComplexity','Complex');
-
-transceiver = radarTransceiver('Waveform',waveform,'Transmitter', ...
-    transmitter, 'TransmitAntenna',radiator,'ReceiveAntenna',collector, ...
-    'Receiver', receiver, 'MountingLocation', [0, 0, 2]);
-
+uRAD_transcv_model;
 %% Plot antenna
 % close all
 % cosinePattern = figure;
@@ -71,91 +6,7 @@ transceiver = radarTransceiver('Waveform',waveform,'Transmitter', ...
 % cosineArrayPattern = figure;
 % pattern(fmcwCosineArray,fc);
 
-%% Scenario
-
-% Target parameters
-
-% CASE 1: Static target at 50m
-% car1_x_dist = 50;
-% car1_y_dist = 2;
-% car1_speed = 0/3.6;
-% car2_x_dist = 50;
-% car2_y_dist = -1000;
-% car2_speed = 0/3.6;
-
-% CASE 2: Static targets at 50 and 51m
-% Test range resolution
-% car1_x_dist = 50;
-% car1_y_dist = 2;
-% car1_speed = 0/3.6;
-% car2_x_dist = 51;
-% car2_y_dist = 2;
-% car2_speed = 0/3.6;
-
-% CASE 3: Static targets at 50m separated by 2m
-% Test cross range resolution
-% car1_x_dist = 50;
-% car1_y_dist = 10;
-% car1_speed = 0/3.6;
-% car2_x_dist = 50;
-% car2_y_dist = -10;
-% car2_speed = 0/3.6;
-
-% CASE 4: Target overtake
-car1_x_dist = 60;
-car1_y_dist = 2;
-car1_speed = 20/3.6;
-car2_x_dist = 70;
-car2_y_dist = 2;
-car2_speed = 80/3.6;
-
-% Target positions
-car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
-car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
-
-% Target RCS
-car1_rcs = db2pow(min(10*log10(car1_dist)+5,20));
-car2_rcs = db2pow(min(10*log10(car2_dist)+5,20));
-
-% a = 0.15;
-% b = 0.20;
-% c = 0.95;
-% az = [-180:1:180];
-% el = [-90:1:90];
-% rcs = rcs_ellipsoid(a,b,c,az,el);
-% rcsdb = 10*log10(rcs);
-% rcssig = rcsSignature('Pattern',rcsdb,'Azimuth',az,'Elevation', ...
-%     el,'Frequency',[fc (fc+bw)]);
-
-
-% RCS Signature
-car1_rcs_signat = rcsSignature("Pattern", ...
-    [car1_rcs, car1_rcs; car1_rcs, car1_rcs], ...
-    "Azimuth", [-30 30], 'Elevation', [-30 30], ...
-    'Frequency', [fc (fc+bw)], 'FluctuationModel', 'Swerling0');
-
-car2_rcs_signat = rcsSignature("Pattern", ...
-    [car2_rcs, car2_rcs;car1_rcs, car1_rcs], ...
-    "Azimuth", [-30 30], 'Elevation', [-30 30], ...
-    'Frequency', [fc (fc+bw)], 'FluctuationModel', 'Swerling0');
-
-% Define reflected signal
-cartarget = phased.RadarTarget('MeanRCS',[car1_rcs car2_rcs], ...
-    'PropagationSpeed',c,'OperatingFrequency',fc);
-
-% Define target motion - 2 targets
-carmotion = phased.Platform('InitialPosition',[car1_x_dist car2_x_dist; ...
-    car1_y_dist car2_y_dist;0.5 0.5],...
-    'Velocity',[-car1_speed -car2_speed;0 0;0 0]);
-
-% Define propagation medium
-channel = phased.FreeSpace('PropagationSpeed',c,...
-    'OperatingFrequency',fc,'SampleRate',fs_wav,'TwoWayPropagation',true);
-
-% Define radar motion
-radar_speed = 0;
-radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
-    'Velocity',[radar_speed;0;0]);
+mono_radar_transcv_scenario;
 
 %% Simulation Loop
 close all
@@ -341,13 +192,13 @@ for t = 1:n_steps
     % Transmit and receive up-chirp
 %     xru = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
 %         transmitter,channel,cartarget,transceiver, Dn, Ns, time);
-    simTime = t;
+    simTime = t*t_step;
     xru = sim_transceiver(transceiver, Dn, simTime, tgt1, tgt2);
 %     xru = sim_transceiver(transceiver, Dn, simTime, cartarget);
     % Transmit and receive down-chirp
 %     xrd = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
 %         transmitter,channel,cartarget,transceiver, Dn, Ns, time);
-    simTime = t + 1e-3;
+    simTime = t*t_step + 1e-3;
     xrd = sim_transceiver(transceiver, Dn, simTime, tgt1, tgt2);
 %     xrd = sim_transceiver(transceiver, Dn, simTime, cartarget);
 %     
