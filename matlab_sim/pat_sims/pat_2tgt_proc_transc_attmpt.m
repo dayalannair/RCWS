@@ -31,7 +31,7 @@ waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
 
 %% Antenna
 ant_gain = 16.6;
-Ppeak = 50; % dBm
+Ppeak = 20; % dBm
 % Ppeak = 100;
 tx_ppower = 10^((Ppeak-30)/10);
 tx_gain = 9+ant_gain;                           % in dB
@@ -42,8 +42,7 @@ rx_nf = 10.5;                                    % in dB
 transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
 cosineElement = phased.CosineAntennaElement;
 cosineElement.FrequencyRange = [fc (fc+bw)];
-% cosinePattern = figure;
-% pattern(cosineElement,fc)
+
 Nrow = 4;
 Ncol = 4;
 fmcwCosineArray = phased.URA;
@@ -51,8 +50,6 @@ fmcwCosineArray.Element = cosineElement;
 fmcwCosineArray.Size = [Nrow Ncol];
 % Change spacing for uRAD
 fmcwCosineArray.ElementSpacing = [0.5*lambda 0.5*lambda];
-% cosineArrayPattern = figure;
-% pattern(fmcwCosineArray,fc);
 radiator = phased.Radiator('Sensor',fmcwCosineArray, ...
     'OperatingFrequency', fc);
 
@@ -66,6 +63,13 @@ receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
 transceiver = radarTransceiver('Waveform',waveform,'Transmitter', ...
     transmitter, 'TransmitAntenna',radiator,'ReceiveAntenna',collector, ...
     'Receiver', receiver, 'MountingLocation', [0, 0, 2]);
+
+%% Plot antenna
+% close all
+% cosinePattern = figure;
+% pattern(cosineElement,fc)
+% cosineArrayPattern = figure;
+% pattern(fmcwCosineArray,fc);
 
 %% Scenario
 
@@ -98,11 +102,11 @@ transceiver = radarTransceiver('Waveform',waveform,'Transmitter', ...
 % car2_speed = 0/3.6;
 
 % CASE 4: Target overtake
-car1_x_dist = 40;
+car1_x_dist = 60;
 car1_y_dist = 2;
 car1_speed = 20/3.6;
-car2_x_dist = 60;
-car2_y_dist = -2;
+car2_x_dist = 70;
+car2_y_dist = 2;
 car2_speed = 80/3.6;
 
 % Target positions
@@ -110,8 +114,19 @@ car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
 car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
 
 % Target RCS
-car1_rcs = db2pow(min(10*log10(car1_dist)+5,20))*1000;
-car2_rcs = db2pow(min(10*log10(car2_dist)+5,20))*1000;
+car1_rcs = db2pow(min(10*log10(car1_dist)+5,20));
+car2_rcs = db2pow(min(10*log10(car2_dist)+5,20));
+
+% a = 0.15;
+% b = 0.20;
+% c = 0.95;
+% az = [-180:1:180];
+% el = [-90:1:90];
+% rcs = rcs_ellipsoid(a,b,c,az,el);
+% rcsdb = 10*log10(rcs);
+% rcssig = rcsSignature('Pattern',rcsdb,'Azimuth',az,'Elevation', ...
+%     el,'Frequency',[fc (fc+bw)]);
+
 
 % RCS Signature
 car1_rcs_signat = rcsSignature("Pattern", ...
@@ -302,7 +317,7 @@ subplot(2,3,4)
 p4 = imagesc(spMtx1);
 simTime = 0;
 
-xrd = zeros(1, 200);
+xrd = zeros(1, 195);
 subplot(2,3,5)
 p5 = plot(xrd);
 
@@ -341,8 +356,8 @@ for t = 1:n_steps
     xrd_twin = xrd.*twin;
     
     % 512-point FFT
-    XRU_twin = fft(xru_twin.', nfft);
-    XRD_twin = fft(xrd_twin.', nfft);
+    XRU_twin = fft(xru_twin(4:198).', nfft);
+    XRD_twin = fft(xrd_twin(4:198).', nfft);
 
     % Halve spectra
     IQ_UP = XRU_twin(:, 1:n_fft/2);
@@ -378,13 +393,19 @@ for t = 1:n_steps
     set(p2th, 'YData', absmagdb(dnTh1))
     set(p3, 'CData', rgMtx1)
     set(p4, 'CData', spMtx1)
-    set(p5, 'YData', xrd)
+%     set(p5, 'YData', xrd(4:198))
+%     set(p5, 'YData', xrd_twin)
+    set(p5, 'YData', absmagdb(fft(xrd_twin(4:198))))
 
     % Update 3D scene viewer
     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
 %     pause(0.00001)
 end
 
+%% Km/h
+
+spMtx1kmh = spMtx1*3.6;
+spMtx1Corrkmh = spMtxCorr1*3.6;
 %     % issue: helper updates target position and velocity within each
 %     sweep. Resolved --> issue was releasing waveforms?
 
