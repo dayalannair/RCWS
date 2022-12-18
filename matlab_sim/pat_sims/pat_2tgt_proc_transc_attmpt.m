@@ -30,9 +30,8 @@ waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
 % title('FMCW signal spectrogram');
 
 %% Antenna
-% ant_gain = aperture2gain(ant_aperture,lambda);  % in dB
 ant_gain = 16.6;
-Ppeak = 20; % dBm
+Ppeak = 50; % dBm
 % Ppeak = 100;
 tx_ppower = 10^((Ppeak-30)/10);
 tx_gain = 9+ant_gain;                           % in dB
@@ -50,6 +49,7 @@ Ncol = 4;
 fmcwCosineArray = phased.URA;
 fmcwCosineArray.Element = cosineElement;
 fmcwCosineArray.Size = [Nrow Ncol];
+% Change spacing for uRAD
 fmcwCosineArray.ElementSpacing = [0.5*lambda 0.5*lambda];
 % cosineArrayPattern = figure;
 % pattern(fmcwCosineArray,fc);
@@ -65,7 +65,7 @@ receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
 
 transceiver = radarTransceiver('Waveform',waveform,'Transmitter', ...
     transmitter, 'TransmitAntenna',radiator,'ReceiveAntenna',collector, ...
-    'Receiver', receiver);
+    'Receiver', receiver, 'MountingLocation', [0, 0, 2]);
 
 %% Scenario
 
@@ -113,7 +113,16 @@ car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
 car1_rcs = db2pow(min(10*log10(car1_dist)+5,20))*1000;
 car2_rcs = db2pow(min(10*log10(car2_dist)+5,20))*1000;
 
-car_rcs_signat = rcsSignature("Pattern",[200, 200]); % Default Swerling 0
+% RCS Signature
+car1_rcs_signat = rcsSignature("Pattern", ...
+    [car1_rcs, car1_rcs; car1_rcs, car1_rcs], ...
+    "Azimuth", [-30 30], 'Elevation', [-30 30], ...
+    'Frequency', [fc (fc+bw)], 'FluctuationModel', 'Swerling0');
+
+car2_rcs_signat = rcsSignature("Pattern", ...
+    [car2_rcs, car2_rcs;car1_rcs, car1_rcs], ...
+    "Azimuth", [-30 30], 'Elevation', [-30 30], ...
+    'Frequency', [fc (fc+bw)], 'FluctuationModel', 'Swerling0');
 
 % Define reflected signal
 cartarget = phased.RadarTarget('MeanRCS',[car1_rcs car2_rcs], ...
@@ -260,7 +269,7 @@ dnTh1 = zeros(512, 1);
 nul_width_factor = 0.04;
 num_nul1 = round((n_fft/2)*nul_width_factor);
 
-subplot(2,2,1);
+subplot(2,3,1);
 p1 = plot(rng_ax, absmagdb(IQ_UP(1:256)));
 hold on
 p1th = plot(rng_ax, absmagdb(upTh1(1:256)));
@@ -274,7 +283,7 @@ axis(ax_dims)
 xticks(ax_ticks)
 grid on
 
-subplot(2,2,2);
+subplot(2,3,2);
 p2 = plot(rng_ax, absmagdb(IQ_DN(1:256)));
 hold on
 p2th = plot(rng_ax, absmagdb(dnTh1(1:256)));
@@ -286,21 +295,33 @@ axis(ax_dims)
 xticks(ax_ticks)
 grid on
 
-subplot(2,2,3)
+subplot(2,3,3)
 p3 = imagesc(rgMtx1);
 
-subplot(2,2,4)
+subplot(2,3,4)
 p4 = imagesc(spMtx1);
 simTime = 0;
+
+xrd = zeros(1, 200);
+subplot(2,3,5)
+p5 = plot(xrd);
+
 i = 0;
 for t = 1:n_steps
+    % Update car RCS for new position
+%     car_rcs_signat = rcsSignature("Pattern",[car1_rcs, car1_rcs; ]);
     i = i + 1;
     %disp(t)
+    % Step targets forward in time
     [tgt_pos,tgt_vel] = carmotion(t_step);
+
+    % Update the position and velocity
     tgt1 = struct('Position', tgt_pos(:,1).', 'Velocity', ...
-        tgt_vel(:,1).', 'Signature', car_rcs_signat);
+        tgt_vel(:,1).', 'Signature', car1_rcs_signat);
+    
     tgt2 = struct('Position', tgt_pos(:,2).', 'Velocity', ...
-        tgt_vel(:,2).', 'Signature', car_rcs_signat);
+        tgt_vel(:,2).', 'Signature', car2_rcs_signat);
+    
     % Output at sampling rate (decimation)
     % Transmit and receive up-chirp
 %     xru = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
@@ -316,12 +337,12 @@ for t = 1:n_steps
 %     xrd = sim_transceiver(transceiver, Dn, simTime, cartarget);
 %     
     % Window
-    xru_twin = xru.'.*twin;
-    xrd_twin = xrd.'.*twin;
+    xru_twin = xru.*twin;
+    xrd_twin = xrd.*twin;
     
     % 512-point FFT
-    XRU_twin = fft(xru_twin, nfft).';
-    XRD_twin = fft(xrd_twin, nfft).';
+    XRU_twin = fft(xru_twin.', nfft);
+    XRD_twin = fft(xrd_twin.', nfft);
 
     % Halve spectra
     IQ_UP = XRU_twin(:, 1:n_fft/2);
@@ -357,6 +378,7 @@ for t = 1:n_steps
     set(p2th, 'YData', absmagdb(dnTh1))
     set(p3, 'CData', rgMtx1)
     set(p4, 'CData', spMtx1)
+    set(p5, 'YData', xrd)
 
     % Update 3D scene viewer
     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
