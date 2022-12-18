@@ -6,7 +6,6 @@ function xr_d = sim_transceiver(transceiver, Dn, simTime, tgt1, tgt2)
 % It likely performs dechirp internally
 %     rxsig = transceiver([tgt1 tgt2], simTime);
     rxsig = transceiver(tgt2, simTime);
-    
 %     for o = 1:16
 %         plot(abs(rxsig(:,o)))
 %         pause(0.5)
