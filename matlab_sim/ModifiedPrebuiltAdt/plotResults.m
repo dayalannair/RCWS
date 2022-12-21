@@ -5,12 +5,14 @@
 % r = x{1}.Measurement(5)
 
 %%
+% data = singleCarLeftToRight;
 measuredPosition = zeros(44,1);
 measuredVelocity = zeros(44,1);
 actualPosition = zeros(44,1);
 actualVelocity = zeros(44,1);
-t   = zeros(44,1);
-for i = 1:44
+N = length(data);
+t   = zeros(N,1);
+for i = 1:N
     t(i) = data(i).Time;
     measuredVelocity(i) = data(i).ObjectDetections{1}.Measurement(5);
     measuredPosition(i) = data(i).ObjectDetections{1}.Measurement(2);
@@ -26,6 +28,7 @@ nexttile
 plot(t, measuredVelocity)
 hold on
 plot(t, actualVelocity)
+% axis([0 max(t) -25 -10])
 nexttile
 plot(t, measuredPosition)
 hold on
