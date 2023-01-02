@@ -34,16 +34,16 @@ waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
 
 % Antenna
 
-ant_aperture = 6.06e-4;                         % in square meter
-ant_gain = aperture2gain(ant_aperture,lambda);  % in dB
-
+% ant_aperture = 6.06e-4;                         % in square meter
+% ant_gain = aperture2gain(ant_aperture,lambda);  % in dB
+ant_gain = 16.6;
 tx_ppower = db2pow(5)*1e-3;                     % in watts
-tx_gain = 9+ant_gain;                           % in dB
+tx_gain = 19-30;                           % dbm to db
 
-rx_gain = 30+ant_gain;                          % in dB
-rx_nf = 50.5;                                    % in dB
+rx_gain = ant_gain;                          % in dB
+rx_nf = 10;                                    % in dB
 % rx_nf = 0;
 
 transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
 receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
-    'SampleRate',fs_wav);
+    'SampleRate',fs_wav, 'NoiseComplexity','Real');

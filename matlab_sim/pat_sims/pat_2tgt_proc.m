@@ -1,16 +1,18 @@
 addpath('../../matlab_lib/');
-%%
+%% Import radar model
 uRAD_model;
-%%
-mono_radar_scenario;
-%%
+%% Select Scenario
+% monoRadarScenario1;
+% monoRadarScenario2;
+monoRadarScenario3;
+%% Configure processing
 t_total = 3;
 t_step = 0.05;
 Nsweep = 1; % Number of ups and downs, not number of periods
 n_steps = t_total/t_step;
 
 proc_config;
-%%
+%% Configure simulation plots
 sim_plot_config;
 %%
 
