@@ -36,20 +36,28 @@
 % car2_y_dist = 2;
 % car2_speed = 60/3.6;
 
-car1_x_dist = 40;
+car1_x_dist = -20;
 car1_y_dist = 2;
 car1_speed = 20/3.6;
 car2_x_dist = 60;
 car2_y_dist = -2;
 car2_speed = 80/3.6;
 
+% Targets on the y-axis
+% car1_x_dist = 2;
+% car1_y_dist = 40;
+% car1_speed = 20/3.6;
+% car2_x_dist = -2;
+% car2_y_dist = 60;
+% car2_speed = 80/3.6;
+
 % Target positions
 car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
 car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
 
 % Target RCS
-car1_rcs = db2pow(min(10*log10(car1_dist)+5,20));
-car2_rcs = db2pow(min(10*log10(car2_dist)+5,20));
+car1_rcs = db2pow(min(10*log10(car1_dist)+5,20))*10000;
+car2_rcs = db2pow(min(10*log10(car2_dist)+5,20))*10000;
 
 % a = 0.15;
 % b = 0.20;
@@ -78,15 +86,22 @@ car2_rcs_signat = rcsSignature("Pattern", ...
 %     'PropagationSpeed',c,'OperatingFrequency',fc);
 
 % Define target motion - 2 targets
+
 carmotion = phased.Platform('InitialPosition',[car1_x_dist car2_x_dist; ...
     car1_y_dist car2_y_dist;0.5 0.5],...
     'Velocity',[-car1_speed -car2_speed;0 0;0 0]);
+
+% Targets on the y-axis
+% carmotion = phased.Platform('InitialPosition',[car1_x_dist car2_x_dist; ...
+%     car1_y_dist car2_y_dist;0.5 0.5],...
+%     'Velocity',[0 0;-car1_speed -car2_speed;0 0]);
 
 % Define propagation medium
 channel = phased.FreeSpace('PropagationSpeed',c,...
     'OperatingFrequency',fc,'SampleRate',fs_wav,'TwoWayPropagation',true);
 
 % Define radar motion
-radar_speed = 0;
-radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
-    'Velocity',[radar_speed;0;0]);
+% Not needed for transceiver simulation
+% radar_speed = 0;
+% radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
+%     'Velocity',[radar_speed;0;0]);

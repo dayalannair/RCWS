@@ -1,3 +1,5 @@
+
+addpath('../../matlab_lib/')
 uRAD_transcv_model;
 %% Plot antenna
 % close all
@@ -11,8 +13,8 @@ mono_radar_transcv_scenario;
 %% Simulation Loop
 close all
 
-t_total = 3;
-t_step = 0.05;
+t_total = 6;
+t_step = 0.1;
 Nsweep = 1; % Number of ups and downs, not number of periods
 n_steps = t_total/t_step;
 % Generate visuals
@@ -171,7 +173,7 @@ simTime = 0;
 xrd = zeros(1, 195);
 subplot(2,3,5)
 p5 = plot(xrd);
-
+% [tgt_pos,tgt_vel] = carmotion(0.00001);
 i = 0;
 for t = 1:n_steps
     % Update car RCS for new position
@@ -192,13 +194,16 @@ for t = 1:n_steps
     % Transmit and receive up-chirp
 %     xru = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
 %         transmitter,channel,cartarget,transceiver, Dn, Ns, time);
-    simTime = t*t_step;
+%     simTime = t*t_step;
+    simTime = simTime + t_step;
+%     simTime = t;
+
     xru = sim_transceiver(transceiver, Dn, simTime, tgt1, tgt2);
 %     xru = sim_transceiver(transceiver, Dn, simTime, cartarget);
     % Transmit and receive down-chirp
 %     xrd = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
 %         transmitter,channel,cartarget,transceiver, Dn, Ns, time);
-    simTime = t*t_step + 1e-3;
+%     simTime = simTime + 1e-3;
     xrd = sim_transceiver(transceiver, Dn, simTime, tgt1, tgt2);
 %     xrd = sim_transceiver(transceiver, Dn, simTime, cartarget);
 %     

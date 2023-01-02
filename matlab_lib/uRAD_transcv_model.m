@@ -38,7 +38,7 @@ tx_gain = 9+ant_gain;                           % in dB
 
 rx_gain = 30+ant_gain;                          % in dB
 rx_nf = 4.5;                                    % in dB
-
+rx_nf = 0;   
 transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
 cosineElement = phased.CosineAntennaElement;
 cosineElement.FrequencyRange = [fc (fc+bw)];
@@ -58,8 +58,12 @@ collector = phased.Collector('Sensor',fmcwCosineArray, ...
     'OperatingFrequency',fc);
 
 receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
-    'SampleRate',fs_wav, 'NoiseComplexity','Complex');
+    'SampleRate',fs_wav, 'NoiseComplexity','Real');
 
+% angles = yaw, pitch, roll. roll axis is the direction platform is facing
 transceiver = radarTransceiver('Waveform',waveform,'Transmitter', ...
     transmitter, 'TransmitAntenna',radiator,'ReceiveAntenna',collector, ...
-    'Receiver', receiver, 'MountingLocation', [0, 0, 2]);
+    'Receiver', receiver, 'MountingLocation', [0, 0, 0.5], ...
+    'MountingAngles', [0 90 0]);
+% , 'MechanicalScanMode','Circular', ...
+%     'MechanicalScanRate', 360);
