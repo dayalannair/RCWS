@@ -167,7 +167,8 @@ subplot(2,3,3)
 p3 = imagesc(rgMtx1);
 
 subplot(2,3,4)
-p4 = imagesc(spMtx1);
+% p4 = imagesc(spMtx1);
+p4 = plot(xrd);
 simTime = 0;
 
 xrd = zeros(1, 195);
@@ -203,7 +204,7 @@ for t = 1:n_steps
     % Transmit and receive down-chirp
 %     xrd = simulate_sweeps(Nsweep,waveform,radarmotion,carmotion,...
 %         transmitter,channel,cartarget,transceiver, Dn, Ns, time);
-%     simTime = simTime + 1e-3;
+    simTime = simTime + 1e-3;
     xrd = sim_transceiver(transceiver, Dn, simTime, tgt1, tgt2);
 %     xrd = sim_transceiver(transceiver, Dn, simTime, cartarget);
 %     
@@ -212,17 +213,20 @@ for t = 1:n_steps
     xrd_twin = xrd.*twin;
     
     % 512-point FFT
-    XRU_twin = fft(xru_twin(4:198).', nfft);
-    XRD_twin = fft(xrd_twin(4:198).', nfft);
+    XRU_twin = fft(xru_twin.', nfft);
+    XRD_twin = fft(xrd_twin.', nfft);
+    
+%     set(p1, 'YData', absmagdb(XRU_twin))
+%     set(p2, 'YData', absmagdb(XRD_twin))
 
     % Halve spectra
     IQ_UP = XRU_twin(:, 1:n_fft/2);
     IQ_DN = XRD_twin(:, n_fft/2+1:end);
     
     % Null feed through
-    IQ_UP(:, 1:num_nul1) = repmat(IQ_UP(:, num_nul1+1), [1, num_nul1]);
-    IQ_DN(:, end-num_nul1+1:end) = ...
-    repmat(IQ_DN(:, end-num_nul1), [1, num_nul1]);
+%     IQ_UP(:, 1:num_nul1) = repmat(IQ_UP(:, num_nul1+1), [1, num_nul1]);
+%     IQ_DN(:, end-num_nul1+1:end) = ...
+%     repmat(IQ_DN(:, end-num_nul1), [1, num_nul1]);
     
     % Flip down spectrum
     IQ_DN = flip(IQ_DN,2);
@@ -248,10 +252,11 @@ for t = 1:n_steps
     set(p1th, 'YData', absmagdb(upTh1))
     set(p2th, 'YData', absmagdb(dnTh1))
     set(p3, 'CData', rgMtx1)
-    set(p4, 'CData', spMtx1)
+%     set(p4, 'CData', spMtx1)
 %     set(p5, 'YData', xrd(4:198))
 %     set(p5, 'YData', xrd_twin)
-    set(p5, 'YData', absmagdb(fft(xrd_twin(4:198))))
+%     set(p4, 'YData', sftmagdb(fft(xru_twin(4:198))))
+    set(p5, 'YData', sftmagdb(fft(xru_twin(4:198))))
 
     % Update 3D scene viewer
     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);

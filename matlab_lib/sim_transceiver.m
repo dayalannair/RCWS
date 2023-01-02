@@ -6,7 +6,8 @@ function xr_d = sim_transceiver(transceiver, Dn, simTime, tgt1, tgt2)
 % It likely performs dechirp internally
 %     rxsig = transceiver([tgt1 tgt2], simTime);
     [rxsig, info] = transceiver(tgt2, simTime);
-    disp(info.Orientation)
+    disp(tgt2)
+%     disp(info.Orientation)
 %     for o = 1:16
 %         plot(abs(rxsig(:,o)))
 %         pause(0.5)
@@ -32,10 +33,10 @@ function xr_d = sim_transceiver(transceiver, Dn, simTime, tgt1, tgt2)
 %     plot(elmt4(1:100))
 %     disp(size(elmt1))
     % Decimate and apply 200-tap anti-aliasing FIR filter
-%     xr_d = abs(decimate(rxsig,Dn, 200, "fir"));
-%     xr_d = abs(decimate(elmt1,Dn, 200, "fir"));
+    xr_d = abs(decimate(rxsig,Dn, 200, "fir"));
+% %     xr_d = abs(decimate(elmt1,Dn, 200, "fir"));
 
 %     xr_d = elmt1(1:1200:end);
-    xr_d = rxsig(1:1200:end);
+%     xr_d = rxsig(1:1200:end);
 
 end

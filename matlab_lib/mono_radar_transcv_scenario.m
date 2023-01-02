@@ -36,12 +36,12 @@
 % car2_y_dist = 2;
 % car2_speed = 60/3.6;
 
-car1_x_dist = -20;
-car1_y_dist = 2;
-car1_speed = 20/3.6;
-car2_x_dist = 60;
+car1_x_dist = 40;
+car1_y_dist = -2;
+car1_speed = -20/3.6;
+car2_x_dist = 80;
 car2_y_dist = -2;
-car2_speed = 80/3.6;
+car2_speed = -80/3.6;
 
 % Targets on the y-axis
 % car1_x_dist = 2;
