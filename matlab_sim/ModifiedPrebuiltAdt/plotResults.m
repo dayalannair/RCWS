@@ -3,7 +3,7 @@
 x =data(3).ObjectDetections;
 % r = x(1)
 % r = x{1}.Measurement(5)
-
+data = ans;
 %%
 % data = singleCarLeftToRight;
 N = length(data);
@@ -13,10 +13,17 @@ measuredVelocity1 = NaN(N,15);
 measuredPosition2 = NaN(N,15);
 measuredVelocity2 = NaN(N,15);
 
+numActors = 3;
+actualPosition = NaN(15, numActors);
+actualVelocity = NaN(15, numActors);
+
 actualPosition1 = NaN(15, 1);
 actualPosition2 = NaN(15, 1);
 actualVelocity1 = NaN(15, 1);
 actualVelocity2 = NaN(15, 1);
+
+actualPosition3 = NaN(15, 1);
+actualVelocity3 = NaN(15, 1);
 
 t   = NaN(N,1);
 for i = 1:N
@@ -57,6 +64,10 @@ for i = 1:N
         actualVelocity2(i)   = data(i).ActorPoses(3).Velocity(2);
         actualPosition1(i)   = data(i).ActorPoses(2).Position(2);
         actualPosition2(i)   = data(i).ActorPoses(3).Position(2);
+
+%         actualPosition(:,1)
+%         actualPosition(:,1)
+%         actualPosition(:,1)
     else
         actualVelocity2(i)   = data(i).ActorPoses(2).Velocity(2);
         actualVelocity1(i)   = data(i).ActorPoses(3).Velocity(2);
