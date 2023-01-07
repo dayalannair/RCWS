@@ -6,11 +6,6 @@ monoRadarScenario1;
 % monoRadarScenario2;
 % monoRadarScenario3;
 %% Configure processing
-t_total = 3;
-t_step = 0.05;
-Nsweep = 1; % Number of ups and downs, not number of periods
-n_steps = t_total/t_step;
-
 proc_config;
 %% Configure simulation plots
 sim_plot_config;
@@ -101,7 +96,7 @@ for t = 1:n_steps
 
 %     set(p3, 'CData', rgMtx1)
     set(p3, 'YData', safety)
-    set(p4, 'CData', spMtx1)
+    set(p4, 'CData', spMtx1*3.6)
     pause(0.000000001)
 %     disp('Running')
 end

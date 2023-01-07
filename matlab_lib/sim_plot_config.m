@@ -8,10 +8,11 @@ sceneview = phased.ScenarioViewer('BeamRange',62.5,...
     'CameraPosition', [2101.04 -1094.5 644.77], ...
     'CameraOrientation', [-152 -15.48 0]', ...
     'CameraViewAngle', 1.45, ...
-    'ShowName',true,...
-    'ShowPosition', true,...
-    'ShowSpeed', true,...
-    'ShowRadialSpeed',false,...
+    'ShowName',false,...
+    'ShowPosition', false,...
+    'ShowSpeed', false,...
+    'ShowRadialSpeed',true,...
+    'ShowRange', true, ...
     'UpdateRate',1/t_step);%, ...
 %     'Position',[1000 100 1000 900]);
 
@@ -35,6 +36,8 @@ hold off
 title("LHS UP chirp positive half")
 % axis([0 200 0 1.0e-04])
 axis(ax_dims)
+xlabel("Range (m)")
+ylabel("Magnitude (dB)")
 % xticks(ax_ticks)
 grid on
 
@@ -47,15 +50,32 @@ win2 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*BIN_MAG, ...
     2000, colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
 title("LHS DOWN chirp flipped negative half")
+xlabel("Range (m)")
+ylabel("Magnitude (dB)")
 axis(ax_dims)
-xticks(ax_ticks)
+% xticks(ax_ticks)
 grid on
 
-safety = zeros(nswp1, 1);
 subplot(2,2,3)
 % p3 = imagesc(rgMtx1);
-p3 = plot(safety);
-title('Time of Arrival of Detected Target(s)')
+p3 = plot(t_ax, safety);
+title('Time of Arrival of Detected Target/s')
+ylabel('Time (s)')
+xlabel('Time of Arrival (s)')
+
+rg_bin_lbl = strings(1,nbins);
+rax = linspace(0,62,32);
+for bin = 0:(nbins-1)
+    first = round(rng_ax(bin*bin_width+1));
+    last = round(rng_ax((bin+1)*bin_width));
+    rg_bin_lbl(bin+1) = strcat(num2str(first), " to ", num2str(last));
+end
 
 subplot(2,2,4)
-p4 = imagesc(spMtx1);
+p4 = imagesc([], t_ax, spMtx1*3.6);
+set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl, 'CLim', [0 80], ...
+    'YDir','normal')
+colorbar
+title('Time vs. Range vs. Speed')
+xlabel("Range bin (meters)")
+ylabel("Time (s)")

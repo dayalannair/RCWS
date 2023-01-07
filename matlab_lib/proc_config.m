@@ -23,9 +23,9 @@ fd_max = speed2dop(v_max, lambda)*2;
 n_min = 42;
 % Divide into range bins of width 64
 % bin_width = (n_fft/2)/nbins;
-nbins = 8;
-bin_width = 32; % account for scan width = 21
-scan_width = 21; % see calcs: Delta f * 21 ~ 8 kHz
+% nbins = 8;
+% bin_width = 32; % account for scan width = 21
+% scan_width = 21; % see calcs: Delta f * 21 ~ 8 kHz
 
 % nbins = 16;
 % bin_width = 16; % account for scan width = 21
@@ -83,6 +83,13 @@ ax_dims = [0 max(rng_ax) -140 -10];
 ax_ticks = 1:2:60;
 nswp1  = n_steps;
 
+fbu1   = zeros(nswp1, nbins);
+fbd1   = zeros(nswp1, nbins);
+fdMtx1 = zeros(nswp1, nbins);
+rgMtx1 = zeros(nswp1, nbins);
+spMtx1 = zeros(nswp1, nbins);
+safety = zeros(nswp1, 1);
+
 
 beat_count_out1 = zeros(1,256);
 beat_count_out2 = zeros(1,256);
@@ -103,3 +110,12 @@ BIN_MAG = -60;
 
 nul_width_factor = 0.04;
 num_nul1 = round((n_fft/2)*nul_width_factor);
+
+
+
+t_total = 3;
+t_step = 0.05;
+Nsweep = 1; % Number of ups and downs, not number of periods
+n_steps = t_total/t_step;
+
+t_ax = linspace(0,t_total,n_steps);
