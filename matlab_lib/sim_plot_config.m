@@ -51,8 +51,11 @@ axis(ax_dims)
 xticks(ax_ticks)
 grid on
 
+safety = zeros(nswp1, 1);
 subplot(2,2,3)
-p3 = imagesc(rgMtx1);
+% p3 = imagesc(rgMtx1);
+p3 = plot(safety);
+title('Time of Arrival of Detected Target(s)')
 
 subplot(2,2,4)
 p4 = imagesc(spMtx1);

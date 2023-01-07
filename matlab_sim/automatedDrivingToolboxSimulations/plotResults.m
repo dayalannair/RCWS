@@ -3,7 +3,7 @@
 x =data(3).ObjectDetections;
 % r = x(1)
 % r = x{1}.Measurement(5)
-data = ans;
+% data = ans;
 %%
 % data = singleCarLeftToRight;
 N = length(data);
@@ -82,7 +82,7 @@ end
 %% Plots
 close all
 figure1 = figure('WindowState','maximized');
-tiledlayout(2, 2)
+tl = tiledlayout(2, 2);
 nexttile
 hold on
 scatter(t, abs(measuredVelocity2(:, 5:11))*3.6, 70,'Marker','.')
@@ -91,7 +91,7 @@ title("LHS Radar Velocity Measurements")
 xlabel("Time (s)")
 ylabel("Speed (km/h)")
 axis([0 max(t) 0 80])
-legend(p1)
+legend(p1,'Location', 'southeast')
 
 nexttile
 hold on
@@ -101,7 +101,7 @@ title("RHS Radar Velocity Measurements")
 xlabel("Time (s)")
 ylabel("Speed (km/h)")
 axis([0 max(t) 0 80])
-legend(p2)
+legend(p2,'Location', 'southeast')
 
 nexttile
 hold on
@@ -110,7 +110,7 @@ p3 = plot(t, abs(actualPosition2), 'DisplayName', 'Actual');
 title("LHS Radar Range Measurements")
 xlabel("Time (s)")
 ylabel("Range (m)")
-legend(p3)
+legend(p3,'Location', 'southeast')
 
 nexttile
 hold on
@@ -119,9 +119,10 @@ p4 = plot(t, abs(actualPosition1), 'DisplayName', 'Actual');
 title("RHS Radar Range Measurements")
 xlabel("Time (s)")
 ylabel("Range (m)")
-legend(p4)
+legend(p4,'Location', 'southeast')
 
-
+tl.Padding = 'tight';
+tl.TileSpacing = 'tight';
 
 % Create textarrow
 annotation(figure1,'textarrow',[0.148958333333333 0.203125],...

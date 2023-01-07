@@ -82,12 +82,7 @@ fb_idx_end2 = zeros(nbins,1);
 ax_dims = [0 max(rng_ax) -140 -10];
 ax_ticks = 1:2:60;
 nswp1  = n_steps;
-fbu1   = zeros(nswp1, nbins);
-fbd1   = zeros(nswp1, nbins);
-fdMtx1 = zeros(nswp1, nbins);
-rgMtx1 = zeros(nswp1, nbins);
-spMtx1 = zeros(nswp1, nbins);
-spMtxCorr1 = zeros(nswp1, nbins);
+
 
 beat_count_out1 = zeros(1,256);
 beat_count_out2 = zeros(1,256);
