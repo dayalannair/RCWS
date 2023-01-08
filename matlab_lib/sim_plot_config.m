@@ -60,8 +60,8 @@ subplot(2,2,3)
 % p3 = imagesc(rgMtx1);
 p3 = plot(t_ax, safety);
 title('Time of Arrival of Detected Target/s')
-ylabel('Time (s)')
-xlabel('Time of Arrival (s)')
+xlabel('Time (s)')
+ylabel('Time of Arrival (s)')
 
 rg_bin_lbl = strings(1,nbins);
 rax = linspace(0,62,32);

@@ -1,3 +1,11 @@
+
+t_total = 3;
+t_step = 0.05;
+Nsweep = 1; % Number of ups and downs, not number of periods
+n_steps = t_total/t_step;
+
+t_ax = linspace(0,t_total,n_steps);
+
 % Set up arrays for two targets
 fbu = zeros(n_steps, 2);
 fbd = zeros(n_steps, 2);
@@ -113,9 +121,3 @@ num_nul1 = round((n_fft/2)*nul_width_factor);
 
 
 
-t_total = 3;
-t_step = 0.05;
-Nsweep = 1; % Number of ups and downs, not number of periods
-n_steps = t_total/t_step;
-
-t_ax = linspace(0,t_total,n_steps);

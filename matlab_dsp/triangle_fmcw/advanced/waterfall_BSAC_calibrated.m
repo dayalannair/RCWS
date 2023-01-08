@@ -1,6 +1,7 @@
 % Import data and parameters
 % 60kmh subset
-subset = 800:1100;
+% subset = 800:1100;
+subset = 1:4000;
 % 50 kmh subset - same
 % 40 kmh subset
 % subset = 700:1100;
@@ -369,45 +370,64 @@ return;
 
 %%
 close all
-fig1 = figure('WindowState','maximized');
+% fig1 = figure('WindowState','maximized');
+fig1 = figure('OuterPosition',[-1240.6 141.8 863.2 519.2]);
 movegui(fig1,'west')
 sweep_window = 200;
 loop_cnt = 0;
 % Need here to restart video
-vidObj = VideoReader('20kmhx.mp4');
+% vidObj = VideoReader('20kmhx.mp4');
 % vidObj = VideoReader('30kmhx.mp4');
 % vidObj = VideoReader('40kmhxq.mp4');
 % vidObj = VideoReader('50kmhx.mp4');
-% vidObj = VideoReader('60kmhx.mp4');
+vidObj = VideoReader('60kmhx.mp4');
 % Loop for fast sampled data
+
+
+
+tl = tiledlayout(1,3);
+tl.Padding = 'tight';
+tl.TileSpacing = 'tight';
+nexttile
+im1 = imagesc(sp_array(1:1+sweep_window,:).*3.6)
+set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl, 'CLim', [0 60])
+grid
+title("Speed v. Time v. Range")
+xlabel("Range bin (meters)")
+ylabel("Subset of Sweeps")
+a = colorbar;
+a.Label.String = 'Radial velocity (km/h)';
+nexttile
+%     imagesc(safe_sweeps(sweep:sweep+sweep_window))
+p1 = plot(safe_sweeps(1:1+sweep_window))
+%     title("Safety Meter")
+title("Time of Arrival of Target")
+%     ylabel("Sweep number in window  (represents time)")
+xlabel("Subset of Sweeps")
+ylabel('Time of Arrival (s)')
+
+%     b = colorbar;
+%     b.Label.String = 'Degree of safety (4 - t_{arrival})';
+%     set(gca,'CLim', [0 1])
+nexttile
+vidFrame = readFrame(vidObj);
+
+im2 = imshow(vidFrame)
+title('Video Footage')
+vidObj = VideoReader('60kmhx.mp4');
 tic;
 for sweep = 1:15:(n_sweeps-sweep_window)
-    loop_cnt = loop_cnt +1;
-    tiledlayout(1,3)
-    nexttile
-    imagesc(sp_array(sweep:sweep+sweep_window,:).*3.6)
-    set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl, 'CLim', [0 60])
-    grid
-    title("Speed v. Time v. Range")
-    xlabel("Range bin (meters)")
-    ylabel("Sweep number in window (represents time)")
-    a = colorbar;
-    a.Label.String = 'Radial velocity (km/h)';
-    nexttile
-    imagesc(safe_sweeps(sweep:sweep+sweep_window))
-    title("Safety Meter")
-    ylabel("Sweep number in window  (represents time)")
-    b = colorbar;
-    b.Label.String = 'Degree of safety (4 - t_{arrival})';
-    set(gca,'CLim', [0 1])
-    nexttile
+%     loop_cnt = loop_cnt +1;
+    set(im1, 'CData', sp_array(sweep:sweep+sweep_window,:).*3.6)
+    set(p1, 'YData', safe_sweeps(sweep:sweep+sweep_window))
+
 %   take every 6th frame based on num vid frames and num radar frames
     for w = 1:6
         vidFrame = readFrame(vidObj);
     end
-    imshow(vidFrame)
+    set(im2, 'CData', vidFrame)
     drawnow;
-% pause(0.5)
+    pause(0.01)
 end
 toc
 % times 2 for triangle modulation
