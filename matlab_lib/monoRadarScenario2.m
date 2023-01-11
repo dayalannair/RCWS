@@ -5,14 +5,14 @@ car1_x_dist = -60;
 car1_y_dist = 4;
 car1_speed = -60/3.6;
 car2_x_dist = 0;
-car2_y_dist = 2;
-car2_speed = 70/3.6;
+car2_y_dist = 100;
+% car2_speed = 20/3.6;
 
 car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
 car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
 
-car1_rcs = db2pow(min(10*log10(car1_dist)+5,20));
-car2_rcs = db2pow(min(10*log10(car2_dist)+5,20));
+car1_rcs = db2pow(min(10*log10(car1_dist)+5,20))+5;
+car2_rcs = db2pow(min(10*log10(car2_dist)+5,20))+5;
 
 % Define reflected signal
 cartarget = phased.RadarTarget('MeanRCS',[car1_rcs car2_rcs], ...

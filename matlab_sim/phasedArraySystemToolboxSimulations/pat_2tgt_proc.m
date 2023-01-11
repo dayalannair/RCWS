@@ -2,9 +2,10 @@ addpath('../../matlab_lib/');
 %% Import radar model
 uRAD_model;
 %% Select Scenario
-monoRadarScenario1;
+% monoRadarScenario1;
 % monoRadarScenario2;
 % monoRadarScenario3;
+monoRadarScenario4;
 %% Configure processing
 proc_config;
 %% Configure simulation plots

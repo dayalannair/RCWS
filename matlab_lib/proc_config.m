@@ -35,9 +35,9 @@ n_min = 42;
 % bin_width = 32; % account for scan width = 21
 % scan_width = 21; % see calcs: Delta f * 21 ~ 8 kHz
 
-% nbins = 16;
-% bin_width = 16; % account for scan width = 21
-% scan_width = 8;
+nbins = 16;
+bin_width = 16; % account for scan width = 21
+scan_width = 16;
 
 calib = 1.2463;
 lhs_road_width = 2;
