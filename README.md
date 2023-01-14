@@ -1,6 +1,10 @@
 # Radar Intersection Collision Prediction System (R-ICPS)
 
+
+### NB - Offline python proc exists in the folder
+
 ## TO DO
+
 
 1. Modify Python algorithm with SOCA CFAR and PFa = 0.008
 2. Get more IQ data

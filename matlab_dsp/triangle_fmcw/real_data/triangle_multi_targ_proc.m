@@ -172,7 +172,8 @@ for sweep = 1:n_sweeps
         % safe the turn is
         safety(sweep) = min(ratio);
         % for colour map:
-        safe_sweeps(sweep) = t_safe-min(ratio);
+%         safe_sweeps(sweep) = t_safe-min(ratio);
+        safe_sweeps(sweep) = min(ratio);
     end
 end
 close all
@@ -202,40 +203,44 @@ set(gca,'CLim', [0 1])
 return;
 %%
 close all
-fig1 = figure('WindowState','maximized');
+fig1 = figure('WindowState','maximized', 'DefaultAxesFontSize',14);
 movegui(fig1,'west')
 sweep_window = 200;
 loop_cnt = 0;
 % Need here to restart video
-vidObj = VideoReader('20kmhx.mp4');
+% vidObj = VideoReader('20kmhx.mp4');
 % vidObj = VideoReader('30kmhx.mp4');
 % vidObj = VideoReader('40kmhxq.mp4');
 % vidObj = VideoReader('50kmhx.mp4');
-% vidObj = VideoReader('60kmhx.mp4');
+vidObj = VideoReader('60kmhx.mp4');
+% vidObj.CurrentTime = 
 % Loop for fast sampled data
 tic;
 for sweep = 1:15:(n_sweeps-sweep_window)
     loop_cnt = loop_cnt +1;
-    tiledlayout(1,3)
+    tl = tiledlayout(1,3)
+    tl.Padding = 'tight';
+    tl.TileSpacing = 'tight';
     nexttile
     imagesc(sp_array(sweep:sweep+sweep_window,:).*3.6)
     set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl, 'CLim', [0 60])
     grid
     title("Speed v. Time v. Range")
     xlabel("Range bin (meters)")
-    ylabel("Sweep number in window (represents time)")
+    ylabel("Sweep number")
     a = colorbar;
     a.Label.String = 'Radial velocity (km/h)';
     nexttile
-    imagesc(safe_sweeps(sweep:sweep+sweep_window))
-    title("Safety Meter")
-    ylabel("Sweep number in window  (represents time)")
-    b = colorbar;
-    b.Label.String = 'Degree of safety (4 - t_{arrival})';
-    set(gca,'CLim', [0 1])
+    plot(safe_sweeps(sweep:sweep+sweep_window))
+    title("Time of Arrival vs. Time")
+    xlabel("Sweep number")
+    ylabel("Time of arrival of closest target (s)")
+%     b = colorbar;
+%     b.Label.String = 'Degree of safety (4 - t_{arrival})';
+%     set(gca,'CLim', [0 1])
     nexttile
 %   take every 6th frame based on num vid frames and num radar frames
-    for w = 1:6
+    for w = 1:24
         vidFrame = readFrame(vidObj);
     end
     imshow(vidFrame)

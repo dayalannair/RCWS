@@ -394,7 +394,7 @@ set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl, 'CLim', [0 60])
 grid
 title("Speed v. Time v. Range")
 xlabel("Range bin (meters)")
-ylabel("Subset of Sweeps")
+ylabel("Sweep number")
 a = colorbar;
 a.Label.String = 'Radial velocity (km/h)';
 nexttile
@@ -403,7 +403,7 @@ p1 = plot(safe_sweeps(1:1+sweep_window))
 %     title("Safety Meter")
 title("Time of Arrival of Target")
 %     ylabel("Sweep number in window  (represents time)")
-xlabel("Subset of Sweeps")
+xlabel("Sweep number")
 ylabel('Time of Arrival (s)')
 
 %     b = colorbar;
