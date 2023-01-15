@@ -25,11 +25,11 @@ actualVelocity2 = NaN(15, 1);
 actualPosition3 = NaN(15, 1);
 actualVelocity3 = NaN(15, 1);
 
-car1_v = NaN(55, 1);
-car2_v = NaN(55, 1);
+car1_v = NaN(N, 1);
+car2_v = NaN(N, 1);
 
-car1_r = NaN(55, 1);
-car2_r = NaN(55, 1);
+car1_r = NaN(N, 1);
+car2_r = NaN(N, 1);
 
 t   = NaN(N,1);
 for i = 1:N
@@ -38,8 +38,8 @@ for i = 1:N
     for j = 1:length(detectionsRadar1)
         % Stack detections from radar 1 - RHS
         if detectionsRadar1{j}.SensorIndex == 1
-            measuredVelocity1(i,j) = detectionsRadar1{j}.Measurement(5);
-            measuredPosition1(i,j) = detectionsRadar1{j}.Measurement(2);
+%             measuredVelocity1(i,j) = detectionsRadar1{j}.Measurement(5);
+%             measuredPosition1(i,j) = detectionsRadar1{j}.Measurement(2);
         % Stack detections from radar 2 - LHS
         else
             measuredVelocity2(i,j) = detectionsRadar1{j}.Measurement(5);
@@ -101,7 +101,7 @@ figure1 = figure('WindowState','maximized');
 tl = tiledlayout(1, 2);
 nexttile
 hold on
-scatter(t, abs(measuredVelocity2(:, 5:11)), 70,'Marker','.')
+scatter(t, abs(measuredVelocity2(:, :)), 70,'Marker','.')
 p1 = plot(t, abs(car1_v), 'DisplayName', 'Car 1 Actual');
 p2 = plot(t, abs(car2_v), 'DisplayName', 'Car 2 Actual');
 title("LHS Radar Velocity Measurements")
@@ -122,7 +122,7 @@ legend([p1 p2],'Location', 'southeast')
 
 nexttile
 hold on
-scatter(t, abs(measuredPosition2(:, 5:11)),70, 'Marker','.')
+scatter(t, abs(measuredPosition2(:, :)),70, 'Marker','.')
 p3 = plot(t, abs(car1_r), 'DisplayName', 'Car 1 Actual');
 p4 = plot(t, abs(car2_r), 'DisplayName', 'Car 2 Actual');
 title("LHS Radar Range Measurements")
@@ -140,7 +140,7 @@ legend([p3, p4],'Location', 'southeast')
 % legend(p4,'Location', 'southeast')
 
 tl.Padding = 'tight';
-tl.TileSpacing = 'tight';
+% tl.TileSpacing = 'compact';
 
 % Create textarrow
 % annotation(figure1,'textarrow',[0.148958333333333 0.203125],...
