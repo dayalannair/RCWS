@@ -1,6 +1,6 @@
 
-t_total = 3;
-t_step = 0.05;
+t_total = 3.6;
+t_step = 0.1;% 100 ms - updates 10 times per second
 Nsweep = 1; % Number of ups and downs, not number of periods
 n_steps = t_total/t_step;
 
@@ -15,7 +15,7 @@ v = zeros(n_steps, 2);
 Dn = fix(fs_wav/fs_adc);
 Ns = 200;
 nfft = 512;
-faxis_kHz = f_ax(nfft, fs_adc)/1000;
+% faxis_kHz = f_ax(nfft, fs_adc)/1000;
 n_fft = 512;
 train = 16;%n_fft/8;%64;
 guard = 14;%n_fft/64;%8;
@@ -58,8 +58,9 @@ bwin = blackman(Ns);
 
 fs = 200e3;
 f = f_ax(n_fft, fs);
-f_neg = f(1:n_fft/2);
-f_pos = f((n_fft/2 + 1):end);
+% f_neg = f(1:n_fft/2);
+% f_pos = f((n_fft/2 + 1):end);
+freqkHz = linspace(0, 100000, 256);
 
 % Range axis
 rng_ax = beat2range((f_pos)', sweep_slope, c);

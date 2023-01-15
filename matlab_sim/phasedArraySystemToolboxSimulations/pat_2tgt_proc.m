@@ -23,6 +23,7 @@ spMtxCorr1 = zeros(nswp1, nbins);
 
 i = 0;
 for t = 1:n_steps
+%     pause(1)
     i = t;
     %disp(t)
     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
@@ -68,7 +69,7 @@ for t = 1:n_steps
     pkdClean1, fbu1(i,:), fbd1(i,:), fdMtx1(i,:), fb_idx1, fb_idx_end1, ...
     beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
     lambda, k, c, dnDets1, upDets1, nbins, n_fft, ...
-    f_pos, scan_width, calib, lhs_road_width, beat_count_in1);
+    freqkHz, scan_width, calib, lhs_road_width, beat_count_in1);
     
     ratio = rgMtx1(i,:)./spMtx1(i,:);
     if (any(ratio<t_safe))

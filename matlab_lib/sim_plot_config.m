@@ -3,26 +3,31 @@ close all
 % Generate visuals
 sceneview = phased.ScenarioViewer('BeamRange',62.5,...
     'BeamWidth',[30; 30], ...
+    'BeamSteering', [180;0], ...
     'ShowBeam', 'All', ...
     'CameraPerspective', 'Custom', ...
-    'CameraPosition', [2101.04 -1094.5 644.77], ...
-    'CameraOrientation', [-152 -15.48 0]', ...
+    'CameraPosition', [1464.92 -1515.03 1273.71], ...
+    'CameraOrientation', [-134.68 -30.87 0]', ...
     'CameraViewAngle', 1.45, ...
     'ShowName',false,...
     'ShowPosition', false,...
     'ShowSpeed', false,...
     'ShowRadialSpeed',true,...
     'ShowRange', true, ...
-    'UpdateRate',1/t_step);%, ...
-%     'Position',[1000 100 1000 900]);
+    'UpdateRate',1/t_step, ...
+    'Position', [100 50 1000 700]);
 
-[rdr_pos,rdr_vel] = radarmotion(1);
-[tgt_pos,tgt_vel] = carmotion(1);
+[rdr_pos,rdr_vel] = radarmotion(0.00000000000000000000000000000001);
+[tgt_pos,tgt_vel] = carmotion(0.00000000000000000000000000000001);
 
-f1 = figure('WindowState','normal', 'Position',[0 100 800 700]);
+f1 = figure('WindowState','normal', 'Position',[0 100 800 700], ...
+    'DefaultAxesFontSize',14);
 movegui(f1, "west")
 
-subplot(2,2,1);
+
+tiledlayout(2,2, 'Padding', 'none', 'TileSpacing', 'compact'); 
+nexttile
+% subplot(2,2,1);
 p1 = plot(rng_ax, absmagdb(IQ_UP(1:256)));
 % p1 = plot(rng_ax, absmagdb(pkuClean1));
 hold on
@@ -40,8 +45,8 @@ xlabel("Range (m)")
 ylabel("Magnitude (dB)")
 % xticks(ax_ticks)
 grid on
-
-subplot(2,2,2);
+nexttile
+% subplot(2,2,2);
 p2 = plot(rng_ax, absmagdb(IQ_DN(1:256)));
 % p2 = plot(rng_ax, absmagdb(pkdClean1));
 hold on
@@ -55,8 +60,8 @@ ylabel("Magnitude (dB)")
 axis(ax_dims)
 % xticks(ax_ticks)
 grid on
-
-subplot(2,2,3)
+nexttile
+% subplot(2,2,3)
 % p3 = imagesc(rgMtx1);
 p3 = plot(t_ax, safety);
 title('Time of Arrival of Detected Target/s')
@@ -64,18 +69,19 @@ xlabel('Time (s)')
 ylabel('Time of Arrival (s)')
 
 rg_bin_lbl = strings(1,nbins);
-rax = linspace(0,62,32);
+% rax = linspace(0,62,32);
 for bin = 0:(nbins-1)
     first = round(rng_ax(bin*bin_width+1));
     last = round(rng_ax((bin+1)*bin_width));
     rg_bin_lbl(bin+1) = strcat(num2str(first), " to ", num2str(last));
 end
-
-subplot(2,2,4)
+nexttile
+% subplot(2,2,4)
 p4 = imagesc([], t_ax, spMtx1*3.6);
 set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl, 'CLim', [0 80], ...
     'YDir','normal')
-colorbar
+cb = colorbar;
+ylabel(cb, "Speed (km/h)")
 title('Time vs. Range vs. Speed')
 xlabel("Range bin (meters)")
 ylabel("Time (s)")

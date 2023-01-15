@@ -103,7 +103,7 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
                     theta = asin(road_width/rgMtx(bin+1));
 
 %                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
-                    real_v = fd*lambda/(4*cos(theta));
+                    real_v = fd*lambda/(2*cos(theta));
                     spMtxCorr(bin+1) = round(real_v,2);
 %                     end
                
