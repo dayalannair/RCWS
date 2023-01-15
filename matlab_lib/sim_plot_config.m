@@ -25,6 +25,20 @@ f1 = figure('WindowState','normal', 'Position',[0 100 800 700], ...
 movegui(f1, "west")
 
 
+
+
+fbu1   = zeros(nswp1, nbins);
+fbd1   = zeros(nswp1, nbins);
+fdMtx1 = zeros(nswp1, nbins);
+rgMtx1 = zeros(nswp1, nbins);
+spMtx1 = zeros(nswp1, nbins);
+safety = zeros(nswp1, 1);
+t_safe = 3.5;
+spMtxCorr1 = zeros(nswp1, nbins);
+
+
+
+
 tiledlayout(2,2, 'Padding', 'none', 'TileSpacing', 'compact'); 
 nexttile
 % subplot(2,2,1);
@@ -38,7 +52,7 @@ colors = cat(2, 2*x, 2*x);
 win1 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*BIN_MAG, ...
     2000, colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
-title("LHS UP chirp positive half")
+title("Up-chirp Positive Spectrum")
 % axis([0 200 0 1.0e-04])
 axis(ax_dims)
 xlabel("Range (m)")
@@ -54,7 +68,7 @@ p2th = plot(rng_ax, absmagdb(dnTh1(1:256)));
 win2 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*BIN_MAG, ...
     2000, colors, 'Marker', '|', 'LineWidth',1.5);
 hold off
-title("LHS DOWN chirp flipped negative half")
+title("Down-chirp Reflected Negative Spectrum")
 xlabel("Range (m)")
 ylabel("Magnitude (dB)")
 axis(ax_dims)
@@ -77,7 +91,8 @@ for bin = 0:(nbins-1)
 end
 nexttile
 % subplot(2,2,4)
-p4 = imagesc([], t_ax, spMtx1*3.6);
+% p4 = imagesc([], t_ax, spMtx1*3.6);
+p4 = imagesc([], t_ax, spMtxCorr1*3.6);
 set(gca, 'XTick', 1:1:nbins, 'XTickLabel', rg_bin_lbl, 'CLim', [0 80], ...
     'YDir','normal')
 cb = colorbar;

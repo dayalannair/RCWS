@@ -1,5 +1,5 @@
 
-t_total = 3.6;
+t_total = 3.7;
 t_step = 0.1;% 100 ms - updates 10 times per second
 Nsweep = 1; % Number of ups and downs, not number of periods
 n_steps = t_total/t_step;
@@ -40,8 +40,8 @@ bin_width = 16; % account for scan width = 21
 scan_width = 16;
 
 calib = 1.2463;
-lhs_road_width = 2;
-rhs_road_width = 4;
+lhs_road_width = 4;
+rhs_road_width = 2;
 
 % Taylor window
 % win = taylorwin(Ns, nbar, sll);

@@ -7,15 +7,15 @@ car1_y_dist = 4;
 car1_speed = 60/3.6;
 
 car2_x_dist = 0;
-car2_y_dist = 200;
-car2_speed = -20/3.6;
+car2_y_dist = 2;
+car2_speed = -30/3.6;
 
 car3_x_dist = -10;
-car3_y_dist = 200;
-car3_speed = -20/3.6;
+car3_y_dist = 2;
+car3_speed = -25/3.6;
 
 car4_x_dist = -20;
-car4_y_dist = 200;
+car4_y_dist = 2;
 car4_speed = -20/3.6;
 
 car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);

@@ -12,17 +12,10 @@ proc_config;
 sim_plot_config;
 %%
 
-fbu1   = zeros(nswp1, nbins);
-fbd1   = zeros(nswp1, nbins);
-fdMtx1 = zeros(nswp1, nbins);
-rgMtx1 = zeros(nswp1, nbins);
-spMtx1 = zeros(nswp1, nbins);
-safety = zeros(nswp1, 1);
-t_safe = 3.5;
-spMtxCorr1 = zeros(nswp1, nbins);
+
 
 i = 0;
-for t = 1:n_steps
+for t = 1:(n_steps-2)
 %     pause(1)
     i = t;
     %disp(t)
@@ -98,7 +91,11 @@ for t = 1:n_steps
 
 %     set(p3, 'CData', rgMtx1)
     set(p3, 'YData', safety)
-    set(p4, 'CData', spMtx1*3.6)
+    % Plot speed with angle correction
+    set(p4, 'CData', abs(spMtxCorr1)*3.6)
+
+    % Plot speed without angle correction
+%     set(p4, 'CData', spMtx1*3.6)
     pause(0.000000001)
 %     disp('Running')
 end
