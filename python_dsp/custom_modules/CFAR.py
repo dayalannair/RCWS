@@ -38,7 +38,7 @@ def soca_cfar(half_train, half_guard, SOS, data):
             cut = data[cutidx]
             ZOS = min(np.average(lhs_train),np.average(rhs_train))
             TOS = SOS*ZOS
-            print(TOS)
+            # print(TOS)
             th[cutidx] = TOS
             if cut > TOS:
                 result[cutidx] = cut

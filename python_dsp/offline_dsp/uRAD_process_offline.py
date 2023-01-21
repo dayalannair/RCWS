@@ -5,8 +5,13 @@ from pathlib import Path
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_20kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_30kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_40kmh.txt")
-file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
+file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+
+# On laptop Yoga 910
+
+file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+
 
 # 60kmh subset
 subset = range(800,1100)
@@ -17,10 +22,10 @@ len_subset = len(subset)
 # 20km/h subset
 # subset = range(1,1500)
 
-sys.path.append('../python_modules')
+sys.path.append('../custom_modules')
 # sys.path.append('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby')
 from time import time
-from uRAD_DSP_lib import py_trig_dsp
+from pyDSPv2 import py_trig_dsp
 # global np
 import numpy as np
 from scipy.fft import fft
@@ -91,6 +96,7 @@ for i in subset:
 
 	safety[data_index],rg_array[data_index], sp_array[data_index] = py_trig_dsp(i_data,q_data, twin, np, fft, os_cfar,\
 		n_fft, num_nul, half_guard, half_train, rank, SOS, cfar_scale, nbins, bin_width, f_ax)
+
 	data_index = data_index + 1
 	# safety[i],rg_array[i], sp_array[i] = py_trig_dsp(i_data,q_data)
 	# t1_proc = time()-t0_proc
