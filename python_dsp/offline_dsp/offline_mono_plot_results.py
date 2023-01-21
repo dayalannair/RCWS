@@ -8,6 +8,7 @@ import matplotlib as mpl
 mpl.rcParams['path.simplify'] = True
 mpl.rcParams['path.simplify_threshold'] = 1.0
 mpl.rcParams['toolbar'] = 'None' 
+mpl.rcParams["axes.grid"] = False
 import matplotlib.style as mplstyle
 mplstyle.use(['dark_background', 'ggplot', 'fast'])
 
@@ -17,11 +18,11 @@ from pathlib import Path
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_30kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_40kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
-file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
 
 # On laptop Yoga 910
 
-# file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
 # file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\")
 
 # 60kmh subset
@@ -70,7 +71,7 @@ c = 299792458
 rng_ax = c*fax/(2*slope)
 # rg_full = np.zeros(16*sweeps)
 n_fft = 512
-twin = signal.windows.taylor(200, nbar=3, sll=150, norm=False)
+twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
 nul_width_factor = 0.04
 num_nul = round((n_fft/2)*nul_width_factor)
 # OS CFAR
@@ -162,7 +163,7 @@ for i in subset:
 	# print(spMtx[np.nonzero(spMtx)])
 
 print("Saving data...")
-spMtx = spMtx*3.6 # km/h
+# spMtx = spMtx*3.6 # km/h
 # safety_fname = "safety_results.txt"
 rng_fname = "range_results.txt"
 spd_fname = "speed_results.txt"
@@ -212,7 +213,10 @@ ax[1].set_ylabel("Magnitude (dB)")
 
 
 line1_2 = ax[0].imshow(rgMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70)
+# plt.grid(None)
+# plt.show()
 line2_2 = ax[1].imshow(spMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70)
+# plt.grid(None)
 plt.show()
 
 

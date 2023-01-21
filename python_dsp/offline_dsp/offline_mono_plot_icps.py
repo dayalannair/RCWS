@@ -184,6 +184,9 @@ print("System running...")
 # safety_inv_2 = np.zeros(sweeps)
 plt.pause(0.1)
 
+scan_width = 8
+calib = 1.2463
+
 idx = 0
 for i in subset:
 	
@@ -198,10 +201,10 @@ for i in subset:
 	# t0_proc = time()
 	_, _, upth, dnth, fftu, fftd, _, _, _,\
 	rgMtx[idx, :], spMtx[idx, :] = py_trig_dsp(i_data,q_data, twin, n_fft, num_nul, half_train, \
-	half_guard, nbins, bin_width, f_ax, SOS)
+	half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
 	idx = idx + 1
-	spMtx[idx, :] = spMtx[idx, :]*3.6
-	print(spMtx[np.nonzero(spMtx)])
+	# spMtx[idx, :] = spMtx[idx, :]*3.6
+	# print(spMtx[np.nonzero(spMtx)])
 	# print(len(cfar_res_up))
 	# ============== LOG SCALE =====================
 	line1.set_ydata(20*np.log10(abs(fftu + 10**-10)))
@@ -210,8 +213,8 @@ for i in subset:
 	line4.set_ydata(20*np.log10(dnth + 10**-10))
 	# # line5.set_ydata(os_pku)
 	# # line6.set_ydata(os_pkd)
-	line1_2.set_data(rgMtx)
-	line2_2.set_data(spMtx)
+	# line1_2.set_data(rgMtx)
+	# line2_2.set_data(spMtx)
 
 	# line1_2.set_ydata(20*np.log10(abs(fftu_2)))
 	# line2_2.set_ydata(20*np.log10(upth_2))

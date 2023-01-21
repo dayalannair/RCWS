@@ -1,7 +1,7 @@
 % Import data and parameters
 % 60kmh subset
-% subset = 800:1100;
-subset = 1:4000;
+subset = 800:1100;
+% subset = 1:4000;
 % 50 kmh subset - same
 % 40 kmh subset
 % subset = 700:1100;
@@ -251,7 +251,7 @@ for i = 1:n_sweeps
             
             [magu, idx_u] = max(bin_slice_u);
             
-            if magu ~= 0
+            if (magu ~= 0) && (idx_u ~= idx_d)
                 
                 % store up chirp beat frequency
                 % NB - the bin index is not necessarily where the beat was
@@ -263,6 +263,7 @@ for i = 1:n_sweeps
             
             % if both not DC
             if and(fbu(i,bin+1) ~= 0, fbd(i,bin+1)~= 0)
+%              if fbu(i,bin+1) < fbd(i,bin+1) && and(fbu(i,bin+1) ~= 0, fbd(i,bin+1)~= 0)
                 % Doppler shift is twice the difference in beat frequency
 %               calibrate beats for doppler shift
                 fd = (-fbu(i,bin+1) + fbd(i,bin+1))*calib;

@@ -5,7 +5,7 @@ from scipy.fft import fft
 
 
 # NOTE: Range, speed, and possibly safety results of the below are not correct
-def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul,
+def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	half_train, half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 	
 	# SQUARE LAW DETECTOR
@@ -15,8 +15,8 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul,
 
 	# TAYLOR WINDOW
 	# SLL specified as positive
-	iq_u = np.multiply(iq_u, twin)
-	iq_d = np.multiply(iq_d, twin)
+	iq_u = np.multiply(iq_u, windowCoeffs)
+	iq_d = np.multiply(iq_d, windowCoeffs)
 
 	# 512-point FFT
 	IQ_UP = fft(iq_u,n_fft)
@@ -116,8 +116,9 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul,
 				fbu[bin] = f_ax[index_end + idx_u - 1]
 
 			
-				# if both not DC
-				if (fbu[bin] < fbd[bin]):
+				# if target moving towards radar
+				# if (fbu[bin] < fbd[bin]):
+				if (fbu[bin] > 0 and fbd[bin] > 0):
 					fd = (-fbu[bin] + fbd[bin])*calib/2
 					# fd_array[bin] = fd/2
 					
@@ -155,7 +156,7 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul,
 	#      20*np.log10(abs(IQ_UP), 10),  20*np.log10(abs(IQ_DN))
 
 
-def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, 
+def range_speed_safety(i_data, q_data, windowCoeffs, n_fft, num_nul, half_train, 
 half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 
 	# SQUARE LAW DETECTOR
@@ -165,8 +166,8 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 
 	# TAYLOR WINDOW
 	# SLL specified as positive
-	iq_u = np.multiply(iq_u, twin)
-	iq_d = np.multiply(iq_d, twin)
+	iq_u = np.multiply(iq_u, windowCoeffs)
+	iq_d = np.multiply(iq_d, windowCoeffs)
 
 	# 512-point FFT
 	IQ_UP = fft(iq_u,n_fft)
