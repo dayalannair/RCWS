@@ -3,7 +3,10 @@ from CFAR import soca_cfar
 import numpy as np
 from scipy.fft import fft
 
-def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, nbins, bin_width, f_ax, SOS):
+
+# NOTE: Range, speed, and possibly safety results of the below are not correct
+def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul,
+	half_train, half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 	
 	# SQUARE LAW DETECTOR
 	# NOTE: last element in slice not included
@@ -65,63 +68,74 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, nb
 
 	# safety_inv = 0
 	safety = 0
-	beat_min = 0
+	index_end = 0
 	beat_index = 0
 	slope = 2.4e11
 	c = 299792458
 	lmda = 0.0125
 	road_width = 2
-	correction_factor = 3
+	correction_factor = 1
 	fd_max = 2.6667e3 # for max speed = 60km/h
 	
 	# ********************* beat extraction for multiple targets **************************
 	for bin in range(nbins):
-		# find beat in bin
+		# find beat frequency in bin of down chirp
 		bin_slice_d = cfar_dn[bin*bin_width:(bin+1)*bin_width]
+
+		# extract peak of beat frequency and intra-bin index
 		magd = np.amax(bin_slice_d)
 		idx_d = np.argmax(bin_slice_d)
 		
-		beat_index = bin*bin_width + idx_d
+		# if there is a non-zero maximum
 		if magd != 0:
+
+			# index of beat frequency is bin index plus intra-bin index
+			beat_index = bin*bin_width + idx_d
+
+			# store down-chirp beat frequency
 			fbd[bin] = f_ax[beat_index]
-			# set up bin slice to range of expected beats
-			# See freqs from 0 to index 15 - determined from 60kmh (VERIFY)
-			# check if far enough from center
-			if (beat_index>15):
-				beat_min = beat_index - 15
-				bin_slice_u = cfar_up[beat_index - 15:beat_index]
-			# if not, start from center
+
+			# handling edge case at the beginning of the sequence
+			if (beat_index > scan_width):
+				# set beat scan window width
+				index_end = beat_index - scan_width
+				# get up chirp spectrum window
+				bin_slice_u = cfar_up[index_end:beat_index]
+
+			# if too close to the start edge, scan from DC to index
 			else:
-				beat_min = 1
+				index_end = 1
 				bin_slice_u = cfar_up[1:beat_index]
 				
-			# index is index in the subset
+			# Get magnitude and intra-bin index of beat frequency
 			magu = np.amax(bin_slice_u)
 			idx_u = np.argmax(bin_slice_u)
-			if magu != 0:
-				fbu[bin] = f_ax[beat_index - 15 + idx_u]
+
+			# if detection is made and target not static
+			if (magu != 0) and (idx_u != idx_d):
+				fbu[bin] = f_ax[index_end + idx_u - 1]
 
 			
-			# if both not DC
-			if (fbu[bin] != 0 and fbd[bin] != 0):
-				fd = -fbu[bin] + fbd[bin]
-				# fd_array[bin] = fd/2
-				
-				# if less than max expected and filter clutter doppler
-				if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
+				# if both not DC
+				if (fbu[bin] < fbd[bin]):
+					fd = (-fbu[bin] + fbd[bin])*calib/2
+					# fd_array[bin] = fd/2
+					
+					# if less than max expected and filter clutter doppler
+					# if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
 					# convert Doppler to speed. fd is twice the Doppler therefore
 					# divide by 2
-					# sp_array[bin] = fd*lmda/4
+					sp_array[bin] = fd*lmda/2
 					# Note that fbd is now positive
-					rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)
+					rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)*calib
 
 					# ************* Angle correction *******************
 					# Theta in radians
-					theta = np.arcsin(road_width/rg_array[bin])*correction_factor
+					# theta = np.arcsin(road_width/rg_array[bin])*correction_factor
 
-					# real_v = fd*lmda/(8*np.cos(theta))
-					sp_array[bin] = fd*lmda/(8*np.cos(theta))
-				
+					# # real_v = fd*lmda/(8*np.cos(theta))
+					# sp_array[bin] = fd*lmda/(2*np.cos(theta))
+					
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************
 	np.divide(rg_array,sp_array, ratio, where=sp_array!=0)
@@ -135,13 +149,14 @@ def py_trig_dsp(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, nb
 		# safety_inv = 3-min(ratio)
 		
 	# log scale for display purposes
-	return cfar_up, cfar_dn, upth, dnth, IQ_UP, IQ_DN, safety, beat_index, beat_min, rg_array, sp_array
+	return cfar_up, cfar_dn, upth, dnth, IQ_UP, IQ_DN, safety, beat_index, index_end, rg_array, sp_array
 	# return rg_array, sp_array, safety
 	# return cfar_res_up, cfar_res_dn, 20*np.log10(upth), 20*np.log10(dnth),\
 	#      20*np.log10(abs(IQ_UP), 10),  20*np.log10(abs(IQ_DN))
 
 
-def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, half_guard, nbins, bin_width, f_ax):
+def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, 
+half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 
 	# SQUARE LAW DETECTOR
 	# NOTE: last element in slice not included
@@ -188,7 +203,7 @@ def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, half_gu
 
 	# safety_inv = 0
 	safety = 0
-	beat_min = 0
+	index_end = 0
 	beat_index = 0
 	slope = 2.4e11
 	c = 299792458
@@ -199,52 +214,63 @@ def range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, half_gu
 	
 	# ********************* beat extraction for multiple targets **************************
 	for bin in range(nbins):
-		# find beat in bin
+		# find beat frequency in bin of down chirp
 		bin_slice_d = cfar_dn[bin*bin_width:(bin+1)*bin_width]
+
+		# extract peak of beat frequency and intra-bin index
 		magd = np.amax(bin_slice_d)
 		idx_d = np.argmax(bin_slice_d)
 		
-		beat_index = bin*bin_width + idx_d
+		# if there is a non-zero maximum
 		if magd != 0:
+
+			# index of beat frequency is bin index plus intra-bin index
+			beat_index = bin*bin_width + idx_d
+
+			# store down-chirp beat frequency
 			fbd[bin] = f_ax[beat_index]
-			# set up bin slice to range of expected beats
-			# See freqs from 0 to index 15 - determined from 60kmh (VERIFY)
-			# check if far enough from center
-			if (beat_index>15):
-				beat_min = beat_index - 15
-				bin_slice_u = cfar_up[beat_index - 15:beat_index]
-			# if not, start from center
+
+			# handling edge case at the beginning of the sequence
+			if (beat_index > scan_width):
+				# set beat scan window width
+				index_end = beat_index - scan_width
+				# get up chirp spectrum window
+				bin_slice_u = cfar_up[index_end:beat_index]
+
+			# if too close to the start edge, scan from DC to index
 			else:
-				beat_min = 1
+				index_end = 1
 				bin_slice_u = cfar_up[1:beat_index]
 				
-			# index is index in the subset
+			# Get magnitude and intra-bin index of beat frequency
 			magu = np.amax(bin_slice_u)
 			idx_u = np.argmax(bin_slice_u)
-			if magu != 0:
-				fbu[bin] = f_ax[beat_index - 15 + idx_u]
+
+			# if detection is made and target not static
+			if (magu != 0) and (idx_u != idx_d):
+				fbu[bin] = f_ax[index_end + idx_u - 1]
 
 			
-			# if both not DC
-			if (fbu[bin] != 0 and fbd[bin] != 0):
-				fd = -fbu[bin] + fbd[bin]
-				# fd_array[bin] = fd/2
-				
-				# if less than max expected and filter clutter doppler
-				if (fd/2 > 400):
+				# if both not DC
+				if (fbu[bin] < fbd[bin]):
+					fd = (-fbu[bin] + fbd[bin])*calib/2
+					# fd_array[bin] = fd/2
+					
+					# if less than max expected and filter clutter doppler
+					# if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
 					# convert Doppler to speed. fd is twice the Doppler therefore
 					# divide by 2
-					sp_array[bin] = fd*lmda/4
+					sp_array[bin] = fd*lmda/2
 					# Note that fbd is now positive
-					rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)
+					rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)*calib
 
 					# ************* Angle correction *******************
 					# Theta in radians
-					theta = np.arcsin(road_width/rg_array[bin])*correction_factor
+					# theta = np.arcsin(road_width/rg_array[bin])*correction_factor
 
 					# # real_v = fd*lmda/(8*np.cos(theta))
-					sp_array_corr[bin] = fd*lmda/(8*np.cos(theta))
-				
+					# sp_array[bin] = fd*lmda/(2*np.cos(theta))
+					
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************
 	np.divide(rg_array,sp_array, ratio, where=sp_array!=0)

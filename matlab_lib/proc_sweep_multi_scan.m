@@ -35,11 +35,11 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
             % index of beat frequency is bin index plus intra-bin index
             beat_index = bin*bin_width + idx_d;
 
-            % store beat frequency
+            % store down-chirp beat frequency
             fbd(bin+1) = f_pos(beat_index);
            
             % handling edge case at the beginning of the sequence
-           if (beat_index>bin_width)
+           if (beat_index > bin_width)
                % set beat scan window width
                index_end = beat_index - scan_width;
                % get up chirp spectrum window
