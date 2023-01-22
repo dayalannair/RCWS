@@ -80,7 +80,7 @@ c = 299792458
 rng_ax = c*fax/(2*slope)
 # rg_full = np.zeros(16*sweeps)
 n_fft = 512
-twin = signal.windows.taylor(200, nbar=3, sll=70, norm=False)
+twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
 nul_width_factor = 0.04
 num_nul = round((n_fft/2)*nul_width_factor)
 # OS CFAR
@@ -98,7 +98,7 @@ ns = 200
 # ======================================================
 half_train = 8
 half_guard = 7
-Pfa = 0.008
+Pfa = 0.08
 SOS = ns*(Pfa**(-1/ns)-1)
 print("Pfa: ", str(Pfa))
 print("CFAR alpha value: ", SOS)

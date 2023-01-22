@@ -1,5 +1,5 @@
 # from cfar_lib import os_cfar
-from CFAR import soca_cfar, os_cfar
+from CFAR import soca_cfar, os_cfar, soca_cfar_edge
 import numpy as np
 from scipy.fft import fft
 
@@ -42,8 +42,12 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	# cfar_up, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
 	# cfar_dn, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
 
-	cfar_up, upth = soca_cfar(half_train, half_guard, SOS, abs(IQ_UP))
-	cfar_dn, dnth = soca_cfar(half_train, half_guard, SOS, abs(IQ_DN))
+	# cfar_up, upth = soca_cfar(half_train, half_guard, SOS, abs(IQ_UP))
+	# cfar_dn, dnth = soca_cfar(half_train, half_guard, SOS, abs(IQ_DN))
+
+	cfar_up, upth = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_UP))
+	cfar_dn, dnth = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_DN))
+
 
 	# np.log(upth, out=upth)
 	# np.log(dnth, out=dnth)
@@ -201,8 +205,12 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 	# cfar_up, _ = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
 	# cfar_dn, _ = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
 	
-	cfar_up, _ = soca_cfar(half_train, half_guard, SOS, abs(IQ_UP))
-	cfar_dn, _ = soca_cfar(half_train, half_guard, SOS, abs(IQ_DN))
+	# cfar_up, _ = soca_cfar(half_train, half_guard, SOS, abs(IQ_UP))
+	# cfar_dn, _ = soca_cfar(half_train, half_guard, SOS, abs(IQ_DN))
+
+	
+	cfar_up, _ = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_UP))
+	cfar_dn, _ = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_DN))
 
 	fbu = np.zeros(nbins)
 	fbd = np.zeros(nbins)
