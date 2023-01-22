@@ -11,17 +11,18 @@ mpl.rcParams['toolbar'] = 'None'
 import matplotlib.style as mplstyle
 mplstyle.use(['dark_background', 'ggplot', 'fast'])
 
+
 from pathlib import Path
 
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_20kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_30kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_40kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
 
 # On laptop Yoga 910
 
-file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+# file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
 # file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\")
 
 # 60kmh subset
@@ -70,11 +71,13 @@ c = 299792458
 rng_ax = c*fax/(2*slope)
 # rg_full = np.zeros(16*sweeps)
 n_fft = 512
-twin = signal.windows.taylor(200, nbar=3, sll=150, norm=False)
+ns = 200
+# win = signal.windows.taylor(ns, nbar=3, sll=150, norm=False)
+win = signal.windows.hanning(ns)
 nul_width_factor = 0.04
 num_nul = round((n_fft/2)*nul_width_factor)
 # OS CFAR
-ns = 200
+
 # half_guard = n_fft/n_samples
 # half_guard = int(np.floor(half_guard/2)*2) # make even
 
@@ -86,8 +89,9 @@ ns = 200
 half_train = 8
 half_guard = 7
 
-Pfa = 0.008
+Pfa = 0.005
 SOS = ns*(Pfa**(-1/ns)-1)
+SOS
 print("Pfa: ", str(Pfa))
 print("CFAR alpha value: ", SOS)
 # factorial needs integer values
@@ -200,10 +204,10 @@ for i in subset:
 
 	# t0_proc = time()
 	_, _, upth, dnth, fftu, fftd, _, _, _,\
-	rgMtx[idx, :], spMtx[idx, :] = py_trig_dsp(i_data,q_data, twin, n_fft, num_nul, half_train, \
+	rgMtx[idx, :], spMtx[idx, :] = py_trig_dsp(i_data,q_data, win, n_fft, num_nul, half_train, \
 	half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
 	idx = idx + 1
-	# spMtx[idx, :] = spMtx[idx, :]*3.6
+	spMtx[idx, :] = spMtx[idx, :]*3.6
 	# print(spMtx[np.nonzero(spMtx)])
 	# print(len(cfar_res_up))
 	# ============== LOG SCALE =====================
@@ -213,8 +217,8 @@ for i in subset:
 	line4.set_ydata(20*np.log10(dnth + 10**-10))
 	# # line5.set_ydata(os_pku)
 	# # line6.set_ydata(os_pkd)
-	# line1_2.set_data(rgMtx)
-	# line2_2.set_data(spMtx)
+	line1_2.set_data(rgMtx)
+	line2_2.set_data(spMtx)
 
 	# line1_2.set_ydata(20*np.log10(abs(fftu_2)))
 	# line2_2.set_ydata(20*np.log10(upth_2))

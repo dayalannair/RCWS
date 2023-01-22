@@ -1,3 +1,11 @@
+# Script for testing Python processing for a single uRAD
+# on real data
+# Once suitable, can assume it will operate the same
+# in real time, though it could vary between scenarios/
+# clutter backgrounds
+# NOTE:
+# Should also test with data from the dual radar system
+
 import sys
 sys.path.append('../custom_modules')
 from time import time, sleep, strftime,localtime
@@ -11,22 +19,28 @@ mpl.rcParams['toolbar'] = 'None'
 mpl.rcParams["axes.grid"] = False
 import matplotlib.style as mplstyle
 mplstyle.use(['dark_background', 'ggplot', 'fast'])
-
+import matplotlib.pyplot as plt
+from scipy import signal
 from pathlib import Path
+
+
+
+# Home Desktop Proline i7 2nd Gen
 
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_20kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_30kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_40kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
 
 # On laptop Yoga 910
 
-file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+# file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
 # file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\")
 
 # 60kmh subset
 subset = range(800,1100)
+# subset = range(0, 2000)
 len_subset = len(subset)
 # 50 kmh subset - same
 # 40 kmh subset
@@ -42,14 +56,6 @@ with open(file_path, "r") as raw_IQ:
 fft_array       = np.empty([len_subset, 256])
 threshold_array = np.empty([len_subset, 256])
 up_peaks        = np.empty([len_subset, 256])
-
-
-import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
-from scipy import signal
-
-import threading
-
 
 # input parameters
 # BW and Ns input as arguments
@@ -84,28 +90,23 @@ ns = 200
 # rank = 2*half_train -2*half_guard
 # rank = half_train*2
 
+# ======================================================
+#					Tunable Parameters
+# ======================================================
 half_train = 8
 half_guard = 7
-
-Pfa = 0.005
+Pfa = 0.05
 SOS = ns*(Pfa**(-1/ns)-1)
 print("Pfa: ", str(Pfa))
 print("CFAR alpha value: ", SOS)
-# factorial needs integer values
-
 nbins = 16
 bin_width = round((n_fft/2)/nbins)
-
 # tsweep = 1e-3
 # bw = 240e6
 # # can optimise out this calculation
 # slope = bw/tsweep
 fs = 200e3
 f_ax = np.linspace(0, round(fs/2), round(n_fft/2))
-# plt.ion()
-# print(beat_index)
-# print(beat_min)
-# plt.show(block=False)
 
 upth = np.zeros(256)
 dnth = np.zeros(256)
@@ -122,7 +123,6 @@ fftd = np.zeros(256)
 # fftd = 20*np.log10(abs(fftd))
 # os_pku = 20*np.log10(abs(os_pku))
 # os_pkd = 20*np.log10(abs(os_pkd))
-
 
 upth_2 = []
 dnth_2 = []
@@ -208,8 +208,8 @@ ax[1].set_title("RPI Up chirp spectrum positive half")
 ax[0].set_xlabel("Coupled Range (m)")
 ax[1].set_xlabel("Coupled Range (m)")
 
-ax[0].set_ylabel("Magnitude (dB)")
-ax[1].set_ylabel("Magnitude (dB)")
+# ax[0].set_ylabel("Magnitude (dB)")
+# ax[1].set_ylabel("Magnitude (dB)")
 
 
 line1_2 = ax[0].imshow(rgMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70)

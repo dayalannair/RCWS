@@ -5,7 +5,7 @@ subset = 1:1000;
 
 addpath('../../matlab_lib/');
 
-% iq_dual_load_data;
+iq_dual_load_data;
 
 
 

@@ -1,5 +1,5 @@
 # from cfar_lib import os_cfar
-from CFAR import soca_cfar
+from CFAR import soca_cfar, os_cfar
 import numpy as np
 from scipy.fft import fft
 
@@ -37,7 +37,8 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	
 	# note the abs
 	# -------------------- CFAR detection ---------------------------
-	# cfar_scale = 1 # additional scaling factor
+	rank = 2*half_train - 1 
+	cfar_scale = 1 # additional scaling factor
 	# cfar_up, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
 	# cfar_dn, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
 
