@@ -30,8 +30,8 @@ from pathlib import Path
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_20kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_30kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_40kmh.txt")
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
-file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
+# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
 
 # On laptop Yoga 910
 
@@ -128,8 +128,11 @@ upth_2 = []
 dnth_2 = []
 fftd_2 = []
 fftu_2 = []
-rgMtx = np.zeros([len(subset)+1, nbins])
-spMtx = np.zeros([len(subset)+1, nbins])
+rgMtx = np.zeros([len_subset, nbins])
+spMtx = np.zeros([len_subset, nbins])
+fbu = np.zeros([len_subset, nbins])
+fbd = np.zeros([len_subset, nbins])
+
 scan_width = 8
 calib = 1.2463
 
@@ -137,10 +140,9 @@ print("System running...")
 # safety_inv = np.zeros(sweeps)
 # safety_inv_2 = np.zeros(sweeps)
 plt.pause(0.1)
-
+# print(sweeps[800])
 idx = 0
 for i in subset:
-	
 	samples = np.array(sweeps[i].split(" "))
 	i_data = samples[  0:400]
 	q_data = samples[400:800]
@@ -154,7 +156,7 @@ for i in subset:
 	# half_guard, nbins, bin_width, f_ax, SOS)
 
 
-	rgMtx[idx, :], spMtx[idx, :], _, _ = range_speed_safety(i_data,q_data, twin, n_fft, num_nul, half_train, \
+	rgMtx[idx, :], spMtx[idx, :], _, fbu[idx, :], fbd[idx, :], _ = range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, \
 	half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
 
 
@@ -163,26 +165,25 @@ for i in subset:
 	# print(spMtx[np.nonzero(spMtx)])
 
 print("Saving data...")
-# spMtx = spMtx*3.6 # km/h
+spMtx = spMtx*3.6 # km/h
 # safety_fname = "safety_results.txt"
 rng_fname = "range_results.txt"
 spd_fname = "speed_results.txt"
+fbu_fname = "fbu_results.txt"
+fbd_fname = "fbd_results.txt"
 # np.savetxt(safety_fname,  safety, fmt='%3.4f')
-np.savetxt(rng_fname,  rgMtx, fmt='%3.2f')
-np.savetxt(spd_fname,  spMtx, fmt='%3.2f')
+np.savetxt(rng_fname,  rgMtx, fmt='%10.5f')
+np.savetxt(spd_fname,  spMtx, fmt='%10.5f')
+np.savetxt(fbu_fname,  fbu, fmt='%10.5f')
+np.savetxt(fbd_fname,  fbd, fmt='%10.5f')
+
+fd_arr = np.subtract(fbd, fbu)/2
+fd_fname = "dopp_results.txt"
+np.savetxt(fd_fname,  fbd, fmt='%10.5f')
 
 print("Processing Complete. Displaying results...")
 
 fig1, ax = plt.subplots(nrows=1, ncols=2, figsize=(10, 6)) #, constrained_layout=True)
-ax[0].set_xlim([0, 62.5])
-ax[0].set_ylim([90, 180])
-ax[1].set_xlim([0, 62.5])
-ax[1].set_ylim([90, 180])
-ax[0].set_xlim([0, 62.5])
-ax[0].set_ylim([90, 180])
-ax[1].set_xlim([0, 62.5])
-ax[1].set_ylim([90, 180])
-
 fig1.tight_layout()
 # set the spacing between subplots
 # plt.subplots_adjust(left=0.1,
@@ -192,30 +193,10 @@ fig1.tight_layout()
 #                     wspace=0.4, 
 #                     hspace=0.4)
 
-
-ax[0].set_title("USB Down chirp spectrum negative half flipped")
-ax[1].set_title("USB Up chirp spectrum positive half")
-
-ax[0].set_xlabel("Coupled Range (m)")
-ax[1].set_xlabel("Coupled Range (m)")
-
-ax[0].set_ylabel("Magnitude (dB)")
-ax[1].set_ylabel("Magnitude (dB)")
-
-ax[0].set_title("RPI Down chirp spectrum negative half flipped")
-ax[1].set_title("RPI Up chirp spectrum positive half")
-
-ax[0].set_xlabel("Coupled Range (m)")
-ax[1].set_xlabel("Coupled Range (m)")
-
-# ax[0].set_ylabel("Magnitude (dB)")
-# ax[1].set_ylabel("Magnitude (dB)")
-
-
-line1_2 = ax[0].imshow(rgMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70)
+line1_2 = ax[0].imshow(rgMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70, aspect='auto')
 # plt.grid(None)
 # plt.show()
-line2_2 = ax[1].imshow(spMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70)
+line2_2 = ax[1].imshow(spMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70, aspect='auto')
 # plt.grid(None)
 plt.show()
 

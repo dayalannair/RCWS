@@ -192,8 +192,8 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 	# cfar_up, _ = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
 	# cfar_dn, _ = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
 	
-	cfar_up, upth = soca_cfar(half_train, half_guard, SOS, abs(IQ_UP))
-	cfar_dn, dnth = soca_cfar(half_train, half_guard, SOS, abs(IQ_DN))
+	cfar_up, _ = soca_cfar(half_train, half_guard, SOS, abs(IQ_UP))
+	cfar_dn, _ = soca_cfar(half_train, half_guard, SOS, abs(IQ_DN))
 
 	fbu = np.zeros(nbins)
 	fbd = np.zeros(nbins)
@@ -212,8 +212,9 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 	lmda = 0.0125
 	road_width = 2
 	correction_factor = 3
-	fd_max = 2.6667e3 # for max speed = 60km/h
-	
+	fdMax = 2.6667e3 # for max speed = 60km/h
+	fdMax = 2.6667e3 # for max speed = 60km/h
+	fdMin = 444
 	# ********************* beat extraction for multiple targets **************************
 	for bin in range(nbins):
 		# find beat frequency in bin of down chirp
@@ -255,24 +256,25 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 			
 				# if both not DC
 				if (fbu[bin] < fbd[bin]):
-					fd = (-fbu[bin] + fbd[bin])*calib/2
+					fd = (-fbu[bin] + fbd[bin])*calib/4 # divide by 4 instead of 2 to eliminate further divisions
 					# fd_array[bin] = fd/2
 					
 					# if less than max expected and filter clutter doppler
 					# if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
-					# convert Doppler to speed. fd is twice the Doppler therefore
-					# divide by 2
-					sp_array[bin] = fd*lmda/2
-					# Note that fbd is now positive
-					rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)*calib
+					if (fdMin < fd < fdMax):
+						# convert Doppler to speed. fd is twice the Doppler therefore
+						# divide by 2
+						sp_array[bin] = fd*lmda
+						# Note that fbd is now positive
+						rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)*calib
 
-					# ************* Angle correction *******************
-					# Theta in radians
-					# theta = np.arcsin(road_width/rg_array[bin])*correction_factor
+						# ************* Angle correction *******************
+						# Theta in radians
+						# theta = np.arcsin(road_width/rg_array[bin])*correction_factor
 
-					# # real_v = fd*lmda/(8*np.cos(theta))
-					# sp_array[bin] = fd*lmda/(2*np.cos(theta))
-					
+						# # real_v = fd*lmda/(8*np.cos(theta))
+						# sp_array[bin] = fd*lmda/(2*np.cos(theta))
+						
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************
 	np.divide(rg_array,sp_array, ratio, where=sp_array!=0)
@@ -284,4 +286,4 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 		safety = min(ratio)
 
 
-	return rg_array, sp_array, safety, sp_array_corr
+	return rg_array, sp_array, safety, fbu, fbd, sp_array_corr

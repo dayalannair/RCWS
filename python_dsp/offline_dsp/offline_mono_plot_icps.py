@@ -28,6 +28,7 @@ file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\c
 # 60kmh subset
 subset = range(800,1100)
 len_subset = len(subset)
+print("Subset length: ", str(len_subset))
 # 50 kmh subset - same
 # 40 kmh subset
 # subset = range(700,1100)
@@ -72,8 +73,8 @@ rng_ax = c*fax/(2*slope)
 # rg_full = np.zeros(16*sweeps)
 n_fft = 512
 ns = 200
-# win = signal.windows.taylor(ns, nbar=3, sll=150, norm=False)
-win = signal.windows.hanning(ns)
+win = signal.windows.taylor(ns, nbar=3, sll=100, norm=False)
+# win = signal.windows.hanning(ns)
 nul_width_factor = 0.04
 num_nul = round((n_fft/2)*nul_width_factor)
 # OS CFAR
@@ -98,7 +99,7 @@ print("CFAR alpha value: ", SOS)
 
 nbins = 16
 bin_width = round((n_fft/2)/nbins)
-
+print("Bin width: ", str(bin_width))
 # tsweep = 1e-3
 # bw = 240e6
 # # can optimise out this calculation
@@ -150,10 +151,13 @@ upth_2 = []
 dnth_2 = []
 fftd_2 = []
 fftu_2 = []
-rgMtx = np.zeros([len(subset), nbins])
-spMtx = np.zeros([len(subset), nbins])
-line1_2 = ax[0, 1].imshow(rgMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70)
-line2_2 = ax[1, 1].imshow(spMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70)
+rgMtx = np.zeros([len_subset, nbins])
+spMtx = np.zeros([len_subset, nbins])
+# line1_2 = ax[0, 1].imshow(rgMtx, extent=[0, 62.5, 0, len(subset)*2], origin='upper', vmin=0, vmax=70)
+# line2_2 = ax[1, 1].imshow(spMtx, extent=[0, 62.5, 0, len(subset)*2], origin='upper', vmin=0, vmax=70)
+
+line1_2 = ax[0, 1].imshow(rgMtx)
+line2_2 = ax[1, 1].imshow(spMtx)
 
 line1, = ax[0, 0].plot(rng_ax, fftu)
 line2, = ax[0, 0].plot(rng_ax, upth)
@@ -186,14 +190,13 @@ ax[1, 1].set_ylabel("Magnitude (dB)")
 print("System running...")
 # safety_inv = np.zeros(sweeps)
 # safety_inv_2 = np.zeros(sweeps)
-plt.pause(0.1)
+# plt.pause(0.1)
 
 scan_width = 8
 calib = 1.2463
 
 idx = 0
 for i in subset:
-	
 	samples = np.array(sweeps[i].split(" "))
 	i_data = samples[  0:400]
 	q_data = samples[400:800]
