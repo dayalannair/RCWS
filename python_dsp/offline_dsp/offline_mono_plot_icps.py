@@ -73,7 +73,7 @@ rng_ax = c*fax/(2*slope)
 # rg_full = np.zeros(16*sweeps)
 n_fft = 512
 ns = 200
-win = signal.windows.taylor(ns, nbar=3, sll=100, norm=False)
+win = signal.windows.taylor(ns, nbar=3, sll=80, norm=False)
 # win = signal.windows.hanning(ns)
 nul_width_factor = 0.04
 num_nul = round((n_fft/2)*nul_width_factor)
@@ -90,7 +90,7 @@ num_nul = round((n_fft/2)*nul_width_factor)
 half_train = 8
 half_guard = 7
 
-Pfa = 0.005
+Pfa = 0.008
 SOS = ns*(Pfa**(-1/ns)-1)
 SOS
 print("Pfa: ", str(Pfa))
@@ -132,10 +132,10 @@ ax[0, 0].set_xlim([0, 62.5])
 ax[0, 0].set_ylim([90, 180])
 ax[1, 0].set_xlim([0, 62.5])
 ax[1, 0].set_ylim([90, 180])
-ax[0, 1].set_xlim([0, 62.5])
-ax[0, 1].set_ylim([90, 180])
-ax[1, 1].set_xlim([0, 62.5])
-ax[1, 1].set_ylim([90, 180])
+# ax[0, 1].set_xlim([0, 62.5])
+# ax[0, 1].set_ylim([90, 180])
+# ax[1, 1].set_xlim([0, 62.5])
+# ax[1, 1].set_ylim([90, 180])
 
 fig1.tight_layout()
 # set the spacing between subplots
@@ -156,8 +156,8 @@ spMtx = np.zeros([len_subset, nbins])
 # line1_2 = ax[0, 1].imshow(rgMtx, extent=[0, 62.5, 0, len(subset)*2], origin='upper', vmin=0, vmax=70)
 # line2_2 = ax[1, 1].imshow(spMtx, extent=[0, 62.5, 0, len(subset)*2], origin='upper', vmin=0, vmax=70)
 
-line1_2 = ax[0, 1].imshow(rgMtx)
-line2_2 = ax[1, 1].imshow(spMtx)
+line1_2 = ax[0, 1].imshow(rgMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70, aspect='auto')
+line2_2 = ax[1, 1].imshow(spMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70, aspect='auto')
 
 line1, = ax[0, 0].plot(rng_ax, fftu)
 line2, = ax[0, 0].plot(rng_ax, upth)

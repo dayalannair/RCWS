@@ -30,8 +30,8 @@ from pathlib import Path
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_20kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_30kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_40kmh.txt")
-file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
+file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
 
 # On laptop Yoga 910
 
@@ -41,12 +41,15 @@ file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\c
 # 60kmh subset
 subset = range(800,1100)
 # subset = range(0, 2000)
-len_subset = len(subset)
+
 # 50 kmh subset - same
 # 40 kmh subset
 # subset = range(700,1100)
 # 20km/h subset
 # subset = range(1,1500)
+
+
+len_subset = len(subset)
 
 # sys.path.append('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby')
 with open(file_path, "r") as raw_IQ:
@@ -77,7 +80,7 @@ c = 299792458
 rng_ax = c*fax/(2*slope)
 # rg_full = np.zeros(16*sweeps)
 n_fft = 512
-twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
+twin = signal.windows.taylor(200, nbar=3, sll=70, norm=False)
 nul_width_factor = 0.04
 num_nul = round((n_fft/2)*nul_width_factor)
 # OS CFAR
@@ -95,7 +98,7 @@ ns = 200
 # ======================================================
 half_train = 8
 half_guard = 7
-Pfa = 0.05
+Pfa = 0.008
 SOS = ns*(Pfa**(-1/ns)-1)
 print("Pfa: ", str(Pfa))
 print("CFAR alpha value: ", SOS)
@@ -106,8 +109,15 @@ bin_width = round((n_fft/2)/nbins)
 # # can optimise out this calculation
 # slope = bw/tsweep
 fs = 200e3
-f_ax = np.linspace(0, round(fs/2), round(n_fft/2))
 
+delta_f = fs/n_fft
+print('Frequency resolution: ',delta_f)
+
+# Below matches matlab better than linspace
+f_ax = np.arange(0, fs/2, delta_f, dtype=float)
+
+# f_ax = np.linspace(0, round(fs/2), 256)
+# print("Freq axis values: ", f_ax)
 upth = np.zeros(256)
 dnth = np.zeros(256)
 fftu = np.zeros(256)
@@ -133,7 +143,11 @@ spMtx = np.zeros([len_subset, nbins])
 fbu = np.zeros([len_subset, nbins])
 fbd = np.zeros([len_subset, nbins])
 
-scan_width = 8
+cfar_up = np.zeros([len_subset, 256])
+cfar_dn = np.zeros([len_subset, 256])
+
+
+scan_width = 10
 calib = 1.2463
 
 print("System running...")
@@ -156,7 +170,8 @@ for i in subset:
 	# half_guard, nbins, bin_width, f_ax, SOS)
 
 
-	rgMtx[idx, :], spMtx[idx, :], _, fbu[idx, :], fbd[idx, :], _ = range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, \
+	rgMtx[idx, :], spMtx[idx, :], _, fbu[idx, :], fbd[idx, :], _, cfar_up[idx, :], cfar_dn[idx, :] = \
+		range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, \
 	half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
 
 
@@ -180,6 +195,12 @@ np.savetxt(fbd_fname,  fbd, fmt='%10.5f')
 fd_arr = np.subtract(fbd, fbu)/2
 fd_fname = "dopp_results.txt"
 np.savetxt(fd_fname,  fbd, fmt='%10.5f')
+
+cfu_fname = "cfar_u_results.txt"
+cfd_fname = "cfar_d_results.txt"
+# np.savetxt(safety_fname,  safety, fmt='%3.4f')
+np.savetxt(cfu_fname,  cfar_up, fmt='%10.5f')
+np.savetxt(cfd_fname,  cfar_dn, fmt='%10.5f')
 
 print("Processing Complete. Displaying results...")
 

@@ -7,7 +7,7 @@ from scipy.fft import fft
 # NOTE: Range, speed, and possibly safety results of the below are not correct
 def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	half_train, half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
-	
+	half_n_fft = int(n_fft/2)
 	# SQUARE LAW DETECTOR
 	# NOTE: last element in slice not included
 	iq_u = np.power(i_data[  0:200],2) + np.power(q_data[  0:200],2)
@@ -24,8 +24,8 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 
 	# Halve FFTs
 	# note: python starts from zero for this!
-	IQ_UP = IQ_UP[0:round(n_fft/2)]
-	IQ_DN = IQ_DN[round(n_fft/2):]
+	IQ_UP = IQ_UP[0:half_n_fft]
+	IQ_DN = IQ_DN[half_n_fft:]
 
 	# print(len(IQ_UP))   
 	# Null feedthrough
@@ -77,7 +77,10 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	road_width = 2
 	correction_factor = 1
 	fd_max = 2.6667e3 # for max speed = 60km/h
-	
+	# magu = 0
+	# idx_u = 0
+	# magd = 0
+	# idx_d = 0
 	# ********************* beat extraction for multiple targets **************************
 	for bin in range(nbins):
 		# find beat frequency in bin of down chirp
@@ -86,6 +89,9 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 		# extract peak of beat frequency and intra-bin index
 		magd = np.amax(bin_slice_d)
 		idx_d = np.argmax(bin_slice_d)
+
+		# np.amax(bin_slice_d, axis=0, out=magd)
+		# np.argmax(bin_slice_d, axis=0, out=idx_d)
 		
 		# if there is a non-zero maximum
 		if magd != 0:
@@ -111,6 +117,9 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 			# Get magnitude and intra-bin index of beat frequency
 			magu = np.amax(bin_slice_u)
 			idx_u = np.argmax(bin_slice_u)
+
+			# np.amax(bin_slice_u, axis=0, out=magu)
+			# np.argmax(bin_slice_u, axis=0, out=idx_u)
 
 			# if detection is made and target not static
 			if (magu != 0) and (idx_u != idx_d):
@@ -159,7 +168,7 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 
 def range_speed_safety(i_data, q_data, windowCoeffs, n_fft, num_nul, half_train, 
 half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
-
+	half_n_fft = int(n_fft/2)
 	# SQUARE LAW DETECTOR
 	# NOTE: last element in slice not included
 	iq_u = np.power(i_data[  0:200],2) + np.power(q_data[  0:200],2)
@@ -171,13 +180,13 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 	iq_d = np.multiply(iq_d, windowCoeffs)
 
 	# 512-point FFT
-	IQ_UP = fft(iq_u,n_fft)
-	IQ_DN = fft(iq_d,n_fft)
+	IQ_UP = fft(iq_u, n_fft)
+	IQ_DN = fft(iq_d, n_fft)
 
 	# Halve FFTs
 	# note: python starts from zero for this!
-	IQ_UP = IQ_UP[0:round(n_fft/2)]
-	IQ_DN = IQ_DN[round(n_fft/2):]
+	IQ_UP = IQ_UP[0:half_n_fft]
+	IQ_DN = IQ_DN[half_n_fft: ]
 
 	# print(len(IQ_UP))   
 	# Null feedthrough
@@ -215,6 +224,11 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 	fdMax = 2.6667e3 # for max speed = 60km/h
 	fdMax = 2.6667e3 # for max speed = 60km/h
 	fdMin = 444
+	# magu = 0
+	# idx_u = 0
+	# magd = 0
+	# idx_d = 0
+
 	# ********************* beat extraction for multiple targets **************************
 	for bin in range(nbins):
 		# find beat frequency in bin of down chirp
@@ -223,6 +237,8 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 		# extract peak of beat frequency and intra-bin index
 		magd = np.amax(bin_slice_d)
 		idx_d = np.argmax(bin_slice_d)
+		# np.amax(bin_slice_d, axis=0, out=magd)
+		# np.argmax(bin_slice_d, axis=0, out=idx_d)
 		
 		# if there is a non-zero maximum
 		if magd != 0:
@@ -248,6 +264,9 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 			# Get magnitude and intra-bin index of beat frequency
 			magu = np.amax(bin_slice_u)
 			idx_u = np.argmax(bin_slice_u)
+			# np.amax(bin_slice_u, axis=0, out=magu)
+			# np.argmax(bin_slice_u, axis=0, out=idx_u)
+
 
 			# if detection is made and target not static
 			if (magu != 0) and (idx_u != idx_d):
@@ -286,4 +305,4 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 		safety = min(ratio)
 
 
-	return rg_array, sp_array, safety, fbu, fbd, sp_array_corr
+	return rg_array, sp_array, safety, fbu, fbd, sp_array_corr, cfar_up, cfar_dn
