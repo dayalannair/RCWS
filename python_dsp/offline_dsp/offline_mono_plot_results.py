@@ -8,18 +8,20 @@
 
 import sys
 sys.path.append('../custom_modules')
-from time import time, sleep, strftime,localtime
+from time import time #, sleep, strftime,localtime
 import sys
 from pyDSPv2 import py_trig_dsp, range_speed_safety
 import numpy as np
-import matplotlib as mpl
-mpl.rcParams['path.simplify'] = True
-mpl.rcParams['path.simplify_threshold'] = 1.0
-mpl.rcParams['toolbar'] = 'None' 
-mpl.rcParams["axes.grid"] = False
-import matplotlib.style as mplstyle
-mplstyle.use(['dark_background', 'ggplot', 'fast'])
+# import matplotlib as mpl
+# mpl.rcParams['path.simplify'] = True
+# mpl.rcParams['path.simplify_threshold'] = 1.0
+# mpl.rcParams['toolbar'] = 'None' 
+# mpl.rcParams["axes.grid"] = False
+# import matplotlib.style as mplstyle
+# mplstyle.use(['dark_background', 'ggplot', 'fast'])
 import matplotlib.pyplot as plt
+# import matplotlib
+# matplotlib.use("tkagg")
 from scipy import signal
 from pathlib import Path
 
@@ -98,7 +100,7 @@ ns = 200
 # ======================================================
 half_train = 8
 half_guard = 7
-Pfa = 0.08
+Pfa = 0.010
 SOS = ns*(Pfa**(-1/ns)-1)
 print("Pfa: ", str(Pfa))
 print("CFAR alpha value: ", SOS)
@@ -140,6 +142,7 @@ fftd_2 = []
 fftu_2 = []
 rgMtx = np.zeros([len_subset, nbins])
 spMtx = np.zeros([len_subset, nbins])
+sfMtx = np.zeros(len_subset)
 fbu = np.zeros([len_subset, nbins])
 fbd = np.zeros([len_subset, nbins])
 
@@ -170,7 +173,7 @@ for i in subset:
 	# half_guard, nbins, bin_width, f_ax, SOS)
 
 
-	rgMtx[idx, :], spMtx[idx, :], _, fbu[idx, :], fbd[idx, :], _, cfar_up[idx, :], cfar_dn[idx, :] = \
+	rgMtx[idx, :], spMtx[idx, :], sfMtx[idx], fbu[idx, :], fbd[idx, :], _, cfar_up[idx, :], cfar_dn[idx, :] = \
 		range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, \
 	half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
 
@@ -178,7 +181,7 @@ for i in subset:
 	idx = idx + 1
 	# spMtx[idx, :] = spMtx[idx, :]*3.6
 	# print(spMtx[np.nonzero(spMtx)])
-
+print(sfMtx)
 print("Saving data...")
 spMtx = spMtx*3.6 # km/h
 # safety_fname = "safety_results.txt"
@@ -204,7 +207,7 @@ np.savetxt(cfd_fname,  cfar_dn, fmt='%10.5f')
 
 print("Processing Complete. Displaying results...")
 
-fig1, ax = plt.subplots(nrows=1, ncols=2, figsize=(10, 6)) #, constrained_layout=True)
+fig1, ax = plt.subplots(nrows=1, ncols=3, figsize=(10, 6)) #, constrained_layout=True)
 fig1.tight_layout()
 # set the spacing between subplots
 # plt.subplots_adjust(left=0.1,
@@ -214,10 +217,14 @@ fig1.tight_layout()
 #                     wspace=0.4, 
 #                     hspace=0.4)
 
-line1_2 = ax[0].imshow(rgMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70, aspect='auto')
+line1 = ax[0].imshow(rgMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70, aspect='auto')
 # plt.grid(None)
 # plt.show()
-line2_2 = ax[1].imshow(spMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70, aspect='auto')
+line2 = ax[1].imshow(spMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70, aspect='auto')
+line3, = ax[2].plot(sfMtx)
+# thismanager = get_current_fig_manager()
+# thismanager.window.SetPosition((500, 0))
+
 # plt.grid(None)
 plt.show()
 

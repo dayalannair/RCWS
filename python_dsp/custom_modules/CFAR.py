@@ -205,6 +205,94 @@ def soca_cfar_edge(half_train, half_guard, SOS, data):
         # ************************************************************
     return result, th
 
+def soca_cfar_far_edge(half_train, half_guard, SOS, data):
+
+    ns = len(data) # number of samples
+    result = np.zeros(ns)
+    th = np.zeros(ns)
+    lead = half_train + half_guard # max num cells considered on either side of cut
+    lag = ns - lead
+    N = 2*half_train - 2*half_guard
+    
+
+    for cutidx in range(ns): #cutidx = index of cell under test
+
+        # # If no LHS training cells, take cells right of RHS
+        # if (cutidx<=half_guard):
+        #     rhs_train = data[cutidx+half_guard:cutidx+lead]
+        #     lhs_train = data[cutidx+lead:cutidx+lead+half_train]
+
+        # IF some LHS cells, use these and take remainder from RHS
+        # if (cutidx<lead):
+        #     # RHS train cells set as normal
+        #     rhs_train = data[cutidx+half_guard:cutidx+lead]
+        #     # add all cells from pos 0 up to guard to train set
+        #     lhs_train = data[0:cutidx-half_guard]
+        #     # space = number of lhs train cells still to be filled
+        #     lhs_fill = half_train-len(lhs_train)
+        #     # add cells to the right of rhs train cells to the lhs side
+        #     lhs_train = np.append(lhs_train, data[cutidx+lead:cutidx+lead+lhs_fill])
+        #     # lhs_train.append(data[cutidx+lead:cutidx+lead+lhs_fill])
+        #     cut = data[cutidx]
+        #     ZOS = min(np.average(lhs_train),np.average(rhs_train))
+        #     TOS = SOS*ZOS
+        #     th[cutidx] = TOS
+        #     if cut > TOS:
+        #         result[cutidx] = cut
+
+        # IF enough train cells on either side
+        if (lead<cutidx<lag):
+            lhs_train = data[cutidx-lead:cutidx-half_guard]
+            rhs_train = data[cutidx+half_guard:cutidx+lead]
+            cut = data[cutidx]
+            ZOS = min(np.average(lhs_train),np.average(rhs_train))
+            TOS = SOS*ZOS
+            th[cutidx] = TOS
+            if cut > TOS:
+
+                result[cutidx] = cut
+
+        # IF too few cells on the right, take some from left of LHS    
+        elif (cutidx >= (ns-lead)):
+            # LHS as normal 
+            lhs_train = data[cutidx-lead:cutidx-half_guard]
+
+            rhs_train = data[cutidx+half_guard:]
+
+            rhs_fill = half_train-len(rhs_train)
+            rhs_train = np.append(rhs_train, data[cutidx-lead-rhs_fill:cutidx-lead])
+            cut = data[cutidx]
+
+            ZOS = min(np.average(lhs_train),np.average(rhs_train))
+            TOS = SOS*ZOS
+            th[cutidx] = TOS
+            if cut > TOS:
+                result[cutidx] = cut
+
+        elif (cutidx >= (ns-half_guard)):
+            lhs_train = data[cutidx-lead:cutidx-half_guard]
+            rhs_train = data[cutidx-lead-half_train:cutidx-lead]
+            cut = data[cutidx]
+            # print("Train cells number = ", np.size(training_cells))
+            # print(ZOS)
+            ZOS = min(np.average(lhs_train),np.average(rhs_train))
+            TOS = SOS*ZOS
+            # print('TOS =', TOS)
+            th[cutidx] = TOS
+            # print('TOS =', th[cutidx])
+            if cut > TOS:
+                # index implies frequency. return magnitude for use in
+                # determining max value
+                result[cutidx] = cut
+            
+        # NOTE: The below did not produce correct results,
+        # so the proc was added to each case
+        # no further proc if not in one of the cases
+        # else:
+        #     return result, th
+
+    return result, th
+
 def os_cfar_edge(half_train, half_guard, rank, SOS, data, cfar_scale):
 
     ns = len(data) # number of samples

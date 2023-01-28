@@ -1,5 +1,5 @@
 # from cfar_lib import os_cfar
-from CFAR import soca_cfar, os_cfar, soca_cfar_edge
+from CFAR import soca_cfar_far_edge
 import numpy as np
 from scipy.fft import fft
 
@@ -45,8 +45,8 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	# cfar_up, upth = soca_cfar(half_train, half_guard, SOS, abs(IQ_UP))
 	# cfar_dn, dnth = soca_cfar(half_train, half_guard, SOS, abs(IQ_DN))
 
-	cfar_up, upth = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_UP))
-	cfar_dn, dnth = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_DN))
+	cfar_up, upth = soca_cfar_far_edge(half_train, half_guard, SOS, abs(IQ_UP))
+	cfar_dn, dnth = soca_cfar_far_edge(half_train, half_guard, SOS, abs(IQ_DN))
 
 
 	# np.log(upth, out=upth)
@@ -131,25 +131,26 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 
 			
 				# if target moving towards radar
-				# if (fbu[bin] < fbd[bin]):
-				if (fbu[bin] > 0 and fbd[bin] > 0):
+				if (fbu[bin] < fbd[bin]):
+				# if (fbu[bin] > 0 and fbd[bin] > 0):
 					fd = (-fbu[bin] + fbd[bin])*calib/2
-					# fd_array[bin] = fd/2
-					
-					# if less than max expected and filter clutter doppler
-					# if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
-					# convert Doppler to speed. fd is twice the Doppler therefore
-					# divide by 2
-					sp_array[bin] = fd*lmda/2
-					# Note that fbd is now positive
-					rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)*calib
+					if (fd>800):
+						# fd_array[bin] = fd/2
+						
+						# if less than max expected and filter clutter doppler
+						# if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
+						# convert Doppler to speed. fd is twice the Doppler therefore
+						# divide by 2
+						sp_array[bin] = fd*lmda/2
+						# Note that fbd is now positive
+						rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)*calib
 
-					# ************* Angle correction *******************
-					# Theta in radians
-					# theta = np.arcsin(road_width/rg_array[bin])*correction_factor
+						# ************* Angle correction *******************
+						# Theta in radians
+						# theta = np.arcsin(road_width/rg_array[bin])*correction_factor
 
-					# # real_v = fd*lmda/(8*np.cos(theta))
-					# sp_array[bin] = fd*lmda/(2*np.cos(theta))
+						# # real_v = fd*lmda/(8*np.cos(theta))
+						# sp_array[bin] = fd*lmda/(2*np.cos(theta))
 					
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************
@@ -209,15 +210,20 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 	# cfar_dn, _ = soca_cfar(half_train, half_guard, SOS, abs(IQ_DN))
 
 	
-	cfar_up, _ = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_UP))
-	cfar_dn, _ = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_DN))
+	# cfar_up, _ = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_UP))
+	# cfar_dn, _ = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_DN))
+
+	cfar_up, _ = soca_cfar_far_edge(half_train, half_guard, SOS, abs(IQ_UP))
+	cfar_dn, _ = soca_cfar_far_edge(half_train, half_guard, SOS, abs(IQ_DN))
+
 
 	fbu = np.zeros(nbins)
 	fbd = np.zeros(nbins)
 
 	rg_array = np.zeros(nbins)
 	sp_array = np.zeros(nbins)
-	ratio = np.zeros(nbins)
+	ratio = np.full(nbins, 5.0)
+	# ratio = np.zeros(nbins)
 	sp_array_corr = np.zeros(nbins)
 
 	# safety_inv = 0
@@ -288,7 +294,8 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 					
 					# if less than max expected and filter clutter doppler
 					# if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
-					if (fdMin < fd < fdMax):
+					# if (fdMin < fd < fdMax):
+					if (fdMin < fd): # NOTE: max limited by scan width
 						# convert Doppler to speed. fd is twice the Doppler therefore
 						# divide by 2
 						sp_array[bin] = fd*lmda
@@ -304,12 +311,14 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 						
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************
+	# where arg: Elsewhere, the out array will retain its original value
 	np.divide(rg_array,sp_array, ratio, where=sp_array!=0)
 	# t_safe = 3
 	if (np.any(ratio<3)):
 		# 1 indicates sweep contained target at unsafe distance
 		# UPDATE: put the ratio/time into array to scale how
 		# safe the turn is
+	# print(ratio)
 		safety = min(ratio)
 
 
