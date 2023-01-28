@@ -9,7 +9,6 @@
 import sys
 sys.path.append('../custom_modules')
 from time import time #, sleep, strftime,localtime
-import sys
 from pyDSPv2 import py_trig_dsp, range_speed_safety
 import numpy as np
 import matplotlib.pyplot as plt

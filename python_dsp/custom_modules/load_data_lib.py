@@ -86,3 +86,10 @@ def load_proc_data():
     with open(file_path_rhs, "r") as raw_IQ_rhs:
         rhs = raw_IQ_rhs.read().split("\n")
     return lhs, rhs, subset
+
+
+def load_video():
+    lhs_vid_name = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_vid\lhs_vid_12_18_12.avi")
+    rhs_vid_name = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_vid\rhs_vid_12_18_12.avi")
+
+    return lhs_vid_name, rhs_vid_name
