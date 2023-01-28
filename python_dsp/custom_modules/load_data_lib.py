@@ -23,11 +23,11 @@ def load_data():
 
     # 60kmh subset
     # subset = range(800,1100)
+    # subset = range(0, 4000)
 
     subset = range(0, 5000)
 
-    len_subset = len(subset)
-    print("Subset length: ", str(len_subset))
+    
     # 50 kmh subset - same
     # 40 kmh subset
     # subset = range(700,1100)
@@ -39,4 +39,4 @@ def load_data():
             # split into sweeps
             sweeps = raw_IQ.read().split("\n")
 
-    return sweeps, len_subset
+    return sweeps, subset

@@ -2,13 +2,13 @@
 subset = 1000:2000;
 % first portion 60 kmh
 subset = 1:1000;
-
+subset = 1:5000;
 addpath('../../matlab_lib/');
 
-iq_dual_load_data;
+% iq_dual_load_data;
 
 [fc, c, lambda, tm, bw, k, rad1_iq_u, rad1_iq_d, rad2_iq_u, ...
-    rad2_iq_d, t_stamps] = import_dual_data_full(f_urad1, f_urad2);
+    rad2_iq_d, t_stamps] = import_dual_data_full(f_urad1, f_urad2, subset);
 %%
 fvid_lhs = strcat('lhs_vid',time,'.avi');
 fvid_rhs = strcat('rhs_vid',time,'.avi');
@@ -26,17 +26,36 @@ vid_rhs = VideoReader(fvid_rhs);
 %%
 % Get dimensions of data from slower device
 n_samples = size(rad1_iq_u,2);
-n_sweeps = size(rad1_iq_u,1);
+% n_sweeps = size(rad1_iq_u,1);
 
 % ************************ Tunable parameters *****************************
 % These determine the system detection performance
 n_fft = 512;
-train = 32;%n_fft/8;%64;
-guard = 10;%n_fft/64;%8;
-rank = round(3*train/4)+6;
+train = 16;%n_fft/8;%64;
+guard = 14;%n_fft/64;%8;
+rank = round(3*train/4);
 nbar = 3;
 sll = -100;
-F = 4*10e-3;
+F = 1*10e-2;
+v_max = 60/3.6; 
+fd_max = speed2dop(v_max, lambda)*2;
+% Minimum sample number for 1024 point FFT corresponding to min range = 10m
+% n_min = 83;
+% for 512 point FFT:
+n_min = 42;
+% Divide into range bins of width 64
+% bin_width = (n_fft/2)/nbins;
+% nbins = 8;
+% bin_width = 32; % account for scan width = 21
+% scan_width = 21; % see calcs: Delta f * 21 ~ 8 kHz
+
+nbins = 16;
+bin_width = 16; % account for scan width = 21
+scan_width = 8;
+
+calib = 1.2463;
+lhs_road_width = 4;
+rhs_road_width = 2;
 
 % Decimate faster device data
 % rad2_iq_u = rad2_iq_u(1:3:end, :);
@@ -103,29 +122,29 @@ RHS_IQ_DN = flip(RHS_IQ_DN,2);
 % -------------------------------------------------------------------------
 % CFAR
 % -------------------------------------------------------------------------
-OS1 = phased.CFARDetector('NumTrainingCells',train, ...
+CFAR1 = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
-    'Method', 'OS', ...
+    'Method', 'SOCA', ...
     'ThresholdOutputPort', true, ...
     'Rank',rank);
 
-OS2 = phased.CFARDetector('NumTrainingCells',train, ...
+CFAR2 = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
-    'Method', 'OS', ...
+    'Method', 'SOCA', ...
     'ThresholdOutputPort', true, ...
     'Rank',rank);
 
 
 % Filter peaks/ peak detection
-[up_os1, upTh1] = OS1(abs(LHS_IQ_UP)', 1:n_fft/2);
-[dn_os1, dnTh1] = OS1(abs(LHS_IQ_DN)', 1:n_fft/2);
+[up_os1, upTh1] = CFAR1(abs(LHS_IQ_UP)', 1:n_fft/2);
+[dn_os1, dnTh1] = CFAR1(abs(LHS_IQ_DN)', 1:n_fft/2);
 
-[up_os2, upTh2] = OS2(abs(RHS_IQ_UP)', 1:n_fft/2);
-[dn_os2, dnTh2] = OS2(abs(RHS_IQ_DN)', 1:n_fft/2);
+[up_os2, upTh2] = CFAR2(abs(RHS_IQ_UP)', 1:n_fft/2);
+[dn_os2, dnTh2] = CFAR2(abs(RHS_IQ_DN)', 1:n_fft/2);
 
 % Find peak magnitude
 upDets1 = abs(LHS_IQ_UP).*up_os1';
@@ -142,13 +161,6 @@ f_pos = f((n_fft/2 + 1):end);
 
 v_max = 60/3.6; 
 fd_max = speed2dop(v_max, lambda)*2;
-% Minimum sample number for 1024 point FFT corresponding to min range = 10m
-% n_min = 83;
-% for 512 point FFT:
-n_min = 42;
-% Divide into range bins of width 64
-nbins = 16;
-bin_width = (n_fft/2)/nbins;
 
 % -------------------------------------------------------------------------
 % Initialise arrays
@@ -171,7 +183,6 @@ fb_idx2 = zeros(nbins,1);
 fb_idx_end1 = zeros(nbins,1);
 fb_idx_end2 = zeros(nbins,1);
 % max speed = 90 km/h. f = 2v/lambda = 4 kHz. each bin is 1 kHz apart
-scan_width = 4;
 ax_dims = [0 max(rng_ax) 80 190];
 ax_ticks = 1:2:60;
 %%
@@ -185,9 +196,6 @@ movegui(fig1,'west')
 % -------------------------------------------------------------------------
 % Process sweeps
 % -------------------------------------------------------------------------
-calib = 1.2463;
-lhs_road_width = 4;
-rhs_road_width = 2;
 tic
 vidObj.CurrentTime = 0;
 hold_frame = 0;
@@ -309,40 +317,40 @@ for i = 1:loop_count
     end
 %         % When run on 4 threads, there are 3 times fewer 
 %         % video frames
-    if hold_frame == 2
-        vidFrame = readFrame(vid_lhs);
-        set(v1,'CData' ,vidFrame);
-
-        vidFrame = readFrame(vid_rhs);
-        set(v2, 'CData', rot90(vidFrame, 2));
-        hold_frame = 0;
-        frame_count = frame_count + 1;
-    else
-        hold_frame = hold_frame + 1;
-    end
-    % PLOT DATA
-    % -----------------------------------------------------------------
-    set(p1, 'YData', rgMtx1(i,:))
-    set(p2, 'YData', spMtxCorr1(i,:)*3.6)
-    set(p3, 'YData', rgMtx2(i,:))
-    set(p4, 'YData', spMtxCorr2(i,:)*3.6)
+%     if hold_frame == 2
+%         vidFrame = readFrame(vid_lhs);
+%         set(v1,'CData' ,vidFrame);
+% 
+%         vidFrame = readFrame(vid_rhs);
+%         set(v2, 'CData', rot90(vidFrame, 2));
+%         hold_frame = 0;
+%         frame_count = frame_count + 1;
+%     else
+%         hold_frame = hold_frame + 1;
+%     end
+%     % PLOT DATA
+%     % -----------------------------------------------------------------
+%     set(p1, 'YData', rgMtx1(i,:))
+%     set(p2, 'YData', spMtxCorr1(i,:)*3.6)
+%     set(p3, 'YData', rgMtx2(i,:))
+%     set(p4, 'YData', spMtxCorr2(i,:)*3.6)
 
 %     set(cursor,'XData',i)
     % -----------------------------------------------------------------
 
 %     disp(['Radar sweep : ', num2str(i),' Video frame : ', ...
 %         num2str(frame_count)])
-    pause(0.001);
+%     pause(0.001);
 end
 toc
 %% Map of sweep v range v speed
-close all
-figure
-tiledlayout(1,2)
-nexttile
-imagesc(spMtxCorr1)
-nexttile
-imagesc(spMtxCorr2)
+% close all
+% figure
+% tiledlayout(1,2)
+% nexttile
+% imagesc(spMtxCorr1)
+% nexttile
+% imagesc(spMtxCorr2)
 
 %% FAST PLOTTING - does not handle xlines
 % for i = 1:loop_count

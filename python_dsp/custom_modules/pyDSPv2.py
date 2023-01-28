@@ -134,7 +134,7 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 				if (fbu[bin] < fbd[bin]):
 				# if (fbu[bin] > 0 and fbd[bin] > 0):
 					fd = (-fbu[bin] + fbd[bin])*calib/2
-					if (fd>800):
+					if (fd>800): # NOTE: fmin = 800 Hz
 						# fd_array[bin] = fd/2
 						
 						# if less than max expected and filter clutter doppler

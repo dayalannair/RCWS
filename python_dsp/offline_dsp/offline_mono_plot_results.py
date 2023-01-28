@@ -12,58 +12,12 @@ from time import time #, sleep, strftime,localtime
 import sys
 from pyDSPv2 import py_trig_dsp, range_speed_safety
 import numpy as np
-# import matplotlib as mpl
-# mpl.rcParams['path.simplify'] = True
-# mpl.rcParams['path.simplify_threshold'] = 1.0
-# mpl.rcParams['toolbar'] = 'None' 
-# mpl.rcParams["axes.grid"] = False
-# import matplotlib.style as mplstyle
-# mplstyle.use(['dark_background', 'ggplot', 'fast'])
 import matplotlib.pyplot as plt
-# import matplotlib
-# matplotlib.use("tkagg")
 from scipy import signal
-from pathlib import Path
-
-
-
-# Home Desktop Proline i7 2nd Gen
-
-# CONTROLLED TESTS
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_20kmh.txt")
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_30kmh.txt")
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_40kmh.txt")
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
-
-
-file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_data\lhs_iq_12_18_12.txt")
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_data\rhs_iq_12_18_12.txt")
-
-# On laptop Yoga 910
-
-# file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
-# file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\")
-
-# 60kmh subset
-# subset = range(800,1100)
-# subset = range(0, 2000)
-
-# 50 kmh subset - same
-# 40 kmh subset
-# subset = range(700,1100)
-# 20km/h subset
-# subset = range(1,1500)
-
-# other
-subset = range(0, 5000)
+from load_data_lib import load_data
+sweeps, subset = load_data()
 len_subset = len(subset)
-
-# sys.path.append('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby')
-with open(file_path, "r") as raw_IQ:
-		# split into sweeps
-		sweeps = raw_IQ.read().split("\n")
-
+print("Subset length: ", str(len_subset))
 fft_array       = np.empty([len_subset, 256])
 threshold_array = np.empty([len_subset, 256])
 up_peaks        = np.empty([len_subset, 256])
@@ -106,7 +60,7 @@ ns = 200
 # ======================================================
 half_train = 8
 half_guard = 7
-Pfa = 0.010
+Pfa = 0.05
 SOS = ns*(Pfa**(-1/ns)-1)
 print("Pfa: ", str(Pfa))
 print("CFAR alpha value: ", SOS)
@@ -164,9 +118,9 @@ print("System running...")
 # safety_inv_2 = np.zeros(sweeps)
 plt.pause(0.1)
 # print(sweeps[800])
-idx = 0
-for i in subset:
-	samples = np.array(sweeps[i].split(" "))
+i = 0
+for sweep in subset:
+	samples = np.array(sweeps[sweep].split(" "))
 	i_data = samples[  0:400]
 	q_data = samples[400:800]
 
@@ -175,17 +129,15 @@ for i in subset:
 	q_data = q_data.astype(np.int32)
 
 	# _, _, upth, dnth, fftu, fftd, _, _, _,\
-	# rgMtx[idx, :], spMtx[idx, :] = py_trig_dsp(i_data,q_data, twin, n_fft, num_nul, half_train, \
+	# rgMtx[i, :], spMtx[i, :] = py_trig_dsp(i_data,q_data, twin, n_fft, num_nul, half_train, \
 	# half_guard, nbins, bin_width, f_ax, SOS)
 
 
-	rgMtx[idx, :], spMtx[idx, :], sfMtx[idx], fbu[idx, :], fbd[idx, :], _, cfar_up[idx, :], cfar_dn[idx, :] = \
+	rgMtx[i, :], spMtx[i, :], sfMtx[i], fbu[i, :], fbd[i, :], _, cfar_up[i, :], cfar_dn[i, :] = \
 		range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, \
 	half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
-
-
-	idx = idx + 1
-	# spMtx[idx, :] = spMtx[idx, :]*3.6
+	i = i + 1
+	# spMtx[i, :] = spMtx[i, :]*3.6
 	# print(spMtx[np.nonzero(spMtx)])
 print(sfMtx)
 print("Saving data...")
@@ -223,10 +175,10 @@ fig1.tight_layout()
 #                     wspace=0.4, 
 #                     hspace=0.4)
 
-line1 = ax[0].imshow(rgMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70, aspect='auto')
+line1 = ax[0].imshow(rgMtx, origin='upper', vmin=0, vmax=70, aspect='auto')#, extent=[0, 62.5, 0, len_subset]
 # plt.grid(None)
 # plt.show()
-line2 = ax[1].imshow(spMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70, aspect='auto')
+line2 = ax[1].imshow(spMtx, origin='upper', vmin=0, vmax=70, aspect='auto') #, extent=[0, 62.5, 0, len_subset]
 line3, = ax[2].plot(sfMtx)
 # thismanager = get_current_fig_manager()
 # thismanager.window.SetPosition((500, 0))

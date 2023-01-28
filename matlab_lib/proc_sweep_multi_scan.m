@@ -79,33 +79,34 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
                     % frequency
     %               calibrate beats for doppler shift
                     fd = ((-fbu(bin+1) + fbd(bin+1))*calib)/2;
-                    fdMtx(bin+1) = fd;
+                    if (fd>800)
+                        fdMtx(bin+1) = fd;
                     
                     
                     % if less than max expected and filter clutter doppler
                     % removed the max condition as this is controlled by
                     % bin
                     % width (abs(fd/2) < fd_max) &&
-                    % Doppler shift is limited by scan width
-%                     if ( fd/2 > 1000)
-                    % Capture data after all filters passed
-                    beat_indices_end(bin+1) = index_end;
-                    beat_indices(bin+1) = beat_index;
-                    beat_count_out(beat_index) = ...
-                        beat_count_out(beat_index) +1;
-                    
-                    spMtx(bin+1) = fd*lambda/2;
-                    
-                    rgMtx(bin+1) = calib*beat2range( ...
-                        [fbu(bin+1) -fbd(bin+1)], k, c);
-
-                    % Theta in radians
-                    theta = asin(road_width/rgMtx(bin+1));
-
-%                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
-                    real_v = fd*lambda/(2*cos(theta));
-                    spMtxCorr(bin+1) = round(real_v,2);
-%                     end
+                        % Doppler shift is limited by scan width
+    %                     if ( fd/2 > 1000)
+                        % Capture data after all filters passed
+                        beat_indices_end(bin+1) = index_end;
+                        beat_indices(bin+1) = beat_index;
+                        beat_count_out(beat_index) = ...
+                            beat_count_out(beat_index) +1;
+                        
+                        spMtx(bin+1) = fd*lambda/2;
+                        
+                        rgMtx(bin+1) = calib*beat2range( ...
+                            [fbu(bin+1) -fbd(bin+1)], k, c);
+    
+                        % Theta in radians
+                        theta = asin(road_width/rgMtx(bin+1));
+    
+    %                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
+                        real_v = fd*lambda/(2*cos(theta));
+                        spMtxCorr(bin+1) = round(real_v,2);
+                    end
                
                 end
                 % for plot

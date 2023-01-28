@@ -7,8 +7,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from load_data_lib import load_data
 from scipy import signal
-sweeps, len_subset = load_data()
-
+sweeps, subset = load_data()
+len_subset = len(subset)
+print("Subset length: ", str(len_subset))
 
 fft_array       = np.empty([len_subset, 256])
 threshold_array = np.empty([len_subset, 256])
@@ -158,7 +159,7 @@ scan_width = 8
 calib = 1.2463
 
 i = 0
-for i in range(1, len_subset):
+for i in range(0, len_subset):
 	samples = np.array(sweeps[i].split(" "))
 	i_data = samples[  0:400]
 	q_data = samples[400:800]
