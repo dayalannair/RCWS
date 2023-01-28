@@ -322,4 +322,5 @@ half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 		safety = min(ratio)
 
 
-	return rg_array, sp_array, safety, fbu, fbd, sp_array_corr, cfar_up, cfar_dn
+	# return rg_array, sp_array, safety, fbu, fbd, sp_array_corr, cfar_up, cfar_dn
+	return rg_array, sp_array, safety

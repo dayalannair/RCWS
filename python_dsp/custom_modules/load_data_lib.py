@@ -14,7 +14,8 @@ def load_data():
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
 
 
-    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_data\lhs_iq_12_18_12.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_data\lhs_iq_12_18_12.txt")
+    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_data\rhs_iq_12_18_12.txt")
 
     # On laptop Yoga 910
 
@@ -38,5 +39,50 @@ def load_data():
     with open(file_path, "r") as raw_IQ:
             # split into sweeps
             sweeps = raw_IQ.read().split("\n")
-
     return sweeps, subset
+
+
+def load_dual_data():
+    
+    file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_data\lhs_iq_12_18_12.txt")
+    file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_data\rhs_iq_12_18_12.txt")
+
+    # subset = range(0, 4000)
+    subset = range(0, 5000)
+    # 50 kmh subset - same
+    # 40 kmh subset
+    # subset = range(700,1100)
+    # 20km/h subset
+    # subset = range(1,1500)
+
+    # sys.path.append('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby')
+    
+    with open(file_path_lhs, "r") as raw_IQ_lhs:
+        lhs = raw_IQ_lhs.read().split("\n")
+
+    with open(file_path_rhs, "r") as raw_IQ_rhs:
+        rhs = raw_IQ_rhs.read().split("\n")
+    return lhs, rhs, subset
+
+
+def load_proc_data():
+    
+    file_path_lhs = Path(r"lhs_speed_results.txt")
+    file_path_rhs = Path(r"rhs_speed_results.txt")
+
+    # subset = range(0, 4000)
+    subset = range(0, 5000)
+    # 50 kmh subset - same
+    # 40 kmh subset
+    # subset = range(700,1100)
+    # 20km/h subset
+    # subset = range(1,1500)
+
+    # sys.path.append('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby')
+    
+    with open(file_path_lhs, "r") as raw_IQ_lhs:
+        lhs = raw_IQ_lhs.read().split("\n")
+
+    with open(file_path_rhs, "r") as raw_IQ_rhs:
+        rhs = raw_IQ_rhs.read().split("\n")
+    return lhs, rhs, subset
