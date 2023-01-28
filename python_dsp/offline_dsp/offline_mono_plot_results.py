@@ -29,11 +29,16 @@ from pathlib import Path
 
 # Home Desktop Proline i7 2nd Gen
 
+# CONTROLLED TESTS
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_20kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_30kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_40kmh.txt")
 # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
-file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+
+
+file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_data\lhs_iq_12_18_12.txt")
+# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_data\rhs_iq_12_18_12.txt")
 
 # On laptop Yoga 910
 
@@ -41,7 +46,7 @@ file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\c
 # file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\")
 
 # 60kmh subset
-subset = range(800,1100)
+# subset = range(800,1100)
 # subset = range(0, 2000)
 
 # 50 kmh subset - same
@@ -50,7 +55,8 @@ subset = range(800,1100)
 # 20km/h subset
 # subset = range(1,1500)
 
-
+# other
+subset = range(0, 5000)
 len_subset = len(subset)
 
 # sys.path.append('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby')

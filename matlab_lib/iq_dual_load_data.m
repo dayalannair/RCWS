@@ -14,14 +14,14 @@ addpath(['../../../../OneDrive - University of Cape Town/' ...
 % 2) Change the time stamp to desired data set
 % Time stamps for 3 November 2022
 
-% time = '_12_18_12';
+time = '_12_18_12';
 
 % Time stamps for 5 November 2022
 % time = '_10_25_12';
 % time = '_10_29_56';
 % time = '_10_44_35';
 % time = '_10_53_21';
-time = '_11_01_36';
+% time = '_11_01_36';
 
 % 3) The following will automatically load the data from both radars
 

@@ -4,53 +4,15 @@ from time import time, sleep, strftime,localtime
 import sys
 from pyDSPv2 import py_trig_dsp
 import numpy as np
-import matplotlib as mpl
-mpl.rcParams['path.simplify'] = True
-mpl.rcParams['path.simplify_threshold'] = 1.0
-mpl.rcParams['toolbar'] = 'None' 
-import matplotlib.style as mplstyle
-mplstyle.use(['dark_background', 'ggplot', 'fast'])
+import matplotlib.pyplot as plt
+from load_data_lib import load_data
+from scipy import signal
+sweeps, len_subset = load_data()
 
-
-from pathlib import Path
-
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_20kmh.txt")
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_30kmh.txt")
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_40kmh.txt")
-# file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
-file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
-
-# On laptop Yoga 910
-
-# file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
-# file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\")
-
-# 60kmh subset
-subset = range(800,1100)
-len_subset = len(subset)
-print("Subset length: ", str(len_subset))
-# 50 kmh subset - same
-# 40 kmh subset
-# subset = range(700,1100)
-# 20km/h subset
-# subset = range(1,1500)
-
-# sys.path.append('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby')
-with open(file_path, "r") as raw_IQ:
-		# split into sweeps
-		sweeps = raw_IQ.read().split("\n")
 
 fft_array       = np.empty([len_subset, 256])
 threshold_array = np.empty([len_subset, 256])
 up_peaks        = np.empty([len_subset, 256])
-
-
-import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
-from scipy import signal
-
-import threading
-
 
 # input parameters
 # BW and Ns input as arguments
@@ -153,11 +115,11 @@ fftd_2 = []
 fftu_2 = []
 rgMtx = np.zeros([len_subset, nbins])
 spMtx = np.zeros([len_subset, nbins])
-# line1_2 = ax[0, 1].imshow(rgMtx, extent=[0, 62.5, 0, len(subset)*2], origin='upper', vmin=0, vmax=70)
-# line2_2 = ax[1, 1].imshow(spMtx, extent=[0, 62.5, 0, len(subset)*2], origin='upper', vmin=0, vmax=70)
+# line1_2 = ax[0, 1].imshow(rgMtx, extent=[0, 62.5, 0, len_subset*2], origin='upper', vmin=0, vmax=70)
+# line2_2 = ax[1, 1].imshow(spMtx, extent=[0, 62.5, 0, len_subset*2], origin='upper', vmin=0, vmax=70)
 
-line1_2 = ax[0, 1].imshow(rgMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70, aspect='auto')
-line2_2 = ax[1, 1].imshow(spMtx, extent=[0, 62.5, 0, len(subset)], origin='upper', vmin=0, vmax=70, aspect='auto')
+line1_2 = ax[0, 1].imshow(rgMtx, extent=[0, 62.5, 0, len_subset], origin='upper', vmin=0, vmax=70, aspect='auto')
+line2_2 = ax[1, 1].imshow(spMtx, extent=[0, 62.5, 0, len_subset], origin='upper', vmin=0, vmax=70, aspect='auto')
 
 line1, = ax[0, 0].plot(rng_ax, fftu)
 line2, = ax[0, 0].plot(rng_ax, upth)
@@ -195,8 +157,8 @@ print("System running...")
 scan_width = 8
 calib = 1.2463
 
-idx = 0
-for i in subset:
+i = 0
+for i in range(1, len_subset):
 	samples = np.array(sweeps[i].split(" "))
 	i_data = samples[  0:400]
 	q_data = samples[400:800]
@@ -205,14 +167,17 @@ for i in subset:
 	i_data = i_data.astype(np.int32)
 	q_data = q_data.astype(np.int32)
 
-	# t0_proc = time()
+	t0_proc = time()
 	_, _, upth, dnth, fftu, fftd, _, _, _,\
-	rgMtx[idx, :], spMtx[idx, :] = py_trig_dsp(i_data,q_data, win, n_fft, num_nul, half_train, \
+	rgMtx[i, :], spMtx[i, :] = py_trig_dsp(i_data,q_data, win, n_fft, num_nul, half_train, \
 	half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
-	idx = idx + 1
-	spMtx[idx, :] = spMtx[idx, :]*3.6
+	spMtx[i, :] = spMtx[i, :]*3.6
+	t1_proc = time()
+
+	print("Proc time: ", str(t1_proc-t0_proc))
 	# print(spMtx[np.nonzero(spMtx)])
 	# print(len(cfar_res_up))
+	t0_plot = time()
 	# ============== LOG SCALE =====================
 	line1.set_ydata(20*np.log10(abs(fftu + 10**-10)))
 	line2.set_ydata(20*np.log10(upth + 10**-10))
@@ -250,4 +215,6 @@ for i in subset:
 	# ax[3].draw_artist(line4_2)
 	fig1.canvas.draw()
 	fig1.canvas.flush_events()
+	t1_plot = time()
+	print("Plot time: ", str(t1_plot - t0_plot))
 	# t1 = time() - t0
