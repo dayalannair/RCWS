@@ -204,7 +204,7 @@ def urad_capture(duration, fname, port):
 
 	# Capture data
 	while (t1 < duration):
-		return_code, results, raw_results = uRAD_USB_SDK11.detection(port)
+		return_code, _, raw_results = uRAD_USB_SDK11.detection(port)
 		if (return_code != 0):
 			closeProgram()
 
@@ -231,6 +231,7 @@ def urad_capture(duration, fname, port):
 				IQ_usb += '%d ' % Q_usb[sweep][sample]
 			usb.write(IQ_usb + '\n')
 	print("uRAD USB capture complete.")
+	
 
 # Separate files for each radar
 urad1_fname = "lhs_iq_"+now+".txt"
