@@ -152,10 +152,22 @@ if (return_code != 0):
 
 print("Radars configured. Initialising threads...")
 
-t_0 = time()
+# Tunable Parameters
+n_fft = 512
+nul_width_factor = 0.04
+ns = 200
+half_guard = 7
+half_train = 8
+Pfa = 0.008
+SOS = ns*(Pfa**(-1/ns)-1)
+print("Pfa: ", str(Pfa))
+print("CFAR alpha value: ", SOS)
+nbins = 16
+bin_width = round((n_fft/2)/nbins)
+scan_width = 8
+calib = 1.2463
 
 # Generate axes
-n_fft = 512
 fax = np.linspace(0, round(fs/2), round(n_fft/2))
 tsweep = 1e-3
 bw = 240e6
@@ -187,7 +199,6 @@ bin_width = round((n_fft/2)/nbins)
 # bw = 240e6
 # # can optimise out this calculation
 # slope = bw/tsweep
-fs = 200e3
 
 print("System running...")
 
@@ -207,8 +218,8 @@ ret,frame1 = cap1.read()
 ret,frame2 = cap2.read()
 
 fourcc  = cv2.VideoWriter_fourcc(*'X264')
-lhs_vid = cv2.VideoWriter('lhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
-rhs_vid = cv2.VideoWriter('rhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
+lhs_vid = cv2.VideoWriter('2thd_lhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
+rhs_vid = cv2.VideoWriter('2thd_rhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
 
 n_rows = 4096
 rg_array = np.zeros([n_rows, nbins], dtype=int)
@@ -260,7 +271,7 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, fcorr)
 		rg_array[i], sp_array[i], sf_array[i], sp_array_corr[i]  = \
 			range_speed_safety(raw_results[0], \
 		raw_results[1], twin, n_fft, num_nul, half_train,\
-			 half_guard, rank, nbins, bin_width, fax)
+			 half_guard, rank, nbins, bin_width, fax, SOS, calib, scan_width)
 		
 		i = i + 1
 
@@ -278,7 +289,7 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, fcorr)
 	cap.release()	
 	container.release()
 	print("Video capture complete.  Data captured.")
-	print("Elapsed time: ", str(time()-t_0))
+	print("Elapsed time: ", str(time()-t0))
 	print("----------------------------------------------")
 
 	# Save radar results
@@ -288,7 +299,7 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, fcorr)
 	np.savetxt(fcorr, sf_array, fmt='%d', delimiter = ' ', newline='\n')
 
 	print("uRAD USB processing thread complete. Data captured.")
-	print("Elapsed time: ", str(time()-t_0))
+	print("Elapsed time: ", str(time()-t0))
 	print("Samples processed: ", i)
 	print("----------------------------------------------")
 # ----------------------------------------------------------------------------

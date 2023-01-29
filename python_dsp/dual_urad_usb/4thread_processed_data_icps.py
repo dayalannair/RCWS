@@ -175,7 +175,6 @@ calib = 1.2463
 # rank = 2*half_train -2*half_guard
 
 # Generate axes
-fs = 200e3
 fax = np.linspace(0, round(fs/2), round(n_fft/2))
 tsweep = 1e-3
 bw = 240e6
@@ -234,7 +233,7 @@ def capture(duration, cap, container):
 	cap.release()	
 	container.release()
 	print("Video capture complete.  Data captured.")
-	print("Elapsed time: ", str(time()-t_0))
+	print("Elapsed time: ", str(time()-t0))
 	print("----------------------------------------------")
 
 n_rows = 4096
@@ -286,7 +285,7 @@ def urad_process(port, fspeed, frange, fsafety):
 	np.savetxt(fsafety, sf_array, fmt='%d', delimiter = ' ', newline='\n')
 
 	print("uRAD USB processing thread complete. Data captured.")
-	print("Elapsed time: ", str(time()-t_0))
+	print("Elapsed time: ", str(time()-t0))
 	print("Samples processed: ", i)
 	print("----------------------------------------------")
 
