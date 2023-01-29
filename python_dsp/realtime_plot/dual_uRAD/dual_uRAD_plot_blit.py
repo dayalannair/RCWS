@@ -154,24 +154,29 @@ twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
 nul_width_factor = 0.04
 num_nul = round((n_fft/2)*nul_width_factor)
 # OS CFAR
-n_samples = 200
-half_guard = n_fft/n_samples
-half_guard = int(np.floor(half_guard/2)*2) # make even
-
-half_train = round(20*n_fft/n_samples)
-half_train = int(np.floor(half_train/2))
-# rank = 2*half_train -2*half_guard
-# rank = half_train*2
-Pfa_expected = 15e-3
+ns = 200
+half_guard = 7
+half_train = 8
+Pfa = 0.008
+SOS = ns*(Pfa**(-1/ns)-1)
+print("Pfa: ", str(Pfa))
+print("CFAR alpha value: ", SOS)
+nbins = 16
+bin_width = round((n_fft/2)/nbins)
 # factorial needs integer values
 nbins = 16
 bin_width = round((n_fft/2)/nbins)
+calib = 1.2463
+scan_width = 8
+
+
 
 # rg_full = np.zeros(16*sweeps)
 fs = 200e3
 f_ax = np.linspace(0, round(fs/2), round(n_fft/2))
 os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, \
-	sp_array = py_trig_dsp(I,Q, twin, n_fft, num_nul, half_train, half_guard, nbins, bin_width, f_ax)
+	sp_array = py_trig_dsp(I,Q, twin, n_fft, num_nul, half_train, \
+		half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
 plt.ion()
 print(beat_index)
 print(beat_min)
@@ -261,7 +266,7 @@ def dsp_thread_usb():
 		closeProgram()
 	os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min,\
 	rg_array, sp_array = py_trig_dsp(raw_results[0],raw_results[1], twin, n_fft, num_nul, half_train, \
-	half_guard, nbins, bin_width, f_ax)
+	half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
 
 def dsp_thread_rpi():
 	global n_fft
