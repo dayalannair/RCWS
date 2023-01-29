@@ -155,12 +155,6 @@ print("Radars configured. Initialising threads...")
 n_fft = 512
 nul_width_factor = 0.04
 ns = 200
-# half_guard = n_fft/ns
-# half_guard = int(np.floor(half_guard/2)*2) # make even
-
-# half_train = round(20*n_fft/ns)
-# half_train = int(np.floor(half_train/2))
-# rank = 2*half_train -2*half_guard
 half_guard = 7
 half_train = 8
 Pfa = 0.008
@@ -169,7 +163,16 @@ print("Pfa: ", str(Pfa))
 print("CFAR alpha value: ", SOS)
 nbins = 16
 bin_width = round((n_fft/2)/nbins)
+scan_width = 8
+calib = 1.2463
 
+
+# half_guard = n_fft/ns
+# half_guard = int(np.floor(half_guard/2)*2) # make even
+
+# half_train = round(20*n_fft/ns)
+# half_train = int(np.floor(half_train/2))
+# rank = 2*half_train -2*half_guard
 
 # Generate axes
 fs = 200e3
@@ -272,7 +275,7 @@ def urad_process(port, fspeed, frange, fsafety):
 
 		rg_array[i], sp_array[i], sf_array[i] = range_speed_safety(raw_results[0], \
 			raw_results[1], twin, n_fft, num_nul, half_train, \
-				half_guard, _, nbins, bin_width, fax)
+				half_guard, _, nbins, bin_width, fax, SOS, calib, scan_width)
 		
 		i = i + 1
 

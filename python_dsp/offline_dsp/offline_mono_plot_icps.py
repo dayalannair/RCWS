@@ -63,6 +63,10 @@ print("CFAR alpha value: ", SOS)
 nbins = 16
 bin_width = round((n_fft/2)/nbins)
 print("Bin width: ", str(bin_width))
+
+scan_width = 8
+calib = 1.2463
+
 # tsweep = 1e-3
 # bw = 240e6
 # # can optimise out this calculation
@@ -154,9 +158,6 @@ print("System running...")
 # safety_inv = np.zeros(sweeps)
 # safety_inv_2 = np.zeros(sweeps)
 # plt.pause(0.1)
-
-scan_width = 8
-calib = 1.2463
 
 i = 0
 for i in range(0, len_subset):
