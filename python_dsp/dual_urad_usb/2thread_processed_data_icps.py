@@ -221,7 +221,7 @@ fourcc  = cv2.VideoWriter_fourcc(*'X264')
 lhs_vid = cv2.VideoWriter('2thd_lhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
 rhs_vid = cv2.VideoWriter('2thd_rhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
 
-n_rows = 4096
+n_rows = 16384
 rg_array = np.zeros([n_rows, nbins], dtype=int)
 sp_array = np.zeros([n_rows, nbins], dtype=int)
 sf_array = np.zeros([n_rows, nbins], dtype=int)
@@ -268,7 +268,8 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, fcorr)
 		if (return_code != 0):
 			closeProgram()
 
-		rg_array[i], sp_array[i], sf_array[i], sp_array_corr[i]  = \
+		# remember to add the sp_array_corr[i] output to the proc lib
+		rg_array[i], sp_array[i], sf_array[i]  = \
 			range_speed_safety(raw_results[0], \
 		raw_results[1], twin, n_fft, num_nul, half_train,\
 			 half_guard, rank, nbins, bin_width, fax, SOS, calib, scan_width)
@@ -293,10 +294,10 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, fcorr)
 	print("----------------------------------------------")
 
 	# Save radar results
-	np.savetxt(frange, rg_array, fmt='%.3f', delimiter = ' ', newline='\n')
-	np.savetxt(fspeed, sp_array, fmt='%.3f', delimiter = ' ', newline='\n')
-	np.savetxt(fsafety, sf_array, fmt='%.3f', delimiter = ' ', newline='\n')
-	np.savetxt(fcorr, sf_array, fmt='%.3f', delimiter = ' ', newline='\n')
+	np.savetxt(frange, rg_array[0:i, :], fmt='%.3f', delimiter = ' ', newline='\n')
+	np.savetxt(fspeed, sp_array[0:i, :], fmt='%.3f', delimiter = ' ', newline='\n')
+	np.savetxt(fsafety, sf_array[0:i, :], fmt='%.3f', delimiter = ' ', newline='\n')
+	np.savetxt(fcorr, sf_array[0:i, :], fmt='%.3f', delimiter = ' ', newline='\n')
 
 	print("uRAD USB processing thread complete. Data captured.")
 	print("Elapsed time: ", str(time()-t0))

@@ -236,7 +236,7 @@ def capture(duration, cap, container):
 	print("Elapsed time: ", str(time()-t0))
 	print("----------------------------------------------")
 
-n_rows = 4096
+n_rows = 16384
 rg_array = np.zeros([n_rows, nbins], dtype=int)
 sp_array = np.zeros([n_rows, nbins], dtype=int)
 sf_array = np.zeros([n_rows, nbins], dtype=int)
@@ -280,13 +280,13 @@ def urad_process(port, fspeed, frange, fsafety):
 
 		t1 = time() - t0
 
-	np.savetxt(frange, rg_array, fmt='%.3f', delimiter = ' ', newline='\n')
-	np.savetxt(fspeed, sp_array, fmt='%.3f', delimiter = ' ', newline='\n')
-	np.savetxt(fsafety, sf_array, fmt='%.3f', delimiter = ' ', newline='\n')
+	np.savetxt(frange, rg_array[0:i, :], fmt='%.3f', delimiter = ' ', newline='\n')
+	np.savetxt(fspeed, sp_array[0:i, :], fmt='%.3f', delimiter = ' ', newline='\n')
+	np.savetxt(fsafety, sf_array[0:i, :], fmt='%.3f', delimiter = ' ', newline='\n')
 
 	print("uRAD USB processing thread complete. Data captured.")
 	print("Elapsed time: ", str(time()-t0))
-	print("Samples processed: ", i)
+	print("Sweeps processed: ", i)
 	print("----------------------------------------------")
 
 lhs_frange = "lhs_range_results_"+now+".txt"
