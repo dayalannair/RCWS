@@ -121,12 +121,16 @@ if (not usb_communication):
 	sleep(timeSleep)
 
 # loadConfiguration uRAD
-return_code = uRAD_USB_SDK11.loadConfiguration(ser1, mode, f0, BW, Ns, 0, 0, 0, 0, 0, 0, 0, 0, I_true, Q_true, 0)
+return_code = uRAD_USB_SDK11.loadConfiguration(ser1, mode, f0,\
+	 BW, Ns, 0, 0, 0, 0, 0, 0, 0, 0, I_true, Q_true, 0)
+
 if (return_code != 0):
 	print("uRAD 1 configuration failed")
 	closeProgram()
 
-return_code = uRAD_USB_SDK11.loadConfiguration(ser2, mode, f0, BW, Ns, 0, 0, 0, 0, 0, 0, 0, 0, I_true, Q_true, 0)
+return_code = uRAD_USB_SDK11.loadConfiguration(ser2, mode, f0,\
+	 BW, Ns, 0, 0, 0, 0, 0, 0, 0, 0, I_true, Q_true, 0)
+
 if (return_code != 0):
 	print("uRAD 2 configuration failed")
 	closeProgram()
@@ -147,10 +151,28 @@ if (return_code != 0):
 
 print("Radars configured. Initialising threads...")
 
-t_0 = time()
+# Tunable Parameters
+n_fft = 512
+nul_width_factor = 0.04
+ns = 200
+# half_guard = n_fft/ns
+# half_guard = int(np.floor(half_guard/2)*2) # make even
+
+# half_train = round(20*n_fft/ns)
+# half_train = int(np.floor(half_train/2))
+# rank = 2*half_train -2*half_guard
+half_guard = 7
+half_train = 8
+Pfa = 0.008
+SOS = ns*(Pfa**(-1/ns)-1)
+print("Pfa: ", str(Pfa))
+print("CFAR alpha value: ", SOS)
+nbins = 16
+bin_width = round((n_fft/2)/nbins)
+
 
 # Generate axes
-n_fft = 512
+fs = 200e3
 fax = np.linspace(0, round(fs/2), round(n_fft/2))
 tsweep = 1e-3
 bw = 240e6
@@ -160,29 +182,14 @@ rng_ax = c*fax/(2*slope)
 
 # rg_full = np.zeros(16*sweeps)
 twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
-nul_width_factor = 0.04
 num_nul = round((n_fft/2)*nul_width_factor)
 
-# CFAR parameters
-n_samples = 200
-half_guard = n_fft/n_samples
-half_guard = int(np.floor(half_guard/2)*2) # make even
-
-half_train = round(20*n_fft/n_samples)
-half_train = int(np.floor(half_train/2))
-rank = 2*half_train -2*half_guard
-# rank = half_train*2
-Pfa_expected = 15e-3
-# factorial needs integer values
-
-nbins = 16
-bin_width = round((n_fft/2)/nbins)
 
 # tsweep = 1e-3
 # bw = 240e6
 # # can optimise out this calculation
 # slope = bw/tsweep
-fs = 200e3
+
 
 print("System running...")
 
@@ -248,7 +255,7 @@ def urad_process(port, fspeed, frange, fsafety):
 	global fax
 	global bin_width
 	global nbins
-	global rank
+	# global rank
 
 	rg_array = np.zeros([n_rows, nbins], dtype=int)
 	sp_array = np.zeros([n_rows, nbins], dtype=int)
@@ -264,7 +271,8 @@ def urad_process(port, fspeed, frange, fsafety):
 			closeProgram()
 
 		rg_array[i], sp_array[i], sf_array[i] = range_speed_safety(raw_results[0], \
-			raw_results[1], twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, fax)
+			raw_results[1], twin, n_fft, num_nul, half_train, \
+				half_guard, _, nbins, bin_width, fax)
 		
 		i = i + 1
 
@@ -294,8 +302,12 @@ try:
 
 	vid1 = threading.Thread(target=capture, args=[duration, cap2, lhs_vid])
 	vid2 = threading.Thread(target=capture, args=[duration, cap1, rhs_vid])
-	urad1 = threading.Thread(target=urad_process, args=[ser1, lhs_fspeed , lhs_frange, lhs_fsafety])
-	urad2 = threading.Thread(target=urad_process, args=[ser2, rhs_fspeed , rhs_frange, rhs_fsafety])
+
+	urad1 = threading.Thread(target=urad_process, \
+		args=[ser1, lhs_fspeed , lhs_frange, lhs_fsafety])
+
+	urad2 = threading.Thread(target=urad_process, \
+		args=[ser2, rhs_fspeed , rhs_frange, rhs_fsafety])
 
 	t0_proc = time()
 	print("==============================================")

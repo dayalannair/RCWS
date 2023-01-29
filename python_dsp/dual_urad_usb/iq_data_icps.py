@@ -1,3 +1,11 @@
+
+# Author : Dayalan Nair
+# Date : January 2023
+
+# Description : program to initialise 2 uRAD USB v1.2 radars
+# and 2 Logitech webcams and record raw data from each
+# on a separate thread.
+
 import sys
 sys.path.append('../custom_modules')
 import uRAD_USB_SDK11
@@ -117,12 +125,14 @@ if (not usb_communication):
 	sleep(timeSleep)
 
 # loadConfiguration uRAD
-return_code = uRAD_USB_SDK11.loadConfiguration(ser1, mode, f0, BW, Ns, 0, 0, 0, 0, 0, 0, 0, 0, I_true, Q_true, 0)
+return_code = uRAD_USB_SDK11.loadConfiguration(ser1, mode, f0, \
+	BW, Ns, 0, 0, 0, 0, 0, 0, 0, 0, I_true, Q_true, 0)
 if (return_code != 0):
 	print("uRAD 1 configuration failed")
 	closeProgram()
 
-return_code = uRAD_USB_SDK11.loadConfiguration(ser2, mode, f0, BW, Ns, 0, 0, 0, 0, 0, 0, 0, 0, I_true, Q_true, 0)
+return_code = uRAD_USB_SDK11.loadConfiguration(ser2, mode, f0, \
+	BW, Ns, 0, 0, 0, 0, 0, 0, 0, 0, I_true, Q_true, 0)
 if (return_code != 0):
 	print("uRAD 2 configuration failed")
 	closeProgram()

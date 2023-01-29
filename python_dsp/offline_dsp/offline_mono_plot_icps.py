@@ -55,7 +55,7 @@ half_guard = 7
 
 Pfa = 0.008
 SOS = ns*(Pfa**(-1/ns)-1)
-SOS
+
 print("Pfa: ", str(Pfa))
 print("CFAR alpha value: ", SOS)
 # factorial needs integer values

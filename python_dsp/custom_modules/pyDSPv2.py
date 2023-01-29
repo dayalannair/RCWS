@@ -172,7 +172,7 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 
 
 def range_speed_safety(i_data, q_data, windowCoeffs, n_fft, num_nul, half_train, 
-half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
+half_guard, rank, nbins, bin_width, f_ax, SOS, calib, scan_width):
 	half_n_fft = int(n_fft/2)
 	# SQUARE LAW DETECTOR
 	# NOTE: last element in slice not included

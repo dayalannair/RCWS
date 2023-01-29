@@ -1,3 +1,6 @@
+
+# Each thread runs a camera and uRAD USB
+
 import sys
 sys.path.append('../custom_modules')
 
@@ -121,12 +124,14 @@ if (not usb_communication):
 	sleep(timeSleep)
 
 # loadConfiguration uRAD
-return_code = uRAD_USB_SDK11.loadConfiguration(ser1, mode, f0, BW, Ns, 0, 0, 0, 0, 0, 0, 0, 0, I_true, Q_true, 0)
+return_code = uRAD_USB_SDK11.loadConfiguration(ser1, mode, f0, \
+	BW, Ns, 0, 0, 0, 0, 0, 0, 0, 0, I_true, Q_true, 0)
 if (return_code != 0):
 	print("uRAD 1 configuration failed")
 	closeProgram()
 
-return_code = uRAD_USB_SDK11.loadConfiguration(ser2, mode, f0, BW, Ns, 0, 0, 0, 0, 0, 0, 0, 0, I_true, Q_true, 0)
+return_code = uRAD_USB_SDK11.loadConfiguration(ser2, mode, f0, \
+	BW, Ns, 0, 0, 0, 0, 0, 0, 0, 0, I_true, Q_true, 0)
 if (return_code != 0):
 	print("uRAD 2 configuration failed")
 	closeProgram()
@@ -252,8 +257,10 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, fcorr)
 		if (return_code != 0):
 			closeProgram()
 
-		rg_array[i], sp_array[i], sf_array[i], sp_array_corr[i]  = range_speed_safety(raw_results[0], \
-		raw_results[1], twin, n_fft, num_nul, half_train, half_guard, rank, nbins, bin_width, fax)
+		rg_array[i], sp_array[i], sf_array[i], sp_array_corr[i]  = \
+			range_speed_safety(raw_results[0], \
+		raw_results[1], twin, n_fft, num_nul, half_train,\
+			 half_guard, rank, nbins, bin_width, fax)
 		
 		i = i + 1
 
@@ -287,15 +294,15 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, fcorr)
 # ----------------------------------------------------------------------------
 # END OF THREAD FUNCTION
 # ----------------------------------------------------------------------------
-lhs_frange = "lhs_range_results_"+now+".txt"
-lhs_fspeed = "lhs_speed_results_"+now+".txt"
-lhs_fsafety = "lhs_safety_results_"+now+".txt"
-lhs_fcorr = "lhs_spcorr_results_"+now+".txt"
+lhs_frange = "2thd_lhs_range_results_"+now+".txt"
+lhs_fspeed = "2thd_lhs_speed_results_"+now+".txt"
+lhs_fsafety = "2thd_lhs_safety_results_"+now+".txt"
+lhs_fcorr = "2thd_lhs_spcorr_results_"+now+".txt"
 
-rhs_frange = "rhs_range_results_"+now+".txt"
-rhs_fspeed = "rhs_speed_results_"+now+".txt"
-rhs_fsafety = "rhs_safety_results_"+now+".txt"
-rhs_fcorr = "rhs_spcorr_results_"+now+".txt"
+rhs_frange = "2thd_rhs_range_results_"+now+".txt"
+rhs_fspeed = "2thd_rhs_speed_results_"+now+".txt"
+rhs_fsafety = "2thd_rhs_safety_results_"+now+".txt"
+rhs_fcorr = "2thd_rhs_spcorr_results_"+now+".txt"
 
 try:
 	
