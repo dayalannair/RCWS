@@ -158,6 +158,25 @@ if (return_code != 0):
 print("Radars configured. Initialising threads...")
 
 t_0 = time()
+# Tunable Parameters
+n_fft = 512
+nul_width_factor = 0.04
+ns = 200
+half_guard = 7
+half_train = 8
+Pfa = 0.008
+SOS = ns*(Pfa**(-1/ns)-1)
+print("Pfa: ", str(Pfa))
+print("CFAR alpha value: ", SOS)
+nbins = 16
+bin_width = round((n_fft/2)/nbins)
+scan_width = 8
+calib = 1.2463
+
+
+
+
+
 
 # ------------------------ Frequency axis -----------------
 nfft = 512
@@ -207,7 +226,8 @@ bin_width = round((n_fft/2)/nbins)
 fs = 200e3
 f_ax = np.linspace(0, round(fs/2), round(n_fft/2))
 os_pku, os_pkd, upth, dnth, fftu, fftd, safety_inv, beat_index, beat_min, rg_array, \
-	sp_array = py_trig_dsp(I,Q, twin, n_fft, num_nul, half_train, half_guard, nbins, bin_width, f_ax, SOS)
+	sp_array = py_trig_dsp(I,Q, twin, n_fft, num_nul, half_train, \
+		half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
 plt.ion()
 # print(beat_index)
 # print(beat_min)
@@ -366,11 +386,11 @@ def dsp_thread_usb(port, radar_index):
 	if radar_index == 0:
 		_, _, upth, dnth, fftu, fftd, _, _, _,\
 		_, _ = py_trig_dsp(raw_results[0],raw_results[1], twin, n_fft, num_nul, half_train, \
-		half_guard, nbins, bin_width, f_ax, SOS)
+		half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
 	else:
 		_, _, upth_2, dnth_2, fftu_2, fftd_2, _, _, _,\
 		_, _ = py_trig_dsp(raw_results[0],raw_results[1], twin, n_fft, num_nul, half_train, \
-		half_guard, nbins, bin_width, f_ax, SOS)
+		half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
 
 urad1_index = 0
 urad2_index = 1
