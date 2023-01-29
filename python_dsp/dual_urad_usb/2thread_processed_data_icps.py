@@ -293,10 +293,10 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, fcorr)
 	print("----------------------------------------------")
 
 	# Save radar results
-	np.savetxt(frange, rg_array, fmt='%d', delimiter = ' ', newline='\n')
-	np.savetxt(fspeed, sp_array, fmt='%d', delimiter = ' ', newline='\n')
-	np.savetxt(fsafety, sf_array, fmt='%d', delimiter = ' ', newline='\n')
-	np.savetxt(fcorr, sf_array, fmt='%d', delimiter = ' ', newline='\n')
+	np.savetxt(frange, rg_array, fmt='%.3f', delimiter = ' ', newline='\n')
+	np.savetxt(fspeed, sp_array, fmt='%.3f', delimiter = ' ', newline='\n')
+	np.savetxt(fsafety, sf_array, fmt='%.3f', delimiter = ' ', newline='\n')
+	np.savetxt(fcorr, sf_array, fmt='%.3f', delimiter = ' ', newline='\n')
 
 	print("uRAD USB processing thread complete. Data captured.")
 	print("Elapsed time: ", str(time()-t0))

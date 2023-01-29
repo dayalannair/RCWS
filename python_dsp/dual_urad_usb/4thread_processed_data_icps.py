@@ -280,9 +280,9 @@ def urad_process(port, fspeed, frange, fsafety):
 
 		t1 = time() - t0
 
-	np.savetxt(frange, rg_array, fmt='%d', delimiter = ' ', newline='\n')
-	np.savetxt(fspeed, sp_array, fmt='%d', delimiter = ' ', newline='\n')
-	np.savetxt(fsafety, sf_array, fmt='%d', delimiter = ' ', newline='\n')
+	np.savetxt(frange, rg_array, fmt='%.3f', delimiter = ' ', newline='\n')
+	np.savetxt(fspeed, sp_array, fmt='%.3f', delimiter = ' ', newline='\n')
+	np.savetxt(fsafety, sf_array, fmt='%.3f', delimiter = ' ', newline='\n')
 
 	print("uRAD USB processing thread complete. Data captured.")
 	print("Elapsed time: ", str(time()-t0))
@@ -329,6 +329,7 @@ try:
 	t1 = time() - t0
 		
 	print("Results capture complete.")
+	print("Total processing time: ", str(t1_proc))
 	print("==============================================")
 	uRAD_USB_SDK11.turnOFF(ser1)
 	uRAD_USB_SDK11.turnOFF(ser2)
