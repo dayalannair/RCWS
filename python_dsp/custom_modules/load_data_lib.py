@@ -15,12 +15,16 @@ def load_data():
 
 
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_data\lhs_iq_12_18_12.txt")
-    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_data\rhs_iq_12_18_12.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_data\rhs_iq_12_18_12.txt")
 
     # On laptop Yoga 910
 
     # file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
     # file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\")
+
+    # on Dell XPS 13
+    file_path = Path(r"C:\Users\pregg\Desktop\road_data_31_01_2023\rhs_iq_13_45_20.txt")
+
 
     # 60kmh subset
     # subset = range(800,1100)
@@ -47,17 +51,18 @@ def load_dual_data():
     folder = "road_data_05_11_2022"
     # time = "12_18_12"
     time = "11_01_36"
-    file_path_lhs = Path(r"C:\\Users\\naird\\OneDrive - University of Cape Town\\RCWS_DATA\\road_data_05_11_2022\\iq_data\\lhs_iq_11_01_36.txt")
-    file_path_rhs = Path(r"C:\\Users\\naird\\OneDrive - University of Cape Town\\RCWS_DATA\\road_data_05_11_2022\\iq_data\\rhs_iq_11_01_36.txt")
+    # file_path_lhs = Path(r"C:\\Users\\naird\\OneDrive - University of Cape Town\\RCWS_DATA\\road_data_05_11_2022\\iq_data\\lhs_iq_11_01_36.txt")
+    # file_path_rhs = Path(r"C:\\Users\\naird\\OneDrive - University of Cape Town\\RCWS_DATA\\road_data_05_11_2022\\iq_data\\rhs_iq_11_01_36.txt")
 
     # subset = range(0, 4000)
-    subset = range(0, 5000)
+    subset = range(500, 2000)
     # 50 kmh subset - same
     # 40 kmh subset
     # subset = range(700,1100)
     # 20km/h subset
     # subset = range(1,1500)
-
+    file_path_lhs = Path(r"C:\Users\pregg\Desktop\road_data_31_01_2023\lhs_iq_13_45_20.txt")
+    file_path_rhs = Path(r"C:\Users\pregg\Desktop\road_data_31_01_2023\rhs_iq_13_45_20.txt")
     # sys.path.append('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby')
     
     with open(file_path_lhs, "r") as raw_IQ_lhs:

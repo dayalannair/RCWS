@@ -109,11 +109,11 @@ for sweep in subset:
 
 	rgMtx_l[i, :], spMtx_l[i, :], sfMtx_l[i] = \
 		range_speed_safety(lhs_i, lhs_q, twin, n_fft, num_nul, half_train, \
-	half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
+	half_guard,1, nbins, bin_width, f_ax, SOS, calib, scan_width)
 
 	rgMtx_r[i, :], spMtx_r[i, :], sfMtx_r[i] = \
 		range_speed_safety(rhs_i, rhs_q, twin, n_fft, num_nul, half_train, \
-	half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
+	half_guard,1, nbins, bin_width, f_ax, SOS, calib, scan_width)
 
 
 	i = i + 1
