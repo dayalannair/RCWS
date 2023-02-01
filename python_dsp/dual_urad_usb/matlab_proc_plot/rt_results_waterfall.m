@@ -4,8 +4,30 @@
 % Also can plot range/speed/safety vs. time
 
 
-fvid_lhs = strcat('lhs_vid',time,'_rtproc.avi');
-fvid_rhs = strcat('rhs_vid',time,'_rtproc.avi');
+addpath(['../../../../../OneDrive - University of Cape Town/' ...
+    'RCWS_DATA/road_data_31_01_2023/2thd_rtproc/']);
+addpath(['../../../../../OneDrive - University of Cape Town/' ...
+    'RCWS_DATA/road_data_31_01_2023/2thd_rtproc/']);
+
+
+% fvid_lhs = strcat('lhs_vid',time,'_rtproc.avi');
+% fvid_rhs = strcat('rhs_vid',time,'_rtproc.avi');
+time = '_14_11_23';
+
+% time = '_14_14_10';
+% time = '_14_15_33';
+
+
+
+l_rng_t = readtable(strcat('2thd_lhs_range_results', ...
+    time, '.txt'), 'Delimiter', ' ');
+l_spd_t = readtable(strcat('2thd_lhs_speed_results', ...
+    time, '.txt'), 'Delimiter', ' ');
+r_rng_t = readtable(strcat('2thd_rhs_range_results', ...
+    time, '.txt'), 'Delimiter', ' ');
+r_spd_t = readtable(strcat('2thd_rhs_speed_results', ...
+    time, '.txt'), 'Delimiter', ' ');
+
 % flip names to flip video order
 % vid_lhs = VideoReader(fvid_lhs);
 % vid_rhs = VideoReader(fvid_rhs);
@@ -17,7 +39,7 @@ r_rng = table2array(r_rng_t);
 r_spd = table2array(r_spd_t);
 
 
-sweeps_processed = 1000;
+sweeps_processed = 300;
 l_rng = l_rng(1:sweeps_processed,:);
 l_spd = l_spd(1:sweeps_processed,:);
 

@@ -3,7 +3,7 @@ subset = 1000:2000;
 % first portion 60 kmh
 subset = 1:1000;
 
-addpath('../../matlab_lib/');
+addpath('../../../matlab_lib/');
 
 iq_dual_load_data;
 
@@ -18,7 +18,7 @@ iq_dual_load_data;
 % close(V_flip)
 %%
 [fc, c, lambda, tm, bw, k, rad1_iq_u, rad1_iq_d, rad2_iq_u, ...
-    rad2_iq_d, t_stamps] = import_dual_data_full(f_urad1, f_urad2);
+    rad2_iq_d, t_stamps] = import_dual_data_full(f_urad1, f_urad2, subset);
 %
 fvid_lhs = strcat('lhs_vid',time,'.avi');
 fvid_rhs = strcat('rhs_vid',time,'.avi');

@@ -2,7 +2,7 @@
 subset = 1000:2000;
 % first portion 60 kmh
 subset = 1:1000;
-subset = 1:5000;
+subset = 1:2000;
 addpath('../../matlab_lib/');
 
 % iq_dual_load_data;
@@ -317,30 +317,30 @@ for i = 1:loop_count
     end
 %         % When run on 4 threads, there are 3 times fewer 
 %         % video frames
-%     if hold_frame == 2
-%         vidFrame = readFrame(vid_lhs);
-%         set(v1,'CData' ,vidFrame);
-% 
-%         vidFrame = readFrame(vid_rhs);
-%         set(v2, 'CData', rot90(vidFrame, 2));
-%         hold_frame = 0;
-%         frame_count = frame_count + 1;
-%     else
-%         hold_frame = hold_frame + 1;
-%     end
-%     % PLOT DATA
-%     % -----------------------------------------------------------------
-%     set(p1, 'YData', rgMtx1(i,:))
-%     set(p2, 'YData', spMtxCorr1(i,:)*3.6)
-%     set(p3, 'YData', rgMtx2(i,:))
-%     set(p4, 'YData', spMtxCorr2(i,:)*3.6)
+    if hold_frame == 2
+        vidFrame = readFrame(vid_lhs);
+        set(v1,'CData' ,vidFrame);
+
+        vidFrame = readFrame(vid_rhs);
+        set(v2, 'CData', rot90(vidFrame, 2));
+        hold_frame = 0;
+        frame_count = frame_count + 1;
+    else
+        hold_frame = hold_frame + 1;
+    end
+    % PLOT DATA
+    % -----------------------------------------------------------------
+    set(p1, 'YData', rgMtx1(i,:))
+    set(p2, 'YData', spMtxCorr1(i,:)*3.6)
+    set(p3, 'YData', rgMtx2(i,:))
+    set(p4, 'YData', spMtxCorr2(i,:)*3.6)
 
 %     set(cursor,'XData',i)
     % -----------------------------------------------------------------
 
 %     disp(['Radar sweep : ', num2str(i),' Video frame : ', ...
 %         num2str(frame_count)])
-%     pause(0.001);
+    pause(0.001);
 end
 toc
 %% Map of sweep v range v speed

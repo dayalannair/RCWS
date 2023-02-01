@@ -1,20 +1,27 @@
 % 1) Add paths to data directories here - include date in directory name
-addpath(['../../../../OneDrive - University of Cape Town/' ...
+addpath(['../../../../../OneDrive - University of Cape Town/' ...
     'RCWS_DATA/road_data_05_11_2022/iq_data/']);
-addpath(['../../../../OneDrive - University of Cape Town/' ...
+addpath(['../../../../../OneDrive - University of Cape Town/' ...
     'RCWS_DATA/road_data_05_11_2022/iq_vid/']);
 
 
-addpath(['../../../../OneDrive - University of Cape Town/' ...
+addpath(['../../../../../OneDrive - University of Cape Town/' ...
     'RCWS_DATA/road_data_03_11_2022/iq_data/']);
-addpath(['../../../../OneDrive - University of Cape Town/' ...
+addpath(['../../../../../OneDrive - University of Cape Town/' ...
     'RCWS_DATA/road_data_03_11_2022/iq_vid/']);
+
+
+addpath(['../../../../../OneDrive - University of Cape Town/' ...
+    'RCWS_DATA/road_data_31_01_2023/iq_data/']);
+addpath(['../../../../../OneDrive - University of Cape Town/' ...
+    'RCWS_DATA/road_data_31_01_2023/iq_vid/']);
+
 
 
 % 2) Change the time stamp to desired data set
 % Time stamps for 3 November 2022
 
-time = '_12_18_12';
+% time = '_12_18_12';
 
 % Time stamps for 5 November 2022
 % time = '_10_25_12';
@@ -22,6 +29,10 @@ time = '_12_18_12';
 % time = '_10_44_35';
 % time = '_10_53_21';
 % time = '_11_01_36';
+
+% Time stamps for 31 January 2023
+time = '_14_09_08';
+
 
 % 3) The following will automatically load the data from both radars
 
