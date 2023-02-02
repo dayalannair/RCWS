@@ -31,7 +31,10 @@ addpath(['../../../../../OneDrive - University of Cape Town/' ...
 % time = '_11_01_36';
 
 % Time stamps for 31 January 2023
-time = '_14_09_08';
+% time = '_14_09_08';
+% time = '_14_12_57';
+time = '_14_16_22';
+
 
 
 % 3) The following will automatically load the data from both radars

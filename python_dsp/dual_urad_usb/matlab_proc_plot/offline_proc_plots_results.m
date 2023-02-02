@@ -2,7 +2,7 @@
 subset = 1000:2000;
 % first portion 60 kmh
 subset = 1:1000;
-subset = 1:2000;
+subset = 1:2700;
 addpath('../../matlab_lib/');
 
 % iq_dual_load_data;
@@ -61,12 +61,13 @@ rhs_road_width = 2;
 % rad2_iq_u = rad2_iq_u(1:3:end, :);
 % rad2_iq_d = rad2_iq_d(1:3:end, :);
 % Taylor Window
-twin = taylorwin(n_samples, nbar, sll);
-% twin = hann(n_samples);
-rad1_iq_u = rad1_iq_u.*twin.';
-rad1_iq_d = rad1_iq_d.*twin.';
-rad2_iq_u = rad2_iq_u.*twin.';
-rad2_iq_d = rad2_iq_d.*twin.';
+win = taylorwin(n_samples, nbar, sll);
+win2 = chebwin(n_samples, 100);
+% win = hann(n_samples);
+rad1_iq_u = rad1_iq_u.*win2.';
+rad1_iq_d = rad1_iq_d.*win2.';
+rad2_iq_u = rad2_iq_u.*win.';
+rad2_iq_d = rad2_iq_d.*win.';
 
 % FFT
 nul_width_factor = 0.04;
@@ -185,21 +186,6 @@ fb_idx_end2 = zeros(nbins,1);
 % max speed = 90 km/h. f = 2v/lambda = 4 kHz. each bin is 1 kHz apart
 ax_dims = [0 max(rng_ax) 80 190];
 ax_ticks = 1:2:60;
-%%
-vid_lhs = VideoReader(fvid_lhs);
-vid_rhs = VideoReader(fvid_rhs);
-close all
-vid_lhs.CurrentTime = 0;
-vid_rhs.CurrentTime = 0;
-fig1 = figure('WindowState','maximized');
-movegui(fig1,'west')
-% -------------------------------------------------------------------------
-% Process sweeps
-% -------------------------------------------------------------------------
-tic
-vidObj.CurrentTime = 0;
-hold_frame = 0;
-frame_count = 1;
 
 nswp1 = size(LHS_IQ_UP,1);
 nswp2 = size(RHS_IQ_UP,1);
@@ -217,88 +203,17 @@ beat_count_out1 = zeros(1,256);
 beat_count_out2 = zeros(1,256);
 beat_count_in1 = zeros(1,256);
 beat_count_in2 = zeros(1,256);
-% colors = linspace(1,5,5);
-% x = linspace(0,3*pi,200);
-% colors = linspace(1,10,length(x));
-xyax = [0,16,0,60];
-subplot(2,3,1);
-vidFrame = readFrame(vid_lhs);
-v1 = imshow(vidFrame);
 
-lhs_exp_speed = 40;
-rhs_exp_speed = 60;
-subplot(2,3,2);
-p1 = stem(rgMtx1(1,:));
-hold on
-axis(xyax)
-title("LHS Range Results")
-
-
-subplot(2,3,3);
-p2 = stem(spMtxCorr1(1,:));
-hold on
-yline(lhs_exp_speed)
-% hold off
-axis(xyax)
-title("LHS Speed Results. Expected speed = ", lhs_exp_speed)
-
-subplot(2,3,4);
-p3 = stem(rgMtx2(1,:));
-hold on
-axis(xyax)
-title("RHS Range Results")
-
-subplot(2,3,5);
-p4 = stem(spMtxCorr2(1,:));
-hold on
-yline(rhs_exp_speed)
-% hold off
-axis(xyax)
-title("RHS Speed Results. Expected speed = ", rhs_exp_speed)
-
-subplot(2,3,6);
-vidFrame = readFrame(vid_rhs);
-v2 = imshow(vidFrame);
-
-% subplot(2,3,1);
-% vidFrame = readFrame(vid_lhs);
-% v1 = imshow(vidFrame);
-% 
-% subplot(2,3,2);
-% p1 = plot(reshape(rgMtx1, 1, []));
-% axis([0, 3669*16, 0, 60])
-% hold on
-% cursor = scatter(0, 130 ,2000, 'Marker', '|', 'LineWidth',1.5);
-% hold off
-% title("LHS Range Results")
-% 
-% 
-% subplot(2,3,3);
-% p2 = plot(reshape(spMtxCorr1, 1, []));
-% title("LHS Speed Results")
-% 
-% subplot(2,3,4);
-% p3 = plot(reshape(rgMtx2, 1, []));
-% title("RHS Range Results")
-% 
-% subplot(2,3,5);
-% p4 = plot(reshape(spMtxCorr2, 1, []));
-% title("RHS Speed Results")
-% 
-% subplot(2,3,6);
-% vidFrame = readFrame(vid_rhs);
-% v2 = imshow(vidFrame);
+snr_ceil = 0.2e+06;
 
 for i = 1:loop_count
         
 
     [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
     pkdClean1, fbu1, fbd1, fdMtx1, fb_idx1, fb_idx_end1, ...
-    beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
+    beat_count_out1] = proc_sweep_multi_scan_left(bin_width, ...
     lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
-    f_pos, scan_width, calib, lhs_road_width, beat_count_in1);
-    
-    beat_count_in1 = beat_count_out1;
+    f_pos, scan_width, calib, lhs_road_width, beat_count_in1, snr_ceil);
 
     [rgMtx2(i,:), spMtx2(i,:), spMtxCorr2(i,:), pkuClean2, ...
     pkdClean2, fbu2, fbd2, fdMtx2, fb_idx2, fb_idx_end2, ...
@@ -306,111 +221,9 @@ for i = 1:loop_count
     lambda, k, c, dnDets2(i,:), upDets2(i,:), nbins, n_fft, ...
     f_pos, scan_width, calib, rhs_road_width, beat_count_in2);
 
-    % Reset clutter filter every 40 sweeps
-    if mod(i, 40) == 0 
-        beat_count_out1 = zeros(1,256);
-        beat_count_out2 = zeros(1,256);
-        beat_count_in1 = zeros(1,256);
-        beat_count_in2 = zeros(1,256);
-    else
-        beat_count_in2 = beat_count_out2;
-    end
-%         % When run on 4 threads, there are 3 times fewer 
-%         % video frames
-    if hold_frame == 2
-        vidFrame = readFrame(vid_lhs);
-        set(v1,'CData' ,vidFrame);
-
-        vidFrame = readFrame(vid_rhs);
-        set(v2, 'CData', rot90(vidFrame, 2));
-        hold_frame = 0;
-        frame_count = frame_count + 1;
-    else
-        hold_frame = hold_frame + 1;
-    end
-    % PLOT DATA
-    % -----------------------------------------------------------------
-    set(p1, 'YData', rgMtx1(i,:))
-    set(p2, 'YData', spMtxCorr1(i,:)*3.6)
-    set(p3, 'YData', rgMtx2(i,:))
-    set(p4, 'YData', spMtxCorr2(i,:)*3.6)
-
-%     set(cursor,'XData',i)
-    % -----------------------------------------------------------------
-
-%     disp(['Radar sweep : ', num2str(i),' Video frame : ', ...
-%         num2str(frame_count)])
-    pause(0.001);
 end
 toc
-%% Map of sweep v range v speed
-% close all
-% figure
-% tiledlayout(1,2)
-% nexttile
-% imagesc(spMtxCorr1)
-% nexttile
-% imagesc(spMtxCorr2)
-
-%% FAST PLOTTING - does not handle xlines
-% for i = 1:loop_count
-%         
-%         [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
-%         pkdClean1, fbu1, fbd1, fdMtx1, fb_idx1] = proc_sweep(bin_width, ...
-%         lambda, k, c, dnDets1(i,:), upDets1(i,:), nbins, n_fft, ...
-%         f_pos, scan_width, calib, road_width);
-%         
-%         fb_idx_end1 = fb_idx1 - 15;
-% 
-%         [rgMtx2(i,:), spMtx2(i,:), spMtxCorr2(i,:), pkuClean2, ...
-%         pkdClean2, fbu2, fbd2, fdMtx2, fb_idx2] = proc_sweep(bin_width, ...
-%         lambda, k, c, dnDets2(i,:), upDets2(i,:), nbins, n_fft, ...
-%         f_pos, scan_width, calib, road_width);
-%     
-%         fb_idx_end2 = fb_idx2 - 15;
-%         win1.Value
-% %         set(win1,'Data',[fb_idx1, fb_idx_end1])
-% %         set(win1, 'YData', [fb_idx1, fb_idx_end1])
-% %         set(win2, 'YData', [fb_idx1, fb_idx_end1])
-% %         
-% %         set(win3, 'YData', [fb_idx2, fb_idx_end2])
-% %         set(win4, 'YData', [fb_idx2, fb_idx_end2])
-% %         win3 = xline([fb_idx2, fb_idx_end2]);
-%         set(p1, 'YData', absmagdb(LHS_IQ_UP(i,:)))
-%         set(p2, 'YData', absmagdb(LHS_IQ_DN(i,:)))
-%         set(p3, 'YData', absmagdb(RHS_IQ_UP(i,:)))
-%         set(p4, 'YData', absmagdb(RHS_IQ_DN(i,:)))
-% 
-%         set(p1th, 'YData', absmagdb(upTh1(:,i)))
-%         set(p2th, 'YData', absmagdb(dnTh1(:,i)))
-%         set(p3th, 'YData', absmagdb(upTh2(:,i)))
-%         set(p4th, 'YData', absmagdb(dnTh2(:,i)))
-% %         
-% %         % When run on 4 threads, there are 3 times fewer 
-% %         % video frames
-%         if hold_frame == 2
-%             vidFrame = readFrame(vid_lhs);
-%             set(v1,'CData' ,vidFrame);
-% 
-%             vidFrame = readFrame(vid_rhs);
-%             set(v2, 'CData', vidFrame);
-%             hold_frame = 0;
-%             frame_count = frame_count + 1;
-%         else
-%             hold_frame = hold_frame + 1;
-%         end
-% %     disp(['Radar sweep : ', num2str(sweep),' Video frame : ', ...
-% %         num2str(frame_count)])
-% %     pause(0.01);
-% end
-% toc
-% RHS_IQ_UP = absmagdb(RHS_IQ_UP);
-% RHS_IQ_DN = absmagdb(RHS_IQ_DN);
-% 
-% LHS_IQ_UP = absmagdb(LHS_IQ_UP);
-% LHS_IQ_DN = absmagdb(LHS_IQ_DN);
-
-%% 
+%
 close all
 figure
 tiledlayout(2, 2)
@@ -423,21 +236,3 @@ imagesc(spMtx1)
 nexttile
 imagesc(spMtx2)
 
-
-
-
-% tic
-% for i = 1:n_sweeps
-%    
-%     
-%     % two frames per radar frame
-% %     vidFrame = readFrame(vid1);
-% %     vidFrame = readFrame(vid1);
-% %     set(v1,'CData' ,vidFrame);
-% % 
-% %     vidFrame = readFrame(vid2);
-% %     vidFrame = readFrame(vid2);
-% %     set(v2, 'CData', vidFrame);
-%     pause(0.01);
-% end
-% toc
