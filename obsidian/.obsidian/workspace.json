@@ -15,9 +15,9 @@
               "state": {
                 "file": "Report.canvas",
                 "viewState": {
-                  "x": 589.9566595049638,
-                  "y": -1162.5697739874481,
-                  "zoom": -0.15534764625242775,
+                  "x": 75.78375026823971,
+                  "y": -532.4230369121428,
+                  "zoom": -2.976294131007009,
                   "snapToGrid": false
                 }
               }
@@ -73,7 +73,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200,
+    "collapsed": true
   },
   "right": {
     "id": "42f488d91aa1a188",
