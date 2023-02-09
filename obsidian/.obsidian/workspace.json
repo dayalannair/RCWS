@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "2023-02-08.md",
+                "file": "2023-02-09.md",
                 "mode": "source",
                 "source": false
               }
@@ -86,7 +86,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "2023-02-08.md",
+                "file": "2023-02-09.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -103,7 +103,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "2023-02-08.md",
+                "file": "2023-02-09.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -126,7 +126,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "2023-02-08.md"
+                "file": "2023-02-09.md"
               }
             }
           }
@@ -149,6 +149,7 @@
   },
   "active": "7bf2b856555913b7",
   "lastOpenFiles": [
+    "2023-02-08.md",
     "Report.canvas",
     "Untitled.canvas",
     "2023-02-04.md",

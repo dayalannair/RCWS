@@ -57,8 +57,9 @@ vmax_array = zeros(200,1);
 bw = 100e6;
 for n = 1:200
     rmax_array(n) = c*n/(4*bw);
-    tc = n/fs;
-    vmax_array(n) = lambda/(4*tc)*3.6;
+    % tc = n/fs;
+    % vmax_array(n) = lambda/(4*tc)*3.6;
+    vmax_array(n) = (lambda*fs)/(2*n)*3.6;
 end
 
 % For now, est from plot = 85
