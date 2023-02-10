@@ -57,7 +57,8 @@ vmax_array = zeros(200,1);
 bw = 100e6;
 for n = 1:200
     rmax_array(n) = c*n/(4*bw);
-    % tc = n/fs;
+%     rmax_array(n) = c*n/(2*fs);
+% tc = n/fs;
     % vmax_array(n) = lambda/(4*tc)*3.6;
     vmax_array(n) = (lambda*fs)/(2*n)*3.6;
 end
@@ -88,7 +89,7 @@ v_good_dbkmh = mag2db(60);
 close all
 figure
 plot(t_sweep, rmax_array, 'DisplayName','Max range')
-axis([0 1 0 60])
+% axis([0 1 0 60])
 % yline(50, '-', '50 m')
 yyaxis left
 % ylim([0, 60])
@@ -99,7 +100,7 @@ yyaxis right
 plot(t_sweep, vmax_array, 'DisplayName','Max Velocity')
 % ylim([0, 60])
 % yline(60, '-', '60 km/h')
-axis([0 1 0 60])
+% axis([0 1 0 60])
 ylabel("Velocity (km/h)")
 xlabel("Chirp duration (ms)")
 hold on
