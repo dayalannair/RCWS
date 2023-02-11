@@ -62,8 +62,9 @@ rhs_road_width = 2;
 % rad2_iq_d = rad2_iq_d(1:3:end, :);
 % Taylor Window
 win = taylorwin(n_samples, nbar, sll);
+win2 = taylorwin(n_samples, nbar, sll);
 % twin = hann(n_samples);
-win2 = chebwin(n_samples, 100);
+% win2 = chebwin(n_samples, 100);
 % win = blackmanharris(n_samples);
 % win = hamming(n_samples);
 % win = kaiser(n_samples, 6);

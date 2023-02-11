@@ -222,7 +222,6 @@ for i = 1:loop_count
     f_pos, scan_width, calib, rhs_road_width, beat_count_in2);
 
 end
-toc
 %
 close all
 figure

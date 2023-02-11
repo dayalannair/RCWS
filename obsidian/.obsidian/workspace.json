@@ -11,11 +11,15 @@
             "id": "7bf2b856555913b7",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "canvas",
               "state": {
-                "file": "2023-02-09.md",
-                "mode": "source",
-                "source": false
+                "file": "Report.canvas",
+                "viewState": {
+                  "x": 562.1741050174105,
+                  "y": -1109.1528827780116,
+                  "zoom": -1.584812119247325,
+                  "snapToGrid": false
+                }
               }
             }
           }
@@ -69,8 +73,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200,
-    "collapsed": true
+    "width": 200
   },
   "right": {
     "id": "42f488d91aa1a188",
@@ -86,7 +89,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "2023-02-09.md",
+                "file": "Report.canvas",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -103,7 +106,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "2023-02-09.md",
+                "file": "Report.canvas",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -126,7 +129,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "2023-02-09.md"
+                "file": "Report.canvas"
               }
             }
           }
@@ -149,9 +152,10 @@
   },
   "active": "7bf2b856555913b7",
   "lastOpenFiles": [
+    "Untitled.canvas",
+    "2023-02-09.md",
     "2023-02-08.md",
     "Report.canvas",
-    "Untitled.canvas",
     "2023-02-04.md",
     "Literature review comments.md"
   ]

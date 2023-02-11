@@ -110,7 +110,7 @@ cfar_up = np.zeros([len_subset, 256])
 cfar_dn = np.zeros([len_subset, 256])
 
 
-scan_width = 10
+scan_width = 8
 calib = 1.2463
 
 print("System running...")
@@ -133,9 +133,16 @@ for sweep in subset:
 	# half_guard, nbins, bin_width, f_ax, SOS)
 
 
-	rgMtx[i, :], spMtx[i, :], sfMtx[i], fbu[i, :], fbd[i, :], _, cfar_up[i, :], cfar_dn[i, :] = \
-		range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, \
-	half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
+	rgMtx[i, :], spMtx[i, :], sfMtx[i] = range_speed_safety(i_data, q_data, twin, \
+		 n_fft, num_nul, half_train, half_guard, 0,nbins, bin_width, f_ax, SOS, calib, scan_width)
+
+
+	
+	# rgMtx[i, :], spMtx[i, :], sfMtx[i], fbu[i, :], fbd[i, :], _, cfar_up[i, :], cfar_dn[i, :] = \
+	# 	range_speed_safety(i_data, q_data, twin, n_fft, num_nul, half_train, \
+	# half_guard, 0,nbins, bin_width, f_ax, SOS, calib, scan_width)
+
+
 	i = i + 1
 	# spMtx[i, :] = spMtx[i, :]*3.6
 	# print(spMtx[np.nonzero(spMtx)])

@@ -17,20 +17,28 @@ def load_data():
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_data\lhs_iq_12_18_12.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_11_2022\iq_data\rhs_iq_12_18_12.txt")
 
+
+
+    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_10_02_2023\iq_data\lhs_iq_14_51_49.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_10_02_2023\iq_data\rhs_iq_14_51_49.txt")
+
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_10_02_2023\iq_data\lhs_iq_14_52_54.txt")
+
+
     # On laptop Yoga 910
 
     # file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
     # file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\")
 
     # on Dell XPS 13
-    file_path = Path(r"C:\Users\pregg\Desktop\road_data_31_01_2023\rhs_iq_13_45_20.txt")
+    # file_path = Path(r"C:\Users\pregg\Desktop\road_data_31_01_2023\rhs_iq_13_45_20.txt")
 
 
     # 60kmh subset
     # subset = range(800,1100)
     # subset = range(0, 4000)
 
-    subset = range(0, 5000)
+    subset = range(0, 2700)
 
     
     # 50 kmh subset - same
