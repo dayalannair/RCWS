@@ -17,8 +17,7 @@
                 "viewState": {
                   "x": 535.02645714934,
                   "y": -1568.7475557030816,
-                  "zoom": -1.0833333333333333,
-                  "snapToGrid": false
+                  "zoom": -1.0833333333333333
                 }
               }
             }
@@ -27,16 +26,31 @@
             "id": "092ac04672b3639d",
             "type": "leaf",
             "state": {
+              "type": "canvas",
+              "state": {
+                "file": "Report.canvas",
+                "viewState": {
+                  "x": -1200.00975452597,
+                  "y": -1797.836960576225,
+                  "zoom": 0.5833333333333333
+                }
+              }
+            }
+          },
+          {
+            "id": "4e2ca529466972fb",
+            "type": "leaf",
+            "state": {
               "type": "markdown",
               "state": {
-                "file": "2023-02-16.md",
+                "file": "2023-02-25.md",
                 "mode": "source",
                 "source": false
               }
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -102,7 +116,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "2023-02-16.md",
+                "file": "2023-02-25.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -119,7 +133,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "2023-02-16.md",
+                "file": "2023-02-25.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -142,7 +156,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "2023-02-16.md"
+                "file": "2023-02-25.md"
               }
             }
           }
@@ -163,8 +177,10 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "092ac04672b3639d",
+  "active": "4e2ca529466972fb",
   "lastOpenFiles": [
+    "2023-02-25.md",
+    "2023-02-16.md",
     "2023-02-15.md",
     "2023-02-12.md",
     "Report.canvas",

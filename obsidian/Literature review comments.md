@@ -13,7 +13,7 @@ Things to do:
 		1. key params of the radar
 	2. Clarify link between Kalman: 
 		1. Gate method
-		2. Tracking is needed
+		2. Tracking is needed~
 6. #### Crit review
 	1. Clear link 
 	2. highlight weaknesses
