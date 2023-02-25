@@ -1,6 +1,6 @@
 % 
 % 
-x =data(3).ObjectDetections;
+% x =data(3).ObjectDetections;
 % r = x(1)
 % r = x{1}.Measurement(5)
 % data = ans;
@@ -141,7 +141,23 @@ legend([p3, p4],'Location', 'southeast')
 
 tl.Padding = 'tight';
 % tl.TileSpacing = 'compact';
-
+%%
+meanMeasuredPos2 = mean(measuredPosition2, 2, 'omitnan');
+meanMeasuredVel2 = mean(measuredVelocity2, 2, 'omitnan');
+% numDets = 0;
+% for i = 1:N
+%     for j = 1:15
+%         if (measuredPosition2(i,j).isNaN == 0)
+%             numDets = numDets + 1;
+%             tempPos(numDets) = measuredPosition2(i,j);
+%         end
+%         if (measuredVelocity2(i,j).isNaN == 0)
+%             numDets = numDets + 1;
+%             tempVel(numDets) = measuredPosition2(i,j);
+%         end
+%     end
+% end
+%%
 % Create textarrow
 % annotation(figure1,'textarrow',[0.148958333333333 0.203125],...
 %     [0.789598290598291 0.873931623931624],'String',{'Car 1'});
