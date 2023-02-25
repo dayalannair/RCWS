@@ -38,8 +38,8 @@ for i = 1:N
     for j = 1:length(detectionsRadar1)
         % Stack detections from radar 1 - RHS
         if detectionsRadar1{j}.SensorIndex == 1
-%             measuredVelocity1(i,j) = detectionsRadar1{j}.Measurement(5);
-%             measuredPosition1(i,j) = detectionsRadar1{j}.Measurement(2);
+            measuredVelocity1(i,j) = detectionsRadar1{j}.Measurement(5);
+            measuredPosition1(i,j) = detectionsRadar1{j}.Measurement(2);
         % Stack detections from radar 2 - LHS
         else
             measuredVelocity2(i,j) = detectionsRadar1{j}.Measurement(5);
@@ -69,22 +69,22 @@ for i = 1:N
     % Ensures tracks are correct for each target plot
     % If RHS range is negative, proceed as normal
     % If RHS range is positive, target is has crossed over to other radar
-%     if ap2 > 0
-%         actualVelocity1(i)   = data(i).ActorPoses(2).Velocity(2);
-%         actualVelocity2(i)   = data(i).ActorPoses(3).Velocity(2);
-%         actualPosition1(i)   = data(i).ActorPoses(2).Position(2);
-%         actualPosition2(i)   = data(i).ActorPoses(3).Position(2);
-% 
-% %         actualPosition(:,1)
-% %         actualPosition(:,1)
-% %         actualPosition(:,1)
-%     else
-%         actualVelocity2(i)   = data(i).ActorPoses(2).Velocity(2);
-%         actualVelocity1(i)   = data(i).ActorPoses(3).Velocity(2);
-%         actualPosition2(i)   = data(i).ActorPoses(2).Position(2);
-%         actualPosition1(i)   = data(i).ActorPoses(3).Position(2);
-% 
-%     end
+    if ap2 > 0
+        actualVelocity1(i)   = data(i).ActorPoses(2).Velocity(2);
+        actualVelocity2(i)   = data(i).ActorPoses(3).Velocity(2);
+        actualPosition1(i)   = data(i).ActorPoses(2).Position(2);
+        actualPosition2(i)   = data(i).ActorPoses(3).Position(2);
+
+%         actualPosition(:,1)
+%         actualPosition(:,1)
+%         actualPosition(:,1)
+    else
+        actualVelocity2(i)   = data(i).ActorPoses(2).Velocity(2);
+        actualVelocity1(i)   = data(i).ActorPoses(3).Velocity(2);
+        actualPosition2(i)   = data(i).ActorPoses(2).Position(2);
+        actualPosition1(i)   = data(i).ActorPoses(3).Position(2);
+
+    end
 
     
 end
@@ -98,7 +98,7 @@ car2_r(car2_r<0)=nan;
 %% Plots
 close all
 figure1 = figure('WindowState','maximized');
-tl = tiledlayout(1, 2);
+tl = tiledlayout(2, 2);
 nexttile
 hold on
 scatter(t, abs(measuredVelocity2(:, :)), 70,'Marker','.')
@@ -110,15 +110,15 @@ ylabel("Speed (m/s)")
 axis([0 max(t) 0 20])
 legend([p1 p2],'Location', 'southeast')
 % 
-% nexttile
-% hold on
-% scatter(t, abs(measuredVelocity1(:, 1:5)),70, 'Marker','.')
-% p2 = plot(t, abs(actualVelocity1), 'DisplayName', 'Actual');
-% title("RHS Radar Velocity Measurements")
-% xlabel("Time (s)")
-% ylabel("Speed (m/s)")
-% axis([0 max(t) 0 20])
-% legend(p2,'Location', 'southeast')
+nexttile
+hold on
+scatter(t, abs(measuredVelocity1(:, 1:5)),70, 'Marker','.')
+p2 = plot(t, abs(actualVelocity1), 'DisplayName', 'Actual');
+title("RHS Radar Velocity Measurements")
+xlabel("Time (s)")
+ylabel("Speed (m/s)")
+axis([0 max(t) 0 20])
+legend(p2,'Location', 'southeast')
 
 nexttile
 hold on
@@ -130,20 +130,23 @@ xlabel("Time (s)")
 ylabel("Range (m)")
 legend([p3, p4],'Location', 'southeast')
 
-% nexttile
-% hold on
-% scatter(t, abs(measuredPosition1(:, 1:5)), 70, 'Marker','.')
-% p4 = plot(t, abs(actualPosition1), 'DisplayName', 'Actual');
-% title("RHS Radar Range Measurements")
-% xlabel("Time (s)")
-% ylabel("Range (m)")
-% legend(p4,'Location', 'southeast')
+nexttile
+hold on
+scatter(t, abs(measuredPosition1(:, 1:5)), 70, 'Marker','.')
+p4 = plot(t, abs(actualPosition1), 'DisplayName', 'Actual');
+title("RHS Radar Range Measurements")
+xlabel("Time (s)")
+ylabel("Range (m)")
+legend(p4,'Location', 'southeast')
 
 tl.Padding = 'tight';
 % tl.TileSpacing = 'compact';
 %%
 meanMeasuredPos2 = mean(measuredPosition2, 2, 'omitnan');
 meanMeasuredVel2 = mean(measuredVelocity2, 2, 'omitnan');
+
+meanMeasuredPos1 = mean(measuredPosition1, 2, 'omitnan');
+meanMeasuredVel1 = mean(measuredVelocity1, 2, 'omitnan');
 % numDets = 0;
 % for i = 1:N
 %     for j = 1:15
