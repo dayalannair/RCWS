@@ -59,7 +59,7 @@ bwin = blackman(Ns);
 fs = 200e3;
 f = f_ax(n_fft, fs);
 % f_neg = f(1:n_fft/2);
-% f_pos = f((n_fft/2 + 1):end);
+f_pos = f((n_fft/2 + 1):end);
 freqkHz = linspace(0, 100000, 256);
 
 % Range axis

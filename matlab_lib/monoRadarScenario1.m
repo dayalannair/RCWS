@@ -2,11 +2,11 @@
 % two cars passing by, RHS radar side
 % CASE 4: Target overtake
 car1_x_dist = 0;
-car1_y_dist = 4;
+car1_y_dist = 400;
 car1_speed = -60/3.6;
 car2_x_dist = 60;
 car2_y_dist = 2;
-car2_speed = 70/3.6;
+car2_speed = 50/3.6;
 
 car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
 car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
