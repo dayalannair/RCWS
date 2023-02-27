@@ -48,9 +48,21 @@
                 "source": false
               }
             }
+          },
+          {
+            "id": "1a4728c26035a988",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "2023-02-27.md",
+                "mode": "source",
+                "source": false
+              }
+            }
           }
         ],
-        "currentTab": 2
+        "currentTab": 3
       }
     ],
     "direction": "vertical"
@@ -116,7 +128,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "2023-02-25.md",
+                "file": "2023-02-27.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -133,7 +145,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "2023-02-25.md",
+                "file": "2023-02-27.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -156,7 +168,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "2023-02-25.md"
+                "file": "2023-02-27.md"
               }
             }
           }
@@ -177,9 +189,10 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "4e2ca529466972fb",
+  "active": "1a4728c26035a988",
   "lastOpenFiles": [
     "2023-02-25.md",
+    "2023-02-27.md",
     "2023-02-16.md",
     "2023-02-15.md",
     "2023-02-12.md",

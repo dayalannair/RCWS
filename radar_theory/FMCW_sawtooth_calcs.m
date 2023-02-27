@@ -2,7 +2,7 @@ fc = 24.005e9;
 c = physconst('LightSpeed');
 lambda = c/fc;
 t_sweep = 1e-3;                    
-bw = 240e6;
+bw = 150e6;
 sweep_slope = bw/t_sweep;
 n_samples_max = 200;
 v_max = 60/3.6;
@@ -52,15 +52,17 @@ r_max_new = c*N_new/(4*bw)
 % cant improve lambda
 %% Optimisation
 
-rmax_array = zeros(200,1);
-vmax_array = zeros(200,1);
-bw = 100e6;
-for n = 1:200
-    rmax_array(n) = c*n/(4*bw);
+rmax_array = zeros(150,1);
+vmax_array = zeros(150,1);
+t_sweep = zeros(150,1);
+
+for n = 50:199
+    rmax_array(n-49) = c*n/(4*bw);
 %     rmax_array(n) = c*n/(2*fs);
 % tc = n/fs;
     % vmax_array(n) = lambda/(4*tc)*3.6;
-    vmax_array(n) = (lambda*fs)/(2*n)*3.6;
+    vmax_array(n-49) = (lambda*fs)/(2*n)*3.6;
+    t_sweep(n-49) = n/fs;
 end
 
 % For now, est from plot = 85
@@ -81,11 +83,12 @@ vmax = lambda/(4*tc)*3.6
 range_res = c/(2*bw) % ---> sim to data sheet?
 % Terrible!
 %%
-inters = intersect(rmax_array, vmax_array);
-t_sample = 1/(200e3);
-t_sweep = (1:1:200)*t_sample*1000;
-t_sweep = t_sweep';
-v_good_dbkmh = mag2db(60);
+% inters = intersect(rmax_array, vmax_array);
+% t_sample = 1/(200e3);
+% t_sweep = (1:1:200)*t_sample*1000;
+% t_sweep = t_sweep';
+% v_good_dbkmh = mag2db(60);
+
 close all
 figure
 plot(t_sweep, rmax_array, 'DisplayName','Max range')
@@ -103,10 +106,11 @@ plot(t_sweep, vmax_array, 'DisplayName','Max Velocity')
 % axis([0 1 0 60])
 ylabel("Velocity (km/h)")
 xlabel("Chirp duration (ms)")
-hold on
-plot(0.2728, 41.1, 'Marker','x', 'MarkerSize',20, 'DisplayName','Approx. intersect')
-xline(50*t_sample*1000, "DisplayName","Hardware minimum")
-title('Maximum Unambiguous Range and Velocity vs. Chirp Duration')
+% hold on
+% plot(0.2728, 41.1, 'Marker','x', 'MarkerSize',20, 'DisplayName','Approx. intersect')
+xline(50/fs, "DisplayName","Hardware minimum")
+% title('Maximum Unambiguous Range and Velocity vs. Chirp Duration for a ')
+ax=gca; ax.XAxis.Exponent = -3;
 legend
 % plot(rmax_array)
 % yyaxis left
@@ -115,7 +119,7 @@ legend
 % plot(vmax_array)
 % yyaxis right
 % ylabel("Velocity (kmdB/h)")
-
+return;
 %% Separate plot for better axes
 close all
 figure
