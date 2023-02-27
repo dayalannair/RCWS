@@ -2,10 +2,10 @@ addpath('../../matlab_lib/');
 %% Import radar model
 uRAD_model;
 %% Select Scenario
-% monoRadarScenario1;
+monoRadarScenario1;
 % monoRadarScenario2;
 % monoRadarScenario3;
-monoRadarScenario4;
+% monoRadarScenario4;
 %% Configure processing
 proc_config;
 %% Configure simulation plots
@@ -57,13 +57,13 @@ for t = 1:(n_steps-2)
     upDets1 = abs(IQ_UP).*up_os1';
     dnDets1 = abs(IQ_DN).*dn_os1';
     
-    
+    % calib set to 1 since no calibration needed for simulated radar
     [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
     pkdClean1, fbu1(i,:), fbd1(i,:), fdMtx1(i,:), fb_idx1, fb_idx_end1, ...
     beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
     lambda, k, c, dnDets1, upDets1, nbins, n_fft, ...
-    freqkHz, scan_width, calib, lhs_road_width, beat_count_in1);
-    
+    freqkHz, scan_width, 1, lhs_road_width, beat_count_in1);
+    disp(rgMtx1(i,:))
     ratio = rgMtx1(i,:)./spMtx1(i,:);
     if (any(ratio<t_safe))
         % 1 indicates sweep contained target at unsafe distance
@@ -102,8 +102,44 @@ end
 
 %% Results
 
+
+
 spMtx1Kmh = spMtx1*3.6;
-spMtxCorr1Kmh = spMtxCorr1*3.6;
+spMtxCorr1Kmh = real(spMtxCorr1*3.6);
 
+% spMtx1Kmh_mean = mean(nonzeros(spMtx1Kmh), 2);
+% spMtxCorr1Kmh_mean = mean(nonzeros(spMtxCorr1Kmh), 2);
 
-
+% rgMtx1_mean = mean(rgMtx1~=0, 2);
+% rgMtx1_NAN = rgMtx1;
+% rgMtx1_NAN(rgMtx1_NAN == 0) = nan;
+% rgMtx1Clean = rmmissing(rgMtx1_NAN, 2)
+for i = 1:size(rgMtx1(:,1))
+    rgMtx1_mean(i,:) = mean(nonzeros(rgMtx1(i,:)));
+    spMtx1Kmh_mean(i,:) = mean(nonzeros(spMtx1Kmh(i,:)));
+    spMtxCorr1Kmh_mean(i,:) = mean(nonzeros(spMtxCorr1Kmh(i,:)));
+end
+% spMtx1Kmh_mean = mean(removeMatZeros(spMtx1Kmh), 2, 'omitnan');
+% spMtxCorr1Kmh_mean = mean(removeMatZeros(spMtxCorr1Kmh), 2, 'omitnan');
+% 
+% rgMtx1_mean = mean(removeMatZeros(rgMtx1'), 2, 'omitnan');
+% 
+% function B = removeMatZeros(A)
+%     B = [];
+%     for i = 1: size(A, 1)
+%         r = A(i,:);
+%         r(r==0) = []; % remove zeros
+%           % handle expansion
+%           ncolR = size(r, 2);
+%           ncolB = size(B, 2);
+%           diffcol = ncolR - ncolB;
+%           if (diffcol > 0) % previous rows need more cols
+%               for j = ncolB+1:ncolR
+%                   B(:,j) = NaN;
+%               end
+%           elseif (diffcol < 0) % this row needs more cols
+%               r = [r, NaN(1, abs(diffcol))];
+%           end
+%           B(i,:) = r;
+%      end
+% end
