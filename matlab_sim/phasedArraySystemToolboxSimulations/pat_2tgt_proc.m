@@ -15,12 +15,16 @@ sim_plot_config;
 
 
 i = 0;
-for t = 1:(n_steps-2)
+for t = 1:(n_steps)
 %     pause(1)
     i = t;
     %disp(t)
-    sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
-    [tgt_pos,tgt_vel] = carmotion(t_step);
+%     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
+    [tgt_pos, tgt_vel] = carmotion(t_step);
+%     disp(tgt_pos)
+    actual_range(i) = sqrt(tgt_pos(1, 2)^2 + tgt_pos(2,2)^2);
+    time(i) = t*t_step
+%     actual_x = 
 
 %     % issue: helper updates target position and velocity within each
 %     sweep. Resolved --> issue was releasing waveforms?
@@ -63,7 +67,7 @@ for t = 1:(n_steps-2)
     beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
     lambda, k, c, dnDets1, upDets1, nbins, n_fft, ...
     freqkHz, scan_width, 1, lhs_road_width, beat_count_in1);
-    disp(rgMtx1(i,:))
+%     disp(rgMtx1(i,:))
     ratio = rgMtx1(i,:)./spMtx1(i,:);
     if (any(ratio<t_safe))
         % 1 indicates sweep contained target at unsafe distance
