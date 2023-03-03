@@ -21,8 +21,8 @@ train = 16;%n_fft/8;%64;
 guard = 14;%n_fft/64;%8;
 rank = round(3*train/4);
 nbar = 3;
-sll = -80;
-F = 5*10e-4;
+sll = -150;
+F = 4*10e-4;
 v_max = 60/3.6; 
 fd_max = speed2dop(v_max, lambda)*2;
 % Minimum sample number for 1024 point FFT corresponding to min range = 10m
@@ -44,8 +44,8 @@ lhs_road_width = 4;
 rhs_road_width = 2;
 
 % Taylor window
-% win = taylorwin(Ns, nbar, sll);
-win = hanning(Ns);
+win = taylorwin(Ns, nbar, sll);
+% win = hanning(Ns);
 % win = hamming(Ns);
 % wind = taylorwin(n_samples, nbar, sll);
 % Gaussian
