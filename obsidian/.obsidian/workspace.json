@@ -55,7 +55,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "2023-02-27.md",
+                "file": "2023-03-03.md",
                 "mode": "source",
                 "source": false
               }
@@ -128,7 +128,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "2023-02-27.md",
+                "file": "2023-03-03.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -145,7 +145,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "2023-02-27.md",
+                "file": "2023-03-03.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -168,7 +168,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "2023-02-27.md"
+                "file": "2023-03-03.md"
               }
             }
           }
@@ -191,8 +191,9 @@
   },
   "active": "1a4728c26035a988",
   "lastOpenFiles": [
-    "2023-02-25.md",
     "2023-02-27.md",
+    "2023-03-03.md",
+    "2023-02-25.md",
     "2023-02-16.md",
     "2023-02-15.md",
     "2023-02-12.md",

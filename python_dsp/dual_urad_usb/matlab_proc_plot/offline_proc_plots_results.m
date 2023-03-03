@@ -5,7 +5,7 @@ subset = 1:1000;
 subset = 1:2700;
 addpath('../../matlab_lib/');
 
-% iq_dual_load_data;
+iq_dual_load_data;
 
 [fc, c, lambda, tm, bw, k, rad1_iq_u, rad1_iq_d, rad2_iq_u, ...
     rad2_iq_d, t_stamps] = import_dual_data_full(f_urad1, f_urad2, subset);
@@ -36,13 +36,8 @@ guard = 14;%n_fft/64;%8;
 rank = round(3*train/4);
 nbar = 3;
 sll = -100;
-F = 1*10e-2;
-v_max = 60/3.6; 
-fd_max = speed2dop(v_max, lambda)*2;
-% Minimum sample number for 1024 point FFT corresponding to min range = 10m
-% n_min = 83;
-% for 512 point FFT:
-n_min = 42;
+F = 0.05;
+
 % Divide into range bins of width 64
 % bin_width = (n_fft/2)/nbins;
 % nbins = 8;
@@ -234,4 +229,5 @@ nexttile
 imagesc(spMtx1)
 nexttile
 imagesc(spMtx2)
-
+%%
+spMtx1 = spMtx1*3.6;

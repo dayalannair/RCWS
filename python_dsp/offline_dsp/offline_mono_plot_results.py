@@ -182,10 +182,10 @@ fig1.tight_layout()
 #                     wspace=0.4, 
 #                     hspace=0.4)
 
-line1 = ax[0].imshow(rgMtx, origin='upper', vmin=0, vmax=70, aspect='auto')#, extent=[0, 62.5, 0, len_subset]
+line1 = ax[0].imshow(rgMtx, origin='upper', vmin=0, vmax=70, aspect='auto', interpolation='none')#, extent=[0, 62.5, 0, len_subset]
 # plt.grid(None)
 # plt.show()
-line2 = ax[1].imshow(spMtx, origin='upper', vmin=0, vmax=70, aspect='auto') #, extent=[0, 62.5, 0, len_subset]
+line2 = ax[1].imshow(spMtx, origin='upper', vmin=0, vmax=70, aspect='auto', interpolation='none') #, extent=[0, 62.5, 0, len_subset]
 line3, = ax[2].plot(sfMtx)
 # thismanager = get_current_fig_manager()
 # thismanager.window.SetPosition((500, 0))
