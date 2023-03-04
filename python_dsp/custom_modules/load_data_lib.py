@@ -43,7 +43,12 @@ def load_data():
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_57_50.txt")
 
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_52_43.txt")
-    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_52_43.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_52_43.txt")
+
+    # Yoga - user name is Dayalan Nair not naird. MATLAB does not need the absolute path so it works on both devices
+    file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_57_07.txt")
+    # file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_57_07.txt")
+
 
     # 60kmh subset
     # subset = range(800,1100)
@@ -95,10 +100,10 @@ def load_dual_data():
 def load_proc_data():
     
     file_path_lhs = Path(r"lhs_speed_results.txt")
-    file_path_rhs = Path(r"rhs_speed_results.txt")
+    # file_path_rhs = Path(r"rhs_speed_results.txt")
 
     # subset = range(0, 4000)
-    subset = range(0, 5000)
+    subset = range(0, 2700)
     # 50 kmh subset - same
     # 40 kmh subset
     # subset = range(700,1100)
@@ -110,8 +115,10 @@ def load_proc_data():
     with open(file_path_lhs, "r") as raw_IQ_lhs:
         lhs = raw_IQ_lhs.read().split("\n")
 
-    with open(file_path_rhs, "r") as raw_IQ_rhs:
-        rhs = raw_IQ_rhs.read().split("\n")
+    # with open(file_path_rhs, "r") as raw_IQ_rhs:
+    #     rhs = raw_IQ_rhs.read().split("\n")
+
+    rhs = []
     return lhs, rhs, subset
 
 
