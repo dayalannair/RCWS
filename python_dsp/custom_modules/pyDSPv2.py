@@ -298,7 +298,7 @@ half_guard, rank, nbins, bin_width, f_ax, SOS, calib, scan_width):
 					if (fdMin < fd): # NOTE: max limited by scan width
 						# convert Doppler to speed. fd is twice the Doppler therefore
 						# divide by 2
-						sp_array[bin] = fd*lmda
+						# sp_array[bin] = fd*lmda
 						# Note that fbd is now positive
 						rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)*calib
 
@@ -306,8 +306,8 @@ half_guard, rank, nbins, bin_width, f_ax, SOS, calib, scan_width):
 						# Theta in radians
 						# theta = np.arcsin(road_width/rg_array[bin])*correction_factor
 
-						# # real_v = fd*lmda/(8*np.cos(theta))
-						# sp_array[bin] = fd*lmda/(2*np.cos(theta))
+						# real_v = fd*lmda/(8*np.cos(theta))
+						sp_array[bin] = fd*lmda/(np.cos(np.arcsin(road_width/rg_array[bin])))
 						
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************

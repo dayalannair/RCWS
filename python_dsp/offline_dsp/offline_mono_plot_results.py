@@ -160,21 +160,21 @@ fbd_fname = "fbd_results.txt"
 # np.savetxt(fbu_fname,  fbu, fmt='%10.5f')
 # np.savetxt(fbd_fname,  fbd, fmt='%10.5f')
 
-np.savetxt(rng_fname,  rgMtx, fmt='%d')
-np.savetxt(spd_fname,  spMtx, fmt='%d')
-np.savetxt(fbu_fname,  fbu, fmt='%d')
-np.savetxt(fbd_fname,  fbd, fmt='%d')
+np.savetxt(rng_fname,  rgMtx, fmt='%.2f')
+np.savetxt(spd_fname,  spMtx, fmt='%.2f')
+np.savetxt(fbu_fname,  fbu, fmt='%.2f')
+np.savetxt(fbd_fname,  fbd, fmt='%.2f')
 
 
 fd_arr = np.subtract(fbd, fbu)/2
 fd_fname = "dopp_results.txt"
 np.savetxt(fd_fname,  fbd, fmt='%10.5f')
 
-cfu_fname = "cfar_u_results.txt"
-cfd_fname = "cfar_d_results.txt"
-# np.savetxt(safety_fname,  safety, fmt='%3.4f')
-np.savetxt(cfu_fname,  cfar_up, fmt='%10.5f')
-np.savetxt(cfd_fname,  cfar_dn, fmt='%10.5f')
+# cfu_fname = "cfar_u_results.txt"
+# cfd_fname = "cfar_d_results.txt"
+# # np.savetxt(safety_fname,  safety, fmt='%3.4f')
+# np.savetxt(cfu_fname,  cfar_up, fmt='%10.5f')
+# np.savetxt(cfd_fname,  cfar_dn, fmt='%10.5f')
 
 print("Processing Complete. Displaying results...")
 
