@@ -34,6 +34,9 @@ car2_r = NaN(N, 1);
 t   = NaN(N,1);
 rhs_road_width = 1.5;
 lhs_road_width = 3.0;
+angle_offset = 15*pi/180;
+angle_offset = 0;
+disp(angle_offset)
 for i = 1:N
     t(i) = data(i).Time;
     detectionsRadar1 = data(i).ObjectDetections;
@@ -44,9 +47,9 @@ for i = 1:N
             measuredPosition1(i,j) = detectionsRadar1{j}.Measurement(2);
             
             % Angle corrected measurements
-            theta = asin(rhs_road_width/measuredPosition1(i,j));
-            measuredVelocity1(i,j) = ...
-                detectionsRadar1{j}.Measurement(5)/cos(theta);
+%             theta = asin(rhs_road_width/measuredPosition1(i,j));
+%             measuredVelocity1(i,j) = ...
+%                 detectionsRadar1{j}.Measurement(5)/cos(theta-angle_offset);
 
         % Stack detections from radar 2 - LHS
         else
@@ -54,9 +57,9 @@ for i = 1:N
             measuredPosition2(i,j) = detectionsRadar1{j}.Measurement(2);
 
             % Angle corrected measurements
-            theta = asin(lhs_road_width/measuredPosition2(i,j));
-            measuredVelocity2(i,j) = ...
-                detectionsRadar1{j}.Measurement(5)/cos(theta);
+%             theta = asin(lhs_road_width/measuredPosition2(i,j));
+%             measuredVelocity2(i,j) = ...
+%                 detectionsRadar1{j}.Measurement(5)/cos(theta-angle_offset);
         end
     end
 %     measuredVelocity1(i) = data(i).ObjectDetections{1}.Measurement(5);
@@ -70,40 +73,44 @@ for i = 1:N
 %     actualPosition1(i)   = data(i).ActorPoses(2).Position(2);
 %     actualPosition2(i)   = data(i).ActorPoses(3).Position(2);
 
-    av1   = data(i).ActorPoses(2).Velocity(2);
-    av2   = data(i).ActorPoses(3).Velocity(2);
-    ap1   = data(i).ActorPoses(2).Position(2);
-    ap2   = data(i).ActorPoses(3).Position(2);
-    
+
     car1_v(i) = data(i).ActorPoses(2).Velocity(2);
-    car2_v(i) = data(i).ActorPoses(3).Velocity(2);
     car1_r(i) = data(i).ActorPoses(2).Position(2);
-    car2_r(i) = data(i).ActorPoses(3).Position(2);
+
+%     car2_v(i) = data(i).ActorPoses(3).Velocity(2);
+%     car2_r(i) = data(i).ActorPoses(3).Position(2);
 
     % ENSURE HOST PLACED AT COORD 0,0,0!
     % Ensures tracks are correct for each target plot
     % If RHS range is negative, proceed as normal
     % If RHS range is positive, target is has crossed over to other radar
-    if ap2 > 0
-        actualVelocity2(i)   = data(i).ActorPoses(3).Velocity(2);
-        actualPosition2(i)   = data(i).ActorPoses(3).Position(2);
-    else
-        actualVelocity2(i)   = data(i).ActorPoses(2).Velocity(2);
-        actualPosition2(i)   = data(i).ActorPoses(2).Position(2);
-
-    end
-    % if LHS range is negative, target crossed to other side
-    if ap1 < 0
-        actualVelocity1(i)   = data(i).ActorPoses(2).Velocity(2);
-        actualPosition1(i)   = data(i).ActorPoses(2).Position(2);
-    else
-        actualVelocity1(i)   = data(i).ActorPoses(3).Velocity(2);
-        actualPosition1(i)   = data(i).ActorPoses(3).Position(2);
-    end
+%     if car2_r(i) > 0
+%         actualVelocity2(i)   = data(i).ActorPoses(3).Velocity(2);
+%         actualPosition2(i)   = data(i).ActorPoses(3).Position(2);
+%     else
+%         actualVelocity2(i)   = data(i).ActorPoses(2).Velocity(2);
+%         actualPosition2(i)   = data(i).ActorPoses(2).Position(2);
+% 
+%     end
+%     % if LHS range is negative, target crossed to other side
+%     if ap1 < 0
+%         actualVelocity1(i)   = data(i).ActorPoses(2).Velocity(2);
+%         actualPosition1(i)   = data(i).ActorPoses(2).Position(2);
+%     else
+%         actualVelocity1(i)   = data(i).ActorPoses(3).Velocity(2);
+%         actualPosition1(i)   = data(i).ActorPoses(3).Position(2);
+%     end
 
     
 end
 % Negative range is behind radar
+car1_r_right = car1_r;
+car2_r_right = car2_r;
+
+car1_r_right(car1_r_right>0)=nan;
+car2_r_right(car2_r_right>0)=nan;
+
+
 car1_r(car1_r<0)=nan;
 car2_r(car2_r<0)=nan;
 % Negative speed is direction of travel
@@ -119,6 +126,8 @@ hold on
 scatter(t, abs(measuredVelocity2(:, :)), 70,'Marker','.')
 p1 = plot(t, abs(car1_v), 'DisplayName', 'Car 1 Actual');
 p2 = plot(t, abs(car2_v), 'DisplayName', 'Car 2 Actual');
+% p1 = plot(t, abs(actualVelocity1), 'DisplayName', 'Car 1 Actual');
+% p2 = plot(t, abs(actualVelocity2), 'DisplayName', 'Car 2 Actual');
 title("LHS Radar Velocity Measurements")
 xlabel("Time (s)")
 ylabel("Speed (m/s)")
@@ -131,6 +140,8 @@ scatter(t, abs(measuredVelocity1(:, :)),70, 'Marker','.')
 % p2 = plot(t, abs(actualVelocity1), 'DisplayName', 'Actual');
 p12 = plot(t, abs(car1_v), 'DisplayName', 'Car 1 Actual');
 p22 = plot(t, abs(car2_v), 'DisplayName', 'Car 2 Actual');
+% p12 = plot(t, abs(actualVelocity1), 'DisplayName', 'Car 1 Actual');
+% p22 = plot(t, abs(actualVelocity2), 'DisplayName', 'Car 2 Actual');
 title("RHS Radar Velocity Measurements")
 xlabel("Time (s)")
 ylabel("Speed (m/s)")
@@ -142,6 +153,8 @@ hold on
 scatter(t, abs(measuredPosition2(:, :)),70, 'Marker','.')
 p3 = plot(t, abs(car1_r), 'DisplayName', 'Car 1 Actual');
 p4 = plot(t, abs(car2_r), 'DisplayName', 'Car 2 Actual');
+% p3 = plot(t, abs(actualPosition1), 'DisplayName', 'Car 1 Actual');
+% p4 = plot(t, abs(actualPosition2), 'DisplayName', 'Car 2 Actual');
 title("LHS Radar Range Measurements")
 xlabel("Time (s)")
 ylabel("Range (m)")
@@ -151,13 +164,15 @@ nexttile
 hold on
 scatter(t, abs(measuredPosition1(:, :)), 70, 'Marker','.')
 % p5 = plot(t, abs(actualPosition1), 'DisplayName', 'Actual');
-p32 = plot(t, abs(actualPosition1), 'DisplayName', 'Car 1 Actual');
+p32 = plot(t, abs(car1_r_right), 'DisplayName', 'Car 1 Actual');
+p42 = plot(t, abs(car2_r_right), 'DisplayName', 'Car 2 Actual');
+% p32 = plot(t, abs(actualPosition1), 'DisplayName', 'Car 1 Actual');
 % p42 = plot(t, abs(actualPosition2), 'DisplayName', 'Car 2 Actual');
 title("RHS Radar Range Measurements")
 xlabel("Time (s)")
 ylabel("Range (m)")
-% legend([p32, p42],'Location', 'southeast')
-legend(p32,'Location', 'southeast')
+legend([p32, p42],'Location', 'southeast')
+% legend(p32,'Location', 'southeast')
 
 tl.Padding = 'tight';
 % tl.TileSpacing = 'compact';
