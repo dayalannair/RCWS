@@ -32,6 +32,8 @@ car1_r = NaN(N, 1);
 car2_r = NaN(N, 1);
 
 t   = NaN(N,1);
+rhs_road_width = 1.5;
+lhs_road_width = 3.0;
 for i = 1:N
     t(i) = data(i).Time;
     detectionsRadar1 = data(i).ObjectDetections;
@@ -40,10 +42,21 @@ for i = 1:N
         if detectionsRadar1{j}.SensorIndex == 1
             measuredVelocity1(i,j) = detectionsRadar1{j}.Measurement(5);
             measuredPosition1(i,j) = detectionsRadar1{j}.Measurement(2);
+            
+            % Angle corrected measurements
+            theta = asin(rhs_road_width/measuredPosition1(i,j));
+            measuredVelocity1(i,j) = ...
+                detectionsRadar1{j}.Measurement(5)/cos(theta);
+
         % Stack detections from radar 2 - LHS
         else
             measuredVelocity2(i,j) = detectionsRadar1{j}.Measurement(5);
             measuredPosition2(i,j) = detectionsRadar1{j}.Measurement(2);
+
+            % Angle corrected measurements
+            theta = asin(lhs_road_width/measuredPosition2(i,j));
+            measuredVelocity2(i,j) = ...
+                detectionsRadar1{j}.Measurement(5)/cos(theta);
         end
     end
 %     measuredVelocity1(i) = data(i).ObjectDetections{1}.Measurement(5);
@@ -66,24 +79,26 @@ for i = 1:N
     car2_v(i) = data(i).ActorPoses(3).Velocity(2);
     car1_r(i) = data(i).ActorPoses(2).Position(2);
     car2_r(i) = data(i).ActorPoses(3).Position(2);
+
+    % ENSURE HOST PLACED AT COORD 0,0,0!
     % Ensures tracks are correct for each target plot
     % If RHS range is negative, proceed as normal
     % If RHS range is positive, target is has crossed over to other radar
     if ap2 > 0
-        actualVelocity1(i)   = data(i).ActorPoses(2).Velocity(2);
         actualVelocity2(i)   = data(i).ActorPoses(3).Velocity(2);
-        actualPosition1(i)   = data(i).ActorPoses(2).Position(2);
         actualPosition2(i)   = data(i).ActorPoses(3).Position(2);
-
-%         actualPosition(:,1)
-%         actualPosition(:,1)
-%         actualPosition(:,1)
     else
         actualVelocity2(i)   = data(i).ActorPoses(2).Velocity(2);
-        actualVelocity1(i)   = data(i).ActorPoses(3).Velocity(2);
         actualPosition2(i)   = data(i).ActorPoses(2).Position(2);
-        actualPosition1(i)   = data(i).ActorPoses(3).Position(2);
 
+    end
+    % if LHS range is negative, target crossed to other side
+    if ap1 < 0
+        actualVelocity1(i)   = data(i).ActorPoses(2).Velocity(2);
+        actualPosition1(i)   = data(i).ActorPoses(2).Position(2);
+    else
+        actualVelocity1(i)   = data(i).ActorPoses(3).Velocity(2);
+        actualPosition1(i)   = data(i).ActorPoses(3).Position(2);
     end
 
     
@@ -107,18 +122,20 @@ p2 = plot(t, abs(car2_v), 'DisplayName', 'Car 2 Actual');
 title("LHS Radar Velocity Measurements")
 xlabel("Time (s)")
 ylabel("Speed (m/s)")
-axis([0 max(t) 0 20])
+axis([0 max(t) 0 25])
 legend([p1 p2],'Location', 'southeast')
 % 
 nexttile
 hold on
-scatter(t, abs(measuredVelocity1(:, 1:5)),70, 'Marker','.')
-p2 = plot(t, abs(actualVelocity1), 'DisplayName', 'Actual');
+scatter(t, abs(measuredVelocity1(:, :)),70, 'Marker','.')
+% p2 = plot(t, abs(actualVelocity1), 'DisplayName', 'Actual');
+p12 = plot(t, abs(car1_v), 'DisplayName', 'Car 1 Actual');
+p22 = plot(t, abs(car2_v), 'DisplayName', 'Car 2 Actual');
 title("RHS Radar Velocity Measurements")
 xlabel("Time (s)")
 ylabel("Speed (m/s)")
-axis([0 max(t) 0 20])
-legend(p2,'Location', 'southeast')
+axis([0 max(t) 0 25])
+legend([p12 p22],'Location', 'southeast')
 
 nexttile
 hold on
@@ -132,12 +149,15 @@ legend([p3, p4],'Location', 'southeast')
 
 nexttile
 hold on
-scatter(t, abs(measuredPosition1(:, 1:5)), 70, 'Marker','.')
-p4 = plot(t, abs(actualPosition1), 'DisplayName', 'Actual');
+scatter(t, abs(measuredPosition1(:, :)), 70, 'Marker','.')
+% p5 = plot(t, abs(actualPosition1), 'DisplayName', 'Actual');
+p32 = plot(t, abs(actualPosition1), 'DisplayName', 'Car 1 Actual');
+% p42 = plot(t, abs(actualPosition2), 'DisplayName', 'Car 2 Actual');
 title("RHS Radar Range Measurements")
 xlabel("Time (s)")
 ylabel("Range (m)")
-legend(p4,'Location', 'southeast')
+% legend([p32, p42],'Location', 'southeast')
+legend(p32,'Location', 'southeast')
 
 tl.Padding = 'tight';
 % tl.TileSpacing = 'compact';
