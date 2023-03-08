@@ -2,10 +2,10 @@ addpath('../../matlab_lib/');
 %% Import radar model
 uRAD_model;
 %% Select Scenario
-monoRadarScenario1;
+% monoRadarScenario1;
 % monoRadarScenario2;
 % monoRadarScenario3;
-% monoRadarScenario4;
+monoRadarScenario4;
 %% Configure processing
 proc_config;
 %% Configure simulation plots
@@ -19,7 +19,7 @@ for t = 1:(n_steps)
 %     pause(1)
     i = t;
     %disp(t)
-%     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
+    sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
     [tgt_pos, tgt_vel] = carmotion(t_step);
 %     disp(tgt_pos)
     actual_range(i) = sqrt(tgt_pos(1, 2)^2 + tgt_pos(2,2)^2);

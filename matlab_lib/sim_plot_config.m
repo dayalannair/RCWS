@@ -87,7 +87,7 @@ rg_bin_lbl = strings(1,nbins);
 for bin = 0:(nbins-1)
     first = round(rng_ax(bin*bin_width+1));
     last = round(rng_ax((bin+1)*bin_width));
-    rg_bin_lbl(bin+1) = strcat(num2str(first), " to ", num2str(last));
+    rg_bin_lbl(bin+1) = strcat(num2str(first), " - ", num2str(last));
 end
 nexttile
 % subplot(2,2,4)

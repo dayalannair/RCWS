@@ -13,7 +13,7 @@ Ntgt = numel(cartarget.MeanRCS);
 % Transmit FMCW waveform
 sig = waveform();
 txsig = transmitter(sig);
-
+updateRcs = true;
 for m = 1:Nsweep
     % Update radar and target positions
     [radar_pos,radar_vel] = radarmotion(sweeptime + tm);
@@ -25,7 +25,7 @@ for m = 1:Nsweep
         rxsig(:,n) = channel(txsig,radar_pos(:,1),tgt_pos(:,n), ...
             radar_vel(:,1),tgt_vel(:,n));
     end
-    rxsig = cartarget(rxsig);
+    rxsig = cartarget(rxsig, updateRcs);
     % Sum rows - received sum of returns from each target
     rxsig = receiver(sum(rxsig,2));
 
