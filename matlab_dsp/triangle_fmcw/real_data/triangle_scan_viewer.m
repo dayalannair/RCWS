@@ -147,33 +147,33 @@ for i = 1:n_sweeps
             osd_pk_clean(i, bin*bin_width + idx_d) = magd;
         end
    end
-    tiledlayout(2,1)
-    nexttile
-    plot(absmagdb(IQ_DN(i,:)))
-    title("DOWN chirp flipped negative half average nulling")
-%     axis(ax_dims)
-    hold on
-    plot(absmagdb(os_thd(:,i)))
-    hold on
-    stem(absmagdb(os_pkd(i,:)))
-    hold on
-    xline([beat_index index_end])
+%     tiledlayout(2,1)
+%     nexttile
+%     plot(absmagdb(IQ_DN(i,:)))
+%     title("DOWN chirp flipped negative half average nulling")
+% %     axis(ax_dims)
+%     hold on
+%     plot(absmagdb(os_thd(:,i)))
+%     hold on
+%     stem(absmagdb(os_pkd(i,:)))
+%     hold on
+%     xline([beat_index index_end])
 %     xline(lines)
-    hold off
-
-    nexttile
-    plot(absmagdb(IQ_UP(i,:)))
-    title("UP chirp positive half average nulling")
-%     axis(ax_dims)
-    hold on
-    plot(absmagdb(os_thu(:,i)))
-    hold on
-    stem(absmagdb(os_pku(i,:)))
-    hold on
-%     xline(lines)
-    xline([beat_index index_end])
-    hold off
-    drawnow;
+%     hold off
+% 
+%     nexttile
+%     plot(absmagdb(IQ_UP(i,:)))
+%     title("UP chirp positive half average nulling")
+% %     axis(ax_dims)
+%     hold on
+%     plot(absmagdb(os_thu(:,i)))
+%     hold on
+%     stem(absmagdb(os_pku(i,:)))
+%     hold on
+% %     xline(lines)
+%     xline([beat_index index_end])
+%     hold off
+%     drawnow;
 %   pause(0.5)
 %    If nothing detected
 %    Issue - if another target detected, will not trigger
@@ -235,3 +235,10 @@ end
 % xline([beat_index index_end])
 % hold off
 % drawnow;
+%%
+
+close all
+figure
+tiledlayout(1,2)
+nexttile
+plot(rg_array)

@@ -39,6 +39,17 @@ iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
     q_up = table2array(iq_tbl(sweeps,401:600));
     q_down = table2array(iq_tbl(sweeps,601:800));
     
+%     max_voltage = 3.3;
+% 	ADC_bits = 12;
+% 	ADC_intervals = 2^ADC_bits;
+%     vinv = max_voltage/ADC_intervals;
+% 
+% 
+%     i_up = i_up*vinv - mean(i_up*vinv, 2);
+%     i_down = i_down*vinv - mean(i_down*vinv, 2);
+%     q_up = q_up*vinv - mean(q_up*vinv, 2);
+%     q_down = q_down*vinv - mean(q_down*vinv, 2);
+
     % Square Law detector
     iq_u= i_up.^2 + q_up.^2;
     iq_d = i_down.^2 + q_down.^2;

@@ -8,10 +8,25 @@ from scipy.fft import fft
 def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	half_train, half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
 	half_n_fft = int(n_fft/2)
+
+	# Mean cancellation
+	# max_voltage = 3.3
+	# ADC_bits = 12
+	# ADC_intervals = 2**ADC_bits
+	
+	# i_u = np.subtract(np.multiply(i_data[  0:200], max_voltage/ADC_intervals), np.mean(np.multiply(i_data[  0:200], max_voltage/ADC_intervals)))
+	# i_d = np.subtract(np.multiply(i_data[200:400], max_voltage/ADC_intervals), np.mean(np.multiply(i_data[200:400], max_voltage/ADC_intervals)))
+	# q_u = np.subtract(np.multiply(q_data[  0:200], max_voltage/ADC_intervals), np.mean(np.multiply(q_data[  0:200], max_voltage/ADC_intervals)))
+	# q_d = np.subtract(np.multiply(q_data[200:400], max_voltage/ADC_intervals), np.mean(np.multiply(q_data[200:400], max_voltage/ADC_intervals)))
+	
 	# SQUARE LAW DETECTOR
-	# NOTE: last element in slice not included
+	
+	# Original - no mean cancelling
 	iq_u = np.power(i_data[  0:200],2) + np.power(q_data[  0:200],2)
 	iq_d = np.power(i_data[200:400],2) + np.power(q_data[200:400],2)
+
+	# iq_u = np.power(i_u,2) + np.power(i_d,2)
+	# iq_d = np.power(q_u,2) + np.power(q_d,2)
 
 	# TAYLOR WINDOW
 	# SLL specified as positive

@@ -104,6 +104,15 @@ ax[1, 0].set_ylim([90, 180])
 # ax[1, 1].set_xlim([0, 62.5])
 # ax[1, 1].set_ylim([90, 180])
 
+
+# uRAD GUI mean subtraction
+ax[0, 0].set_xlim([0, 62.5])
+ax[0, 0].set_ylim([-60, -13])
+ax[1, 0].set_xlim([0, 62.5])
+ax[1, 0].set_ylim([-60, -13])
+
+
+
 fig1.tight_layout()
 # set the spacing between subplots
 # plt.subplots_adjust(left=0.1,
@@ -189,6 +198,9 @@ for i in range(0, len_subset):
 	# # line6.set_ydata(os_pkd)
 	line1_2.set_data(rgMtx)
 	line2_2.set_data(spMtx)
+
+	print("Max: ", np.max(20*np.log10(abs(fftu + 10**-10))))
+	print("Min: ", np.min(20*np.log10(abs(fftu + 10**-10))))
 
 	# line1_2.set_ydata(20*np.log10(abs(fftu_2)))
 	# line2_2.set_ydata(20*np.log10(upth_2))
