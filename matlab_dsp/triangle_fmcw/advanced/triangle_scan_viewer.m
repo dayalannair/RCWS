@@ -53,7 +53,7 @@ train = 16;
 guard = 14;
 % false alarm rate - sets sensitivity
 F = 5e-3; 
-OS = phased.CFARDetector('NumTrainingCells',train, ...
+CFAR_OBJ = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
@@ -65,8 +65,8 @@ OS = phased.CFARDetector('NumTrainingCells',train, ...
 IQ_DN = flip(IQ_DN,2);
 
 % Filter peaks/ peak detection
-[up_os, os_thu] = OS(abs(IQ_UP)', 1:n_fft/2);
-[dn_os, os_thd] = OS(abs(IQ_DN)', 1:n_fft/2);
+[up_os, os_thu] = CFAR_OBJ(abs(IQ_UP)', 1:n_fft/2);
+[dn_os, os_thd] = CFAR_OBJ(abs(IQ_DN)', 1:n_fft/2);
 
 % Find peak magnitude
 os_pku = abs(IQ_UP).*up_os';
