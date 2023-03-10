@@ -51,7 +51,7 @@ win = taylorwin(Ns, nbar, sll);
 % Gaussian
 % win = gausswin(n_samples);
 % Blackmann 
-bwin = blackman(Ns);
+% bwin = blackman(Ns);
 % % Kaiser
 % kbeta = 5;
 % win = kaiser(n_samples, kbeta);

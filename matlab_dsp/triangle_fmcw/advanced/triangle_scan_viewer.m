@@ -2,22 +2,24 @@
 subset = 900:1100;
 addpath('../../../matlab_lib/');
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
-[fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
+% Taylor Window
+nbar = 3;
+sll = -100;
+win = taylorwin(n_samples, nbar, sll);
+% win = hamming(n_samples);
+[fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset, win.');
 n_samples = size(iq_u,2);
 n_sweeps = size(iq_u,1);
 % Import video
 addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
 %%
-% Taylor Window
-% nbar = 3;
-% sll = -100;
-% twin = taylorwin(n_samples, nbar, sll);
-win = hamming(n_samples);
-iq_u = iq_u.*win.';
-iq_d = iq_d.*win.';
+
+% 
+% iq_u = iq_u.*win.';
+% iq_d = iq_d.*win.';
 
 % FFT
-n_fft = 1024;
+n_fft = 512;
 IQ_UP = fft(iq_u,n_fft,2);
 IQ_DN = fft(iq_d,n_fft,2);
 

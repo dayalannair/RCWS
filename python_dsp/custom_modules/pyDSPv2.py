@@ -7,6 +7,7 @@ from scipy.fft import fft
 # NOTE: Range, speed, and possibly safety results of the below are not correct
 def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	half_train, half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
+	
 	half_n_fft = int(n_fft/2)
 
 	# Mean cancellation
@@ -25,10 +26,14 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	iq_u = np.power(i_data[  0:200],2) + np.power(q_data[  0:200],2)
 	iq_d = np.power(i_data[200:400],2) + np.power(q_data[200:400],2)
 
+	# iq_u = np.power(i_data[  0:200]*windowCoeffs,2) + np.power(q_data[  0:200]*windowCoeffs,2)
+	# iq_d = np.power(i_data[200:400]*windowCoeffs,2) + np.power(q_data[200:400]*windowCoeffs,2)
+
+
 	# iq_u = np.power(i_u,2) + np.power(i_d,2)
 	# iq_d = np.power(q_u,2) + np.power(q_d,2)
 
-	# TAYLOR WINDOW
+	# Apply window function
 	# SLL specified as positive
 	iq_u = np.multiply(iq_u, windowCoeffs)
 	iq_d = np.multiply(iq_d, windowCoeffs)
@@ -52,8 +57,8 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	
 	# note the abs
 	# -------------------- CFAR detection ---------------------------
-	rank = 2*half_train - 1 
-	cfar_scale = 1 # additional scaling factor
+	# rank = 2*half_train - 1 
+	# cfar_scale = 1 # additional scaling factor
 	# cfar_up, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
 	# cfar_dn, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
 
@@ -188,6 +193,7 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 
 def range_speed_safety(i_data, q_data, windowCoeffs, n_fft, num_nul, half_train, 
 half_guard, rank, nbins, bin_width, f_ax, SOS, calib, scan_width):
+	
 	half_n_fft = int(n_fft/2)
 	# SQUARE LAW DETECTOR
 	# NOTE: last element in slice not included

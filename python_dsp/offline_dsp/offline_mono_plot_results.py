@@ -42,11 +42,12 @@ c = 299792458
 rng_ax = c*fax/(2*slope)
 # rg_full = np.zeros(16*sweeps)
 n_fft = 512
-twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
+ns = 200
+twin = signal.windows.taylor(ns, nbar=3, sll=100, norm=False)
 nul_width_factor = 0.04
 num_nul = round((n_fft/2)*nul_width_factor)
 # OS CFAR
-ns = 200
+
 # half_guard = n_fft/n_samples
 # half_guard = int(np.floor(half_guard/2)*2) # make even
 

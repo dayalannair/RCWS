@@ -1,6 +1,6 @@
 function [fc, c, lambda, tm, bw, k, rpi_iq_u, rpi_iq_d,...
     usb_iq_u, usb_iq_d, t_stamps] = import_dual_data_full(lhs_rad, ...
-    rhs_rad, subset)
+    rhs_rad, subset, windowCoeffs)
     % Parameters
     fc = 24.005e9;
     c = physconst('LightSpeed');
