@@ -1,3 +1,8 @@
+%{
+%% IMPORT RECORDED DATA
+Imports recorded data, removes DC offset by subtracting the mean, and
+applies a window function after converting data to complex samples
+%}
 function [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(sweeps, windowCoeffs)
     % Parameters
     fc = 24.005e9;
@@ -39,27 +44,39 @@ iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
     q_up = table2array(iq_tbl(sweeps,401:600));
     q_dn = table2array(iq_tbl(sweeps,601:800));
     
-%     max_voltage = 3.3;
-% 	ADC_bits = 12;
-% 	ADC_intervals = 2^ADC_bits;
-%     vinv = max_voltage/ADC_intervals;
-% 
-% 
-%     i_up = i_up*vinv - mean(i_up*vinv, 2);
-%     i_dn = i_dn*vinv - mean(i_dn*vinv, 2);
-%     q_up = q_up*vinv - mean(q_up*vinv, 2);
-%     q_dn = q_dn*vinv - mean(q_dn*vinv, 2);
+    % Filter DC
+    max_voltage = 3.3;
+	ADC_bits = 12;
+	ADC_intervals = 2^ADC_bits;
+    vinv = max_voltage/ADC_intervals;
+
+    i_up = i_up*vinv - mean(i_up*vinv, 2);
+    i_dn = i_dn*vinv - mean(i_dn*vinv, 2);
+    q_up = q_up*vinv - mean(q_up*vinv, 2);
+    q_dn = q_dn*vinv - mean(q_dn*vinv, 2);
+
+
+    % Create complex number and apply window coefficients
+    iq_u = (i_up + 1i*q_up).*windowCoeffs;
+    iq_d = (i_dn + 1i*q_dn).*windowCoeffs;
+
 
     % Square Law detector
+    % NOTE: will result in a real FFT
+
+    % Option 1 - the most correct
+    % same as (I + jQ)*win
+% 
 %     iq_u = (i_up.*windowCoeffs).^2 + (q_up.*windowCoeffs).^2;
 %     iq_d = (i_dn.*windowCoeffs).^2 + (q_dn.*windowCoeffs).^2;
+
 % 
 %     iq_u = (i_up.*windowCoeffs).^2 + q_up.^2;
 %     iq_d = (i_dn.*windowCoeffs).^2 + q_dn.^2;
 
-
-    iq_u = (i_up.^2 + q_up.^2).*windowCoeffs;
-    iq_d = (i_dn.^2 + q_dn.^2).*windowCoeffs;
+% 
+%     iq_u = (i_up.^2 + q_up.^2).*windowCoeffs;
+%     iq_d = (i_dn.^2 + q_dn.^2).*windowCoeffs;
 
 %     iq_u = (i_up.^2 + (q_up.*windowCoeffs).^2);
 %     iq_d = (i_dn.^2 + (q_dn.*windowCoeffs).^2);

@@ -1,20 +1,28 @@
+%{
+%% PLOT TRIANGLE FMCW TRACKING
+Script to plot the CFAR threshold and tracking gate overlayed on the FFT of
+each sweep
+%}
+
 % Import data and parameters
 subset = 900:1100;
 addpath('../../../matlab_lib/');
-addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
+addpath(['../../../../../OneDrive - ' ...
+    'University of Cape Town/RCWS_DATA/car_driveby/']);
+% Import video
+addpath(['../../../../../OneDrive - ' ...
+    'University of Cape Town/RCWS_DATA/videos/']);
+n_samples = 200;
 % Taylor Window
 nbar = 3;
 sll = -100;
 win = taylorwin(n_samples, nbar, sll);
 % win = hamming(n_samples);
-[fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset, win.');
-n_samples = size(iq_u,2);
+[fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = ...
+    import_data(subset, win.');
 n_sweeps = size(iq_u,1);
-% Import video
-addpath('../../../../../OneDrive - University of Cape Town/RCWS_DATA/videos/');
 %%
 
-% 
 % iq_u = iq_u.*win.';
 % iq_d = iq_d.*win.';
 
@@ -41,15 +49,15 @@ guard = floor(guard/2)*2; % make even
 % too many training cells results in too many detections
 train = round(20*n_fft/n_samples);
 train = floor(train/2)*2;
-train = 2*64;
-guard = 6;
+train = 16;
+guard = 14;
 % false alarm rate - sets sensitivity
-F = 1e-3; 
+F = 5e-3; 
 OS = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
-    'Method', 'OS', ...
+    'Method', 'SOCA', ...
     'ThresholdOutputPort', true, ...
     'Rank',train-5);
 
@@ -144,7 +152,7 @@ for i = 1:n_sweeps
     title("DOWN chirp flipped negative half average nulling")
 %     axis(ax_dims)
     hold on
-    plot(absmagdb(os_thd(:,i)))
+    plot(f_pos, absmagdb(os_thd(:,i)))
     hold on
     stem(absmagdb(os_pkd(i,:)))
     hold on
