@@ -1,30 +1,28 @@
 # from cfar_lib import os_cfar
-from CFAR import soca_cfar_far_edge
+from CFAR import soca_cfar_far_edge, soca_cfar_edge
 import numpy as np
 from scipy.fft import fft
 
 
 # NOTE: Range, speed, and possibly safety results of the below are not correct
 def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
-	half_train, half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width):
-	
-	half_n_fft = int(n_fft/2)
+	half_train, half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width, angOffsetMinRange, angOffset):
 
-	# Mean cancellation
-	# max_voltage = 3.3
-	# ADC_bits = 12
-	# ADC_intervals = 2**ADC_bits
+	# DC cancellation
+	max_voltage = 3.3
+	ADC_bits = 12
+	ADC_intervals = 2**ADC_bits
 	
-	# i_u = np.subtract(np.multiply(i_data[  0:200], max_voltage/ADC_intervals), np.mean(np.multiply(i_data[  0:200], max_voltage/ADC_intervals)))
-	# i_d = np.subtract(np.multiply(i_data[200:400], max_voltage/ADC_intervals), np.mean(np.multiply(i_data[200:400], max_voltage/ADC_intervals)))
-	# q_u = np.subtract(np.multiply(q_data[  0:200], max_voltage/ADC_intervals), np.mean(np.multiply(q_data[  0:200], max_voltage/ADC_intervals)))
-	# q_d = np.subtract(np.multiply(q_data[200:400], max_voltage/ADC_intervals), np.mean(np.multiply(q_data[200:400], max_voltage/ADC_intervals)))
+	i_u = np.subtract(np.multiply(i_data[  0:200], max_voltage/ADC_intervals), np.mean(np.multiply(i_data[  0:200], max_voltage/ADC_intervals)))
+	i_d = np.subtract(np.multiply(i_data[200:400], max_voltage/ADC_intervals), np.mean(np.multiply(i_data[200:400], max_voltage/ADC_intervals)))
+	q_u = np.subtract(np.multiply(q_data[  0:200], max_voltage/ADC_intervals), np.mean(np.multiply(q_data[  0:200], max_voltage/ADC_intervals)))
+	q_d = np.subtract(np.multiply(q_data[200:400], max_voltage/ADC_intervals), np.mean(np.multiply(q_data[200:400], max_voltage/ADC_intervals)))
 	
 	# SQUARE LAW DETECTOR
 	
 	# Original - no mean cancelling
-	iq_u = np.power(i_data[  0:200],2) + np.power(q_data[  0:200],2)
-	iq_d = np.power(i_data[200:400],2) + np.power(q_data[200:400],2)
+	# iq_u = np.power(i_data[  0:200],2) + np.power(q_data[  0:200],2)
+	# iq_d = np.power(i_data[200:400],2) + np.power(q_data[200:400],2)
 
 	# iq_u = np.power(i_data[  0:200]*windowCoeffs,2) + np.power(q_data[  0:200]*windowCoeffs,2)
 	# iq_d = np.power(i_data[200:400]*windowCoeffs,2) + np.power(q_data[200:400]*windowCoeffs,2)
@@ -33,8 +31,13 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	# iq_u = np.power(i_u,2) + np.power(i_d,2)
 	# iq_d = np.power(q_u,2) + np.power(q_d,2)
 
+	# iq_u = np.multiply(i_data[  0:200] + 1j*i_data[200:400], windowCoeffs)
+	# iq_d = np.multiply(q_data[  0:200] + 1j*q_data[200:400], windowCoeffs)
+
+	iq_u = np.multiply(i_u + 1j*q_u, windowCoeffs)
+	iq_d = np.multiply(i_d + 1j*q_d, windowCoeffs)
+
 	# Apply window function
-	# SLL specified as positive
 	iq_u = np.multiply(iq_u, windowCoeffs)
 	iq_d = np.multiply(iq_d, windowCoeffs)
 
@@ -43,15 +46,13 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	IQ_DN = fft(iq_d,n_fft)
 
 	# Halve FFTs
-	# note: python starts from zero for this!
+	half_n_fft = int(n_fft/2)
 	IQ_UP = IQ_UP[0:half_n_fft]
 	IQ_DN = IQ_DN[half_n_fft:]
 
-	# print(len(IQ_UP))   
 	# Null feedthrough
-	# note: python starts from zero for this!
-	IQ_UP[0:num_nul-1] = 0
-	IQ_DN[len(IQ_DN)-num_nul:] = 0
+	# IQ_UP[0:num_nul-1] = 0
+	# IQ_DN[len(IQ_DN)-num_nul:] = 0
 	# print(len(IQ_UP))
 	IQ_DN = np.flip(IQ_DN)
 	
@@ -65,8 +66,8 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	# cfar_up, upth = soca_cfar(half_train, half_guard, SOS, abs(IQ_UP))
 	# cfar_dn, dnth = soca_cfar(half_train, half_guard, SOS, abs(IQ_DN))
 
-	cfar_up, upth = soca_cfar_far_edge(half_train, half_guard, SOS, abs(IQ_UP))
-	cfar_dn, dnth = soca_cfar_far_edge(half_train, half_guard, SOS, abs(IQ_DN))
+	cfar_up, upth = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_UP))
+	cfar_dn, dnth = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_DN))
 
 
 	# np.log(upth, out=upth)
@@ -135,8 +136,10 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 
 			# if too close to the start edge, scan from DC to index
 			else:
-				index_end = 1
-				bin_slice_u = cfar_up[1:beat_index]
+				index_end = 0
+				bin_slice_u = cfar_up[0:scan_width]
+				print(bin_slice_u)
+
 				
 			# Get magnitude and intra-bin index of beat frequency
 			magu = np.amax(bin_slice_u)
@@ -161,9 +164,19 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 						# if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
 						# convert Doppler to speed. fd is twice the Doppler therefore
 						# divide by 2
-						sp_array[bin] = fd*lmda/2
+						# sp_array[bin] = fd*lmda/2
 						# Note that fbd is now positive
 						rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)*calib
+
+						# to account for angle offset on left radar. for right radar, set angOffsetMinRange = 100
+						if rg_array[bin] > angOffsetMinRange:
+							sp_array[bin] = fd*lmda/(np.cos(angOffset - np.arcsin(road_width/rg_array[bin])))
+						
+						# Else ignore/dont correct for left and calculate as normal for right
+						else:
+							sp_array[bin] = fd*lmda/(np.cos(np.arcsin(road_width/rg_array[bin])))
+	
+
 
 						# ************* Angle correction *******************
 						# Theta in radians
@@ -192,16 +205,22 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 
 
 def range_speed_safety(i_data, q_data, windowCoeffs, n_fft, num_nul, half_train, 
-half_guard, rank, nbins, bin_width, f_ax, SOS, calib, scan_width):
+half_guard, rank, nbins, bin_width, f_ax, SOS, calib, scan_width, angOffsetMinRange, angOffset):
 	
-	half_n_fft = int(n_fft/2)
-	# SQUARE LAW DETECTOR
-	# NOTE: last element in slice not included
-	iq_u = np.power(i_data[  0:200],2) + np.power(q_data[  0:200],2)
-	iq_d = np.power(i_data[200:400],2) + np.power(q_data[200:400],2)
+	# DC cancellation
+	max_voltage = 3.3
+	ADC_bits = 12
+	ADC_intervals = 2**ADC_bits
+	
+	i_u = np.subtract(np.multiply(i_data[  0:200], max_voltage/ADC_intervals), np.mean(np.multiply(i_data[  0:200], max_voltage/ADC_intervals)))
+	i_d = np.subtract(np.multiply(i_data[200:400], max_voltage/ADC_intervals), np.mean(np.multiply(i_data[200:400], max_voltage/ADC_intervals)))
+	q_u = np.subtract(np.multiply(q_data[  0:200], max_voltage/ADC_intervals), np.mean(np.multiply(q_data[  0:200], max_voltage/ADC_intervals)))
+	q_d = np.subtract(np.multiply(q_data[200:400], max_voltage/ADC_intervals), np.mean(np.multiply(q_data[200:400], max_voltage/ADC_intervals)))
+	
+	iq_u = np.multiply(i_u + 1j*q_u, windowCoeffs)
+	iq_d = np.multiply(i_d + 1j*q_d, windowCoeffs)
 
-	# TAYLOR WINDOW
-	# SLL specified as positive
+	# Apply window function
 	iq_u = np.multiply(iq_u, windowCoeffs)
 	iq_d = np.multiply(iq_d, windowCoeffs)
 
@@ -210,15 +229,13 @@ half_guard, rank, nbins, bin_width, f_ax, SOS, calib, scan_width):
 	IQ_DN = fft(iq_d, n_fft)
 
 	# Halve FFTs
-	# note: python starts from zero for this!
+	half_n_fft = int(n_fft/2)
 	IQ_UP = IQ_UP[0:half_n_fft]
 	IQ_DN = IQ_DN[half_n_fft: ]
 
-	# print(len(IQ_UP))   
 	# Null feedthrough
-	# note: python starts from zero for this!
-	IQ_UP[0:num_nul-1] = 0
-	IQ_DN[len(IQ_DN)-num_nul:] = 0
+	# IQ_UP[0:num_nul-1] = 0
+	# IQ_DN[len(IQ_DN)-num_nul:] = 0
 	# print(len(IQ_UP))
 	IQ_DN = np.flip(IQ_DN)
 	
@@ -231,11 +248,11 @@ half_guard, rank, nbins, bin_width, f_ax, SOS, calib, scan_width):
 	# cfar_dn, _ = soca_cfar(half_train, half_guard, SOS, abs(IQ_DN))
 
 	
-	# cfar_up, _ = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_UP))
-	# cfar_dn, _ = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_DN))
+	cfar_up, _ = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_UP))
+	cfar_dn, _ = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_DN))
 
-	cfar_up, _ = soca_cfar_far_edge(half_train, half_guard, SOS, abs(IQ_UP))
-	cfar_dn, _ = soca_cfar_far_edge(half_train, half_guard, SOS, abs(IQ_DN))
+	# cfar_up, _ = soca_cfar_far_edge(half_train, half_guard, SOS, abs(IQ_UP))
+	# cfar_dn, _ = soca_cfar_far_edge(half_train, half_guard, SOS, abs(IQ_DN))
 
 
 	fbu = np.zeros(nbins)
@@ -293,8 +310,8 @@ half_guard, rank, nbins, bin_width, f_ax, SOS, calib, scan_width):
 
 			# if too close to the start edge, scan from DC to index
 			else:
-				index_end = 1
-				bin_slice_u = cfar_up[1:beat_index]
+				index_end = 0
+				bin_slice_u = cfar_up[0:scan_width]
 				
 			# Get magnitude and intra-bin index of beat frequency
 			magu = np.amax(bin_slice_u)
@@ -323,12 +340,22 @@ half_guard, rank, nbins, bin_width, f_ax, SOS, calib, scan_width):
 						# Note that fbd is now positive
 						rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)*calib
 
+						# to account for angle offset on left radar. for right radar, set angOffsetMinRange = 100
+						if rg_array[bin] > angOffsetMinRange:
+							sp_array[bin] = fd*lmda/(np.cos(angOffset - np.arcsin(road_width/rg_array[bin])))
+						
+						# Else ignore/dont correct for left and calculate as normal for right
+						else:
+							sp_array[bin] = fd*lmda/(np.cos(np.arcsin(road_width/rg_array[bin])))
+	
+
+
 						# ************* Angle correction *******************
 						# Theta in radians
 						# theta = np.arcsin(road_width/rg_array[bin])*correction_factor
 
 						# real_v = fd*lmda/(8*np.cos(theta))
-						sp_array[bin] = fd*lmda/(np.cos(np.arcsin(road_width/rg_array[bin])))
+						
 						
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************

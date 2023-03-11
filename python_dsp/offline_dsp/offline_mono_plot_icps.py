@@ -36,10 +36,11 @@ rng_ax = c*fax/(2*slope)
 # rg_full = np.zeros(16*sweeps)
 n_fft = 512
 ns = 200
-win = signal.windows.taylor(ns, nbar=3, sll=100, norm=False)
+win = signal.windows.taylor(ns, nbar=3, sll=40, norm=False)
 # win = signal.windows.hanning(ns)
 nul_width_factor = 0.04
 num_nul = round((n_fft/2)*nul_width_factor)
+num_nul = 1
 # OS CFAR
 
 # half_guard = n_fft/n_samples
@@ -106,11 +107,16 @@ ax[1, 0].set_ylim([90, 180])
 
 
 # uRAD GUI mean subtraction
-# ax[0, 0].set_xlim([0, 62.5])
-# ax[0, 0].set_ylim([-60, -13])
-# ax[1, 0].set_xlim([0, 62.5])
-# ax[1, 0].set_ylim([-60, -13])
+ax[0, 0].set_xlim([0, 62.5])
+ax[0, 0].set_ylim([-60, 20])
+ax[1, 0].set_xlim([0, 62.5])
+ax[1, 0].set_ylim([-60, 20])
 
+# corrected square law detector
+# ax[0, 0].set_xlim([0, 62.5])
+# ax[0, 0].set_ylim([0, 80])
+# ax[1, 0].set_xlim([0, 62.5])
+# ax[1, 0].set_ylim([0, 80])
 
 
 fig1.tight_layout()
@@ -199,8 +205,8 @@ for i in range(0, len_subset):
 	line1_2.set_data(rgMtx)
 	line2_2.set_data(spMtx)
 
-	# print("Max: ", np.max(20*np.log10(abs(fftu + 10**-10))))
-	# print("Min: ", np.min(20*np.log10(abs(fftu + 10**-10))))
+	print("Max: ", np.max(20*np.log10(abs(fftu + 10**-10))))
+	print("Min: ", np.min(20*np.log10(abs(fftu + 10**-10))))
 
 	# line1_2.set_ydata(20*np.log10(abs(fftu_2)))
 	# line2_2.set_ydata(20*np.log10(upth_2))

@@ -61,7 +61,7 @@ num_nul = round((n_fft/2)*nul_width_factor)
 # ======================================================
 half_train = 8
 half_guard = 7
-Pfa = 0.05
+Pfa = 0.005
 SOS = ns*(Pfa**(-1/ns)-1)
 print("Pfa: ", str(Pfa))
 print("CFAR alpha value: ", SOS)
