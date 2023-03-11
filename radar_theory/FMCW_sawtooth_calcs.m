@@ -2,7 +2,7 @@ fc = 24.005e9;
 c = physconst('LightSpeed');
 lambda = c/fc;
 t_sweep = 1e-3;                    
-bw = 150e6;
+bw = 50e6;
 sweep_slope = bw/t_sweep;
 n_samples_max = 200;
 v_max = 60/3.6;
@@ -61,7 +61,8 @@ for n = 50:199
 %     rmax_array(n) = c*n/(2*fs);
 % tc = n/fs;
     % vmax_array(n) = lambda/(4*tc)*3.6;
-    vmax_array(n-49) = (lambda*fs)/(2*n)*3.6;
+%     vmax_array(n-49) = (lambda*fs)/(2*n)*3.6;
+    vmax_array(n-49) = (lambda*fs)/(4*n);
     t_sweep(n-49) = n/fs;
 end
 
@@ -70,17 +71,17 @@ end
 %idx = intersect(rmax_array,vmax_array)
 
 % minimum Ns = 50.
-n = 50
+% n = 50
 
 
 % Reducing BW increases Max range
-rmax = c*n/(4*bw)
-tc = n/fs;
+% rmax = c*n/(4*bw)
+% tc = n/fs;
 
 % Reducing Ns increases Max speed
 % At minimum Ns, max speed is 45 km/h which is insufficient
-vmax = lambda/(4*tc)*3.6
-range_res = c/(2*bw) % ---> sim to data sheet?
+% vmax = lambda/(4*tc)*3.6
+% range_res = c/(2*bw) % ---> sim to data sheet?
 % Terrible!
 %%
 % inters = intersect(rmax_array, vmax_array);
@@ -100,7 +101,7 @@ ylabel("Range (m)")
 xlabel("Chirp duration (ms)")
 hold on
 yyaxis right
-plot(t_sweep, vmax_array, 'DisplayName','Max Velocity')
+plot(t_sweep, vmax_array*3.6, 'DisplayName','Max Velocity')
 % ylim([0, 60])
 % yline(60, '-', '60 km/h')
 % axis([0 1 0 60])

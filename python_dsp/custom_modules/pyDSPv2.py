@@ -12,11 +12,13 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	max_voltage = 3.3
 	ADC_bits = 12
 	ADC_intervals = 2**ADC_bits
+
+	numVoltageLevels = max_voltage/ADC_intervals
 	
-	i_u = np.subtract(np.multiply(i_data[  0:200], max_voltage/ADC_intervals), np.mean(np.multiply(i_data[  0:200], max_voltage/ADC_intervals)))
-	i_d = np.subtract(np.multiply(i_data[200:400], max_voltage/ADC_intervals), np.mean(np.multiply(i_data[200:400], max_voltage/ADC_intervals)))
-	q_u = np.subtract(np.multiply(q_data[  0:200], max_voltage/ADC_intervals), np.mean(np.multiply(q_data[  0:200], max_voltage/ADC_intervals)))
-	q_d = np.subtract(np.multiply(q_data[200:400], max_voltage/ADC_intervals), np.mean(np.multiply(q_data[200:400], max_voltage/ADC_intervals)))
+	i_u = np.subtract(np.multiply(i_data[  0:200], numVoltageLevels), np.mean(np.multiply(i_data[  0:200], numVoltageLevels)))
+	i_d = np.subtract(np.multiply(i_data[200:400], numVoltageLevels), np.mean(np.multiply(i_data[200:400], numVoltageLevels)))
+	q_u = np.subtract(np.multiply(q_data[  0:200], numVoltageLevels), np.mean(np.multiply(q_data[  0:200], numVoltageLevels)))
+	q_d = np.subtract(np.multiply(q_data[200:400], numVoltageLevels), np.mean(np.multiply(q_data[200:400], numVoltageLevels)))
 	
 	# SQUARE LAW DETECTOR
 	
@@ -38,8 +40,8 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	iq_d = np.multiply(i_d + 1j*q_d, windowCoeffs)
 
 	# Apply window function
-	iq_u = np.multiply(iq_u, windowCoeffs)
-	iq_d = np.multiply(iq_d, windowCoeffs)
+	# iq_u = np.multiply(iq_u, windowCoeffs)
+	# iq_d = np.multiply(iq_d, windowCoeffs)
 
 	# 512-point FFT
 	FFT_U = fft(iq_u,n_fft)
@@ -229,8 +231,8 @@ half_guard, rank, nbins, bin_width, f_ax, SOS, calib, scan_width, angOffsetMinRa
 	iq_d = np.multiply(i_d + 1j*q_d, windowCoeffs)
 
 	# Apply window function
-	iq_u = np.multiply(iq_u, windowCoeffs)
-	iq_d = np.multiply(iq_d, windowCoeffs)
+	# iq_u = np.multiply(iq_u, windowCoeffs)
+	# iq_d = np.multiply(iq_d, windowCoeffs)
 
 	# 512-point FFT
 	FFT_U = fft(iq_u, n_fft)
