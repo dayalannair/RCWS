@@ -59,10 +59,11 @@ num_nul = round((n_fft/2)*nul_width_factor)
 # ======================================================
 #					Tunable Parameters
 # ======================================================
-half_train = 8
+half_train = 16
 half_guard = 7
-Pfa = 0.005
+Pfa = 1e-9
 SOS = ns*(Pfa**(-1/ns)-1)
+SOS = 5
 print("Pfa: ", str(Pfa))
 print("CFAR alpha value: ", SOS)
 nbins = 16
@@ -113,7 +114,8 @@ cfar_dn = np.zeros([len_subset, 256])
 timeStamps = np.linspace(0,30,2749)
 scan_width = 8
 calib = 1.2463
-
+angOffsetMinRange = 7.1 
+angOffset = 25*np.pi/180
 print("Processing...")
 # safety_inv = np.zeros(sweeps)
 # safety_inv_2 = np.zeros(sweeps)
@@ -135,7 +137,8 @@ for sweep in subset:
 
 
 	rgMtx[i, :], spMtx[i, :], sfVector[i] = range_speed_safety(i_data, q_data, twin, \
-		 n_fft, num_nul, half_train, half_guard, 0,nbins, bin_width, f_ax, SOS, calib, scan_width)
+		 n_fft, num_nul, half_train, half_guard, 0,nbins, bin_width, f_ax, SOS, calib,\
+			  scan_width, angOffsetMinRange, angOffset)
 
 
 	

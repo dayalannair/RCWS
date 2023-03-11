@@ -54,7 +54,7 @@ num_nul = 1
 half_train = 8
 half_guard = 7
 
-Pfa = 0.008
+Pfa = 1e-6
 SOS = ns*(Pfa**(-1/ns)-1)
 
 print("Pfa: ", str(Pfa))
@@ -175,6 +175,8 @@ print("System running...")
 # plt.pause(0.1)
 
 i = 0
+angOffsetMinRange = 7.1 
+angOffset = 25*np.pi/180
 for i in range(0, len_subset):
 	samples = np.array(sweeps[i].split(" "))
 	i_data = samples[  0:400]
@@ -187,7 +189,7 @@ for i in range(0, len_subset):
 	t0_proc = time()
 	_, _, upth, dnth, fftu, fftd, _, _, _,\
 	rgMtx[i, :], spMtx[i, :] = py_trig_dsp(i_data,q_data, win, n_fft, num_nul, half_train, \
-	half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width)
+	half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width, angOffsetMinRange, angOffset)
 	spMtx[i, :] = spMtx[i, :]*3.6
 	t1_proc = time()
 
