@@ -20,12 +20,15 @@ import_data(sweeps, windowCoeffs)
 % addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/trolley_test/');
 % addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/m4_rustenberg/');
 % addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/office/');
+addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/road_data_03_03_2023/iq_data/');
+iq_tbl=readtable('rhs_iq_12_57_07.txt','Delimiter' ,' ');
+
 % iq_tbl=readtable('IQ_usb.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_20kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_30kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_40kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_50kmh.txt','Delimiter' ,' ');
-iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
+% iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_70kmh.txt','Delimiter' ,' ');
 
 % iq_tbl=readtable('IQ_tri_240_200_12-02-23.txt','Delimiter' ,' ');
