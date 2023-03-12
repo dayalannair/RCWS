@@ -23,13 +23,13 @@ import_data(sweeps, windowCoeffs)
     % Data
 
 % iq_tbl=readtable('rhs_iq_12_57_07.txt','Delimiter' ,' ');
-iq_tbl=readtable('rhs_iq_12_57_50.txt','Delimiter' ,' ');
+% iq_tbl=readtable('rhs_iq_12_57_50.txt','Delimiter' ,' ');
 
 % iq_tbl=readtable('IQ_tri_20kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_30kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_40kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_50kmh.txt','Delimiter' ,' ');
-% iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
+iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_70kmh.txt','Delimiter' ,' ');
 
     % Split data
