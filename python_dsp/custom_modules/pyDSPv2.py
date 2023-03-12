@@ -1,5 +1,5 @@
 # from cfar_lib import os_cfar
-from CFAR import soca_cfar_far_edge, soca_cfar_edge
+from CFAR import soca_cfar_far_edge, soca_cfar_edge, os_cfar_edge
 import numpy as np
 from scipy.fft import fft
 
@@ -12,11 +12,13 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	max_voltage = 3.3
 	ADC_bits = 12
 	ADC_intervals = 2**ADC_bits
+
+	numVoltageLevels = max_voltage/ADC_intervals
 	
-	i_u = np.subtract(np.multiply(i_data[  0:200], max_voltage/ADC_intervals), np.mean(np.multiply(i_data[  0:200], max_voltage/ADC_intervals)))
-	i_d = np.subtract(np.multiply(i_data[200:400], max_voltage/ADC_intervals), np.mean(np.multiply(i_data[200:400], max_voltage/ADC_intervals)))
-	q_u = np.subtract(np.multiply(q_data[  0:200], max_voltage/ADC_intervals), np.mean(np.multiply(q_data[  0:200], max_voltage/ADC_intervals)))
-	q_d = np.subtract(np.multiply(q_data[200:400], max_voltage/ADC_intervals), np.mean(np.multiply(q_data[200:400], max_voltage/ADC_intervals)))
+	i_u = np.subtract(np.multiply(i_data[  0:200], numVoltageLevels), np.mean(np.multiply(i_data[  0:200], numVoltageLevels)))
+	i_d = np.subtract(np.multiply(i_data[200:400], numVoltageLevels), np.mean(np.multiply(i_data[200:400], numVoltageLevels)))
+	q_u = np.subtract(np.multiply(q_data[  0:200], numVoltageLevels), np.mean(np.multiply(q_data[  0:200], numVoltageLevels)))
+	q_d = np.subtract(np.multiply(q_data[200:400], numVoltageLevels), np.mean(np.multiply(q_data[200:400], numVoltageLevels)))
 	
 	# SQUARE LAW DETECTOR
 	
@@ -38,47 +40,55 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	iq_d = np.multiply(i_d + 1j*q_d, windowCoeffs)
 
 	# Apply window function
-	iq_u = np.multiply(iq_u, windowCoeffs)
-	iq_d = np.multiply(iq_d, windowCoeffs)
+	# iq_u = np.multiply(iq_u, windowCoeffs)
+	# iq_d = np.multiply(iq_d, windowCoeffs)
 
 	# 512-point FFT
-	IQ_UP = fft(iq_u,n_fft)
-	IQ_DN = fft(iq_d,n_fft)
+	FFT_U = fft(iq_u,n_fft)
+	FFT_D = fft(iq_d,n_fft)
 
 	# Halve FFTs
 	half_n_fft = int(n_fft/2)
-	IQ_UP = IQ_UP[0:half_n_fft]
-	IQ_DN = IQ_DN[half_n_fft:]
+	FFT_U = FFT_U[0:half_n_fft]
+	FFT_D = FFT_D[half_n_fft:]
 
 	# Null feedthrough
-	# IQ_UP[0:num_nul-1] = 0
-	# IQ_DN[len(IQ_DN)-num_nul:] = 0
-	# print(len(IQ_UP))
-	IQ_DN = np.flip(IQ_DN)
+	# FFT_U[0:num_nul-1] = 0
+	# FFT_D[len(FFT_D)-num_nul:] = 0
+	# print(len(FFT_U))
+	FFT_D = np.flip(FFT_D)
 	
 	# note the abs
 	# -------------------- CFAR detection ---------------------------
 	# rank = 2*half_train - 1 
 	# cfar_scale = 1 # additional scaling factor
-	# cfar_up, upth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
-	# cfar_dn, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
+	# cfar_up, upth = os_cfar(half_train, half_guard, rank, SOS, abs(FFT_U), cfar_scale)
+	# cfar_dn, dnth = os_cfar(half_train, half_guard, rank, SOS, abs(FFT_D), cfar_scale)
 
-	# cfar_up, upth = soca_cfar(half_train, half_guard, SOS, abs(IQ_UP))
-	# cfar_dn, dnth = soca_cfar(half_train, half_guard, SOS, abs(IQ_DN))
+	# cfar_up, upth = soca_cfar(half_train, half_guard, SOS, abs(FFT_U))
+	# cfar_dn, dnth = soca_cfar(half_train, half_guard, SOS, abs(FFT_D))
 
-	cfar_up, upth = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_UP))
-	cfar_dn, dnth = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_DN))
+	# cfar_up, upth = soca_cfar_edge(half_train, half_guard, SOS, abs(FFT_U))
+	# cfar_dn, dnth = soca_cfar_edge(half_train, half_guard, SOS, abs(FFT_D))
 
+	# CFAR Square law detector
+	
+	cfar_up, upth = soca_cfar_edge(half_train, half_guard, SOS, \
+				np.square(np.real(FFT_U))+np.square(np.imag(FFT_U)))
+	cfar_dn, dnth = soca_cfar_edge(half_train, half_guard, SOS, \
+				np.square(np.real(FFT_D))+np.square(np.imag(FFT_D)))
+
+# rank = half_train*2*3/4
 
 	# np.log(upth, out=upth)
 	# np.log(dnth, out=dnth)
-	# np.log(abs(IQ_UP), out=IQ_UP)
-	# np.log(abs(IQ_DN), out=IQ_DN)
+	# np.log(abs(FFT_U), out=FFT_U)
+	# np.log(abs(FFT_D), out=FFT_D)
 
 	# upth = 20*np.log(upth)
 	# dnth = 20*np.log(dnth)
-	# IQ_UP = 20*np.log(abs(IQ_UP))
-	# IQ_DN = 20*np.log(abs(IQ_DN))
+	# FFT_U = 20*np.log(abs(FFT_U))
+	# FFT_D = 20*np.log(abs(FFT_D))
 	# cfar_up = 20*np.log(abs(cfar_res_up))
 	# cfar_dn = 20*np.log(abs(cfar_res_dn))
 	
@@ -198,10 +208,10 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 		# safety_inv = 3-min(ratio)
 		
 	# log scale for display purposes
-	return cfar_up, cfar_dn, upth, dnth, IQ_UP, IQ_DN, safety, beat_index, index_end, rg_array, sp_array
+	return cfar_up, cfar_dn, upth, dnth, FFT_U, FFT_D, safety, beat_index, index_end, rg_array, sp_array
 	# return rg_array, sp_array, safety
 	# return cfar_res_up, cfar_res_dn, 20*np.log10(upth), 20*np.log10(dnth),\
-	#      20*np.log10(abs(IQ_UP), 10),  20*np.log10(abs(IQ_DN))
+	#      20*np.log10(abs(FFT_U), 10),  20*np.log10(abs(FFT_D))
 
 
 def range_speed_safety(i_data, q_data, windowCoeffs, n_fft, num_nul, half_train, 
@@ -221,38 +231,49 @@ half_guard, rank, nbins, bin_width, f_ax, SOS, calib, scan_width, angOffsetMinRa
 	iq_d = np.multiply(i_d + 1j*q_d, windowCoeffs)
 
 	# Apply window function
-	iq_u = np.multiply(iq_u, windowCoeffs)
-	iq_d = np.multiply(iq_d, windowCoeffs)
+	# iq_u = np.multiply(iq_u, windowCoeffs)
+	# iq_d = np.multiply(iq_d, windowCoeffs)
 
 	# 512-point FFT
-	IQ_UP = fft(iq_u, n_fft)
-	IQ_DN = fft(iq_d, n_fft)
+	FFT_U = fft(iq_u, n_fft)
+	FFT_D = fft(iq_d, n_fft)
 
 	# Halve FFTs
 	half_n_fft = int(n_fft/2)
-	IQ_UP = IQ_UP[0:half_n_fft]
-	IQ_DN = IQ_DN[half_n_fft: ]
+	FFT_U = FFT_U[0:half_n_fft]
+	FFT_D = FFT_D[half_n_fft: ]
 
 	# Null feedthrough
-	# IQ_UP[0:num_nul-1] = 0
-	# IQ_DN[len(IQ_DN)-num_nul:] = 0
-	# print(len(IQ_UP))
-	IQ_DN = np.flip(IQ_DN)
+	# FFT_U[0:num_nul-1] = 0
+	# FFT_D[len(FFT_D)-num_nul:] = 0
+	# print(len(FFT_U))
+	FFT_D = np.flip(FFT_D)
 	
 	# -------------------- CFAR detection ---------------------------
 	# cfar_scale = 1 # additional scaling factor
-	# cfar_up, _ = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_UP), cfar_scale)
-	# cfar_dn, _ = os_cfar(half_train, half_guard, rank, SOS, abs(IQ_DN), cfar_scale)
+	# cfar_up, _ = os_cfar(half_train, half_guard, rank, SOS, abs(FFT_U), cfar_scale)
+	# cfar_dn, _ = os_cfar(half_train, half_guard, rank, SOS, abs(FFT_D), cfar_scale)
 	
-	# cfar_up, _ = soca_cfar(half_train, half_guard, SOS, abs(IQ_UP))
-	# cfar_dn, _ = soca_cfar(half_train, half_guard, SOS, abs(IQ_DN))
+	# cfar_up, _ = soca_cfar(half_train, half_guard, SOS, abs(FFT_U))
+	# cfar_dn, _ = soca_cfar(half_train, half_guard, SOS, abs(FFT_D))
 
 	
-	cfar_up, _ = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_UP))
-	cfar_dn, _ = soca_cfar_edge(half_train, half_guard, SOS, abs(IQ_DN))
+	# cfar_up, _ = soca_cfar_edge(half_train, half_guard, SOS, abs(FFT_U))
+	# cfar_dn, _ = soca_cfar_edge(half_train, half_guard, SOS, abs(FFT_D))
+		# CFAR Square law detector
+	# cfar_up, upth = soca_cfar_edge(half_train, half_guard, SOS, \
+	# 			np.square(np.real(FFT_U))+np.square(np.imag(FFT_U)))
+	# cfar_dn, dnth = soca_cfar_edge(half_train, half_guard, SOS, \
+	# 			np.square(np.real(FFT_D))+np.square(np.imag(FFT_D)))
+	rank = round(half_train*2*3/4)
+	cfar_up, upth = os_cfar_edge(half_train, half_guard, SOS, \
+				np.square(np.real(FFT_U))+np.square(np.imag(FFT_U)), rank)
+	cfar_dn, dnth = os_cfar_edge(half_train, half_guard, SOS, \
+				np.square(np.real(FFT_D))+np.square(np.imag(FFT_D)), rank)
+	
 
-	# cfar_up, _ = soca_cfar_far_edge(half_train, half_guard, SOS, abs(IQ_UP))
-	# cfar_dn, _ = soca_cfar_far_edge(half_train, half_guard, SOS, abs(IQ_DN))
+	# cfar_up, _ = soca_cfar_far_edge(half_train, half_guard, SOS, abs(FFT_U))
+	# cfar_dn, _ = soca_cfar_far_edge(half_train, half_guard, SOS, abs(FFT_D))
 
 
 	fbu = np.zeros(nbins)

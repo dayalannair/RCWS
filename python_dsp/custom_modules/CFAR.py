@@ -293,7 +293,7 @@ def soca_cfar_far_edge(half_train, half_guard, SOS, data):
 
     return result, th
 
-def os_cfar_edge(half_train, half_guard, rank, SOS, data, cfar_scale):
+def os_cfar_edge(half_train, half_guard, SOS, data, rank):
 
     ns = len(data) # number of samples
     result = np.zeros(ns)
@@ -380,7 +380,7 @@ def os_cfar_edge(half_train, half_guard, rank, SOS, data, cfar_scale):
         # print('TOS =', TOS)
         th[cutidx] = TOS
         # print('TOS =', th[cutidx])
-        if cut > TOS*cfar_scale:
+        if cut > TOS:
             # index implies frequency. return magnitude for use in
             # determining max value
             result[cutidx] = cut

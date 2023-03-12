@@ -1,13 +1,13 @@
 addpath('../matlab_lib/');
 addpath('../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
 subset =1000:1100;
-[fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset);
-%F = 0.015; % see relevant papers
-n_samples = size(iq_u,2);
+n_samples = 200;
+nbar = 3;
+sll = -100;
+win = taylorwin(n_samples, nbar, sll);
+[fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = import_data(subset, win.');
 n_sweeps = size(iq_u,1);
-hmwin = hamming(n_samples);
-iq_u = iq_u.*hmwin.';
-iq_d = iq_d.*hmwin.';
+
 n_fft = 512;
 % factor of signal to be nulled. 4% determined experimentally
 % nul_width_factor = 0.04;
@@ -26,11 +26,12 @@ IQ_DN = fft(iq_d,n_fft,2);
 % IQ_DN(:,nul_lower:nul_upper) = repmat(IQ_DN(:,nul_lower-1),1,nul_upper-nul_lower+1);
 
 % Choose guard cells based on car size vs radar resolution. Or peak width
-guard = 4;
+guard = 6;
 % too many training cells results in too many detections
-train = 50;
+train = 32;
+rank = round(3*train/4);
 % false alarm rate - sets sensitivity
-F = 10e-3; % see relevant papers
+F = 1e-6; % see relevant papers
 %% CFAR
 CA = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
@@ -59,22 +60,22 @@ OS = phased.CFARDetector('NumTrainingCells',train, ...
     'ProbabilityFalseAlarm', F, ...
     'Method', 'OS', ...
     'ThresholdOutputPort', true, ...
-    'Rank', train);
+    'Rank', rank);
 
 % modify CFAR code to simultaneously record beat frequencies
 % up_detections = CA(abs(IQ_UP)', 1:n_fft);
 % dn_detections = CA(abs(IQ_DN)', 1:n_fft);
 
-[up_soca, soca_th] = SOCA(abs(IQ_UP)', 1:n_fft);
+[up_soca, soca_th] = SOCA((abs(IQ_UP).^2)', 1:n_fft);
 % dn_soca = SOCA(abs(IQ_DN)', 1:n_fft);
 
-[up_goca, goca_th] = GOCA(abs(IQ_UP)', 1:n_fft);
+[up_goca, goca_th] = GOCA((abs(IQ_UP).^2)', 1:n_fft);
 % dn_goca = GOCA(abs(IQ_DN)', 1:n_fft);
 
-[up_ca  ,   ca_th] = CA(abs(IQ_UP)', 1:n_fft);
+[up_ca  ,   ca_th] = CA((abs(IQ_UP).^2)', 1:n_fft);
 % dn_ca = CA(abs(IQ_DN)', 1:n_fft);
 
-[up_os  ,   os_th] = OS(abs(IQ_UP)', 1:n_fft);
+[up_os  ,   os_th] = OS((abs(IQ_UP).^2)', 1:n_fft);
 % dn_os = OS(abs(IQ_DN)', 1:n_fft);
 
 soca_pku = abs(IQ_UP).*up_soca';
@@ -103,10 +104,12 @@ speed_array = zeros(n_sweeps,1);
 close all
 fg = figure;
 movegui(fg,'east');
+set(gcf,'color','w');
 % tiledlayout(2,1)
 % nexttile
-p1 = plot(f, sftmagdb(IQ_UP(1,:)));
-axis([min(f) max(f) 80 200])
+p1 = plot(f, sftmagdb(abs(IQ_UP(1,:).^2)), 'DisplayName', 'Up-chirp spectrum');
+axis([min(f) max(f) -200 -60])
+% axis([min(f) max(f) 40 250])
 hold on
 soca = plot(f, sftmagdb(soca_th(:, 1)), 'DisplayName','SOCA: train = 50, guard = 4');
 hold on
@@ -117,7 +120,7 @@ hold on
 os = plot(f, sftmagdb(os_th(:, 1)), 'DisplayName','OS: train = 50, guard = 4, rank = 50');
 % os = stem(sftmagdb(os_th(:, 1)), 'DisplayName','OS', 'Marker','v', ...
 %     'MarkerSize',17);
-title("CFAR Comparison for P_{fa} = 10^{-3}")
+% title("CFAR Comparison for P_{fa} = 10^{-3}")
 xlabel("Frequency (kHz)")
 ylabel("Magnitude (dB)")
 legend
@@ -151,7 +154,7 @@ hold off
 % hold off
 %%
 for i = 1:n_sweeps
-    set(p1  , 'YData', sftmagdb(   IQ_UP(i, :)))
+    set(p1  , 'YData', sftmagdb(   abs(IQ_UP(i, :).^2)))
     set(soca, 'YData', sftmagdb(soca_th(:, i)))
     set(goca, 'YData', sftmagdb(goca_th(:, i)))
     set(ca  , 'YData', sftmagdb(  ca_th(:, i)))

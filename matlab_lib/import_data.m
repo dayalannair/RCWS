@@ -53,16 +53,16 @@ iq_tbl=readtable('rhs_iq_12_57_07.txt','Delimiter' ,' ');
 	ADC_bits = 12;
 	ADC_intervals = 2^ADC_bits;
     vinv = max_voltage/ADC_intervals;
-
+% 
     i_up = i_up*vinv - mean(i_up*vinv, 2);
     i_dn = i_dn*vinv - mean(i_dn*vinv, 2);
     q_up = q_up*vinv - mean(q_up*vinv, 2);
     q_dn = q_dn*vinv - mean(q_dn*vinv, 2);
 
-%     i_up = i_up*vinv - mean(i_up*vinv, 1);
-%     i_dn = i_dn*vinv - mean(i_dn*vinv, 1);
-%     q_up = q_up*vinv - mean(q_up*vinv, 1);
-%     q_dn = q_dn*vinv - mean(q_dn*vinv, 1);
+    i_up = i_up*vinv - mean(i_up*vinv, 1);
+    i_dn = i_dn*vinv - mean(i_dn*vinv, 1);
+    q_up = q_up*vinv - mean(q_up*vinv, 1);
+    q_dn = q_dn*vinv - mean(q_dn*vinv, 1);
 
 
 
