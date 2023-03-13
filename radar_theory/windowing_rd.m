@@ -48,43 +48,49 @@ for i = 1:8
 end
 %%
 FFTSdbsft = sftmagdb(FFTS);
-% FFTSdbsft = normalize(FFTSdbsft,2);
+max_arr = max(FFTSdbsft);
+FFTSdbsft = FFTSdbsft - max_arr;
 %%
 close all
 figure
-% plot(f, U))), 'DisplayName','Rectangular Window')
-title("Effect of windowing on signal spectrum for 1024 point FFT")
-ylabel("Magnitude (dB)")
-xlabel("Freqeuncy (kHz)")
+set(gcf,'color','w');
+% plot(f, U))), 'DisplayName','Rectangular')
+% title("Effect of windowing on signal spectrum for 1024 point FFT",'FontSize', 12)
 
-plot(f, FFTSdbsft(:,1),'DisplayName','Guassian Window')
-axis([0, max(f), -65, 20])
+% wins = cat(2, rwin, twin, gwin, bwin, kwin, nbhwin, hmwin, hnwin);
+plot(f, FFTSdbsft(:,1),'DisplayName','Rectangular')
+ylabel("Normalised Magnitude (dB)", 'FontSize', 16)
+xlabel("Freqeuncy (kHz)", 'FontSize', 16)
+axis([38, 65, -65, 20])
+ax = gca; 
+ax.FontSize = 16; 
+
 hold on
-plot(f, FFTSdbsft(:,2),'DisplayName','Blackmann Window')
+plot(f, FFTSdbsft(:,2),'DisplayName','Taylor')
 hold on
-plot(f, FFTSdbsft(:,3),'DisplayName','Kaiser Window')
+plot(f, FFTSdbsft(:,3),'DisplayName','Gaussian')
 hold on
-plot(f, FFTSdbsft(:,4),'DisplayName','Nutall Window')
+plot(f, FFTSdbsft(:,4),'DisplayName','Blackman')
 hold on
-plot(f, FFTSdbsft(:,5),'DisplayName','Hamming Window')
+plot(f, FFTSdbsft(:,5),'DisplayName','Kaiser')
 hold on
-plot(f, FFTSdbsft(:,6),'DisplayName','Hanning Window')
+plot(f, FFTSdbsft(:,6),'DisplayName','Nuttall')
 hold on
-plot(f, FFTSdbsft(:,7),'DisplayName','Taylor Window')
+plot(f, FFTSdbsft(:,7),'DisplayName','Hamming')
 hold on
-plot(f, FFTSdbsft(:,8),'DisplayName','Taylor Window')
+plot(f, FFTSdbsft(:,8),'DisplayName','Hanning')
 hold off
-legend
+legend('FontSize', 16)
 
 
 % close all
 % figure
-% plot(f, FFTS))), 'DisplayName','Gaussian Window')
+% plot(f, FFTS))), 'DisplayName','Gaussian')
 % title("Effect of windowing on signal spectrum for 1024 point FFT")
 % ylabel("Magnitude (dB)")
 % xlabel("Freqeuncy (kHz)")
 % hold on
-% plot(f, U))),'DisplayName','No Window')
+% plot(f, U))),'DisplayName','No')
 % legend
 
 % NOTES: Does not seem to improve much after 1024 point fft
