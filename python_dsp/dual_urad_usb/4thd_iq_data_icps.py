@@ -153,27 +153,13 @@ if (return_code != 0):
 
 print("Radars configured. Initialising threads...")
 #=============================================================
-# 						Cameras
+# 						Camera Thread
 # ============================================================
-cap1 = cv2.VideoCapture(0)
-cap2 = cv2.VideoCapture(2)
-
-cap1.set(3, 320)
-cap1.set(4, 240)
-
-cap2.set(3, 320)
-cap2.set(4, 240)
-
-sleep(1)
-# # Define the codec and create VideoWriter object
-fourcc = cv2.VideoWriter_fourcc(*'X264')
-out1 = cv2.VideoWriter('rhs_vid_'+now+'.avi',fourcc, 20.0, (320,240))
-out2 = cv2.VideoWriter('lhs_vid_'+now+'.avi',fourcc, 20.0, (320,240))
-
 # Camera thread function
-def capture(duration, cap, out):
+def capture(duration, cap, out, timeStampFileName):
 	print("Video thread runnning...")
 	frames = []
+	timeStampList = []
 	t0 = time()
 	t1 = 0
 	while (t1 < duration):
@@ -181,24 +167,28 @@ def capture(duration, cap, out):
 		
 		if ret==True:
 			frames.append(frame)
-		
-		t1 = time() - t0
+			timeStamp = time()
+			timeStampList.append(timeStamp)
+
+		t1 = timeStamp - t0
 
 	print("Video recorded with duration ", str(t1))
+
+	with open(timeStampFileName+'_timeStamps_'+now+'.txt','w') as tfile:
+		for item in timeStampList:
+			tfile.write(f'{item}\n')
+
 	for frame in frames:
 		out.write(frame)
-
-# Camera threads
-vid1 = threading.Thread(target=capture, args=[duration, cap1, out1])
-vid2 = threading.Thread(target=capture, args=[duration, cap2, out2])
 
 # ================================================================
 # 							uRAD thread
 # ================================================================
-def urad_capture(duration, fname, port):
+def urad_capture(duration, fname, port, timeStampFileName):
 	print("uRAD USB thread running...")
 	I_usb = []
 	Q_usb = []
+	timeStampList = []
 	t0 = time()
 	t1 = 0
 
@@ -211,7 +201,10 @@ def urad_capture(duration, fname, port):
 		I_usb.append(raw_results[0])
 		Q_usb.append(raw_results[1])
 
-		t1 = time() - t0
+		timeStamp = time()
+		timeStampList.append(timeStamp)
+
+		t1 = timeStamp - t0
 
 	# Store data
 	sweeps = len(I_usb)
@@ -222,7 +215,7 @@ def urad_capture(duration, fname, port):
 	with open(fname, 'w') as usb:
 		for sweep in range(sweeps):
 			IQ_usb = ''
-			# Length is 2*Ns
+			# Length is 2*Ns for triangle FMCW
 			# Store I data
 			for sample in range(up_down_length):
 				IQ_usb += '%d ' % I_usb[sweep][sample]
@@ -230,16 +223,41 @@ def urad_capture(duration, fname, port):
 			for sample in range(up_down_length):
 				IQ_usb += '%d ' % Q_usb[sweep][sample]
 			usb.write(IQ_usb + '\n')
+
+	with open(timeStampFileName+'_timeStamps_'+now+'.txt','w') as tfile:
+		for item in timeStampList:
+			tfile.write(f'{item}\n')
+		# tfile.write('\n'.join(str(timeStampList)))
 	print("uRAD USB capture complete.")
 	
+
+
+cap1 = cv2.VideoCapture(0)
+cap2 = cv2.VideoCapture(2)
+
+cap1.set(3, 320)
+cap1.set(4, 240)
+
+cap2.set(3, 320)
+cap2.set(4, 240)
+
+# sleep(1)
+# # Define the codec and create VideoWriter object
+fourcc = cv2.VideoWriter_fourcc(*'X264')
+out1 = cv2.VideoWriter('rhs_vid_'+now+'.avi',fourcc, 20.0, (320,240))
+out2 = cv2.VideoWriter('lhs_vid_'+now+'.avi',fourcc, 20.0, (320,240))
 
 # Separate files for each radar
 urad1_fname = "lhs_iq_"+now+".txt"
 urad2_fname = "rhs_iq_"+now+".txt"
 
+# Camera threads
+vid1 = threading.Thread(target=capture, args=[duration, cap1, out1, 'lhs_cam'])
+vid2 = threading.Thread(target=capture, args=[duration, cap2, out2, 'lhs_cam'])
+
 # uRAD threads
-urad1 = threading.Thread(target=urad_capture, args=[duration, urad1_fname, ser1])
-urad2 = threading.Thread(target=urad_capture, args=[duration, urad2_fname, ser2])
+urad1 = threading.Thread(target=urad_capture, args=[duration, urad1_fname, ser1, 'lhs_rad'])
+urad2 = threading.Thread(target=urad_capture, args=[duration, urad2_fname, ser2, 'rhs_rad'])
 
 try:
 	t_0 = time()
