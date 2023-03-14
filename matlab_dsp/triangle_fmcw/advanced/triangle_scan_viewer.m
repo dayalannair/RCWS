@@ -12,12 +12,13 @@ addpath(['../../../../../OneDrive - ' ...
 % Import video
 addpath(['../../../../../OneDrive - ' ...
     'University of Cape Town/RCWS_DATA/videos/']);
-n_samples = 200;
+Ns = 200;
 % Taylor Window
 nbar = 3;
 sll = -100;
-win = taylorwin(n_samples, nbar, sll);
-% win = hamming(n_samples);
+win = taylorwin(Ns, nbar, sll);
+win = rectwin(Ns);
+% win = hamming(Ns);
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = ...
     import_data(subset, win.');
 n_sweeps = size(iq_u,1);
@@ -28,31 +29,34 @@ n_sweeps = size(iq_u,1);
 
 % FFT
 n_fft = 512;
-FFT_U = fft(iq_u,n_fft,2);
-FFT_D = fft(iq_d,n_fft,2);
+FFT_U = fft(iq_u*Ns,n_fft,2);
+FFT_D = fft(iq_d*Ns,n_fft,2);
+
+% FFT_U = fft(iq_u,n_fft,2);
+% FFT_D = fft(iq_d,n_fft,2);
 
 % Halve FFTs
 FFT_U = FFT_U(:, 1:n_fft/2);
 FFT_D = FFT_D(:, n_fft/2+1:end);
 
 % Null feedthrough
-nul_width_factor = 0.04;
-num_nul = round((n_fft/2)*nul_width_factor);
-FFT_U(:, 1:num_nul) = 0;
-FFT_D(:, end-num_nul+1:end) = 0;
+% nul_width_factor = 0.04;
+% num_nul = round((n_fft/2)*nul_width_factor);
+% FFT_U(:, 1:num_nul) = 0;
+% FFT_D(:, end-num_nul+1:end) = 0;
 
 % FFT_U = FFT_U - mean(FFT_U);
 % FFT_D = FFT_D - mean(FFT_D);
 % CFAR
-guard = 2*n_fft/n_samples;
+guard = 2*n_fft/Ns;
 guard = floor(guard/2)*2; % make even
 % too many training cells results in too many detections
-train = round(20*n_fft/n_samples);
+train = round(20*n_fft/Ns);
 train = floor(train/2)*2;
 train = 16;
 guard = 14;
 % false alarm rate - sets sensitivity
-F = 1e-7; 
+F = 1e-5; 
 CFAR_OBJ = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
@@ -81,6 +85,7 @@ fs = 200e3;
 f = f_ax(n_fft, fs);
 f_neg = f(1:n_fft/2);
 f_pos = f((n_fft/2 + 1):end);
+rngAx = c*f_pos/(2*k);
 
 v_max = 60/3.6; 
 fd_max = speed2dop(v_max, lambda)*2;
@@ -108,12 +113,18 @@ osd_pk_clean = zeros(n_sweeps,n_fft/2);
 % previous_det = zeros(nbins+2, 1);
 scan_width = 16;
 f_bin_edges_idx = size(f_pos(),2)/nbins;
-%%
+%
 index_end = 0;
 beat_index = 0;
 close all
 fig1 = figure('WindowState','maximized');
 ax_dims = [0 round(max(f_pos)) -60 20];
+ax_dims = [0 round(max(f_pos)) -85 10];
+ax_dims = [0 round(max(f_pos)) 0 100];
+
+ax_dims = [0 round(max(rngAx)) 0 100];
+
+% ax_dims = [0 round(max(f_pos)) -45 50];
 for i = 1:n_sweeps
    for bin = 0:(nbins-1)
         bin_slice_d = os_pkd(i,bin*bin_width+1:(bin+1)*bin_width);
@@ -134,31 +145,64 @@ for i = 1:n_sweeps
    end
     tiledlayout(2,1)
     nexttile
-    plot(f_pos, absmagdb(FFT_D(i,:)))
+    plot(rngAx, absmagdb(FFT_D(i,:)))
     title("DOWN chirp flipped negative half average nulling")
     axis(ax_dims)
     hold on
-    plot(f_pos, absmagdb(os_thd(:,i)))
+    plot(rngAx, mag2db(sqrt(os_thd(:,i))))
     hold on
-    stem(f_pos, absmagdb(os_pkd(i,:)))
+    stem(rngAx, mag2db(os_pkd(i,:)))
     hold on
     xline([beat_index index_end])
 %     xline(lines)
     hold off
 
     nexttile
-    plot(f_pos, absmagdb(FFT_U(i,:)))
+    plot(rngAx, absmagdb(FFT_U(i,:)))
     title("UP chirp positive half average nulling")
     axis(ax_dims)
     hold on
-    plot(f_pos, absmagdb(os_thu(:,i)))
+    plot(rngAx, mag2db(sqrt(os_thu(:,i))))
     hold on
-    stem(f_pos, absmagdb(os_pku(i,:)))
+    stem(rngAx, mag2db(os_pku(i,:)))
     hold on
 %     xline(lines)
     xline([beat_index index_end])
     hold off
     drawnow;
+
+    % Linear scale
+
+%     tiledlayout(2,1)
+%     nexttile
+%     plot(f_pos, (FFT_D(i,:)))
+%     title("DOWN chirp flipped negative half average nulling")
+% %     axis(ax_dims)
+%     hold on
+%     plot(f_pos, (os_thd(:,i)))
+%     hold on
+%     stem(f_pos, (os_pkd(i,:)))
+%     hold on
+%     xline([beat_index index_end])
+% %     xline(lines)
+%     hold off
+% 
+%     nexttile
+%     plot(f_pos, (FFT_U(i,:)))
+%     title("UP chirp positive half average nulling")
+% %     axis(ax_dims)
+%     hold on
+%     plot(f_pos, (os_thu(:,i)))
+%     hold on
+%     stem(f_pos, (os_pku(i,:)))
+%     hold on
+% %     xline(lines)
+%     xline([beat_index index_end])
+%     hold off
+%     drawnow;
+
+
+
 %   pause(0.5)
    % If nothing detected
    % Issue - if another target detected, will not trigger
