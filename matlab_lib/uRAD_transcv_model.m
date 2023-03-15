@@ -18,17 +18,59 @@ waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
     'SampleRate',fs_wav, 'SweepDirection','Triangle');
 % close all
 % figure
+% tiledlayout(2,3)
 % sig = waveform();
-% subplot(211); 
+% % subplot(211); 
+% nexttile
 % plot(0:1/fs_wav:tm-1/fs_wav,real(sig));
 % xlabel('Time (s)'); 
 % ylabel('Amplitude (v)');
 % title('First 10 \mus of the FMCW signal'); 
 % axis([0 1e-5 -1 1]);
-% subplot(212); 
+% % subplot(212); 
+% nexttile
+% spectrogram(sig,32,16,32,fs_wav,'yaxis');
+% sig = waveform();
+% % subplot(213);
+% nexttile
+% plot(0:1/fs_wav:tm-1/fs_wav,real(sig));
+% xlabel('Time (s)'); 
+% ylabel('Amplitude (v)');
+% title('First 10 \mus of the FMCW signal'); 
+% axis([0 1e-5 -1 1]);
+% % subplot(214); 
+% nexttile
+% spectrogram(sig,32,16,32,fs_wav,'yaxis');
+% title('FMCW signal spectrogram');
+% sig = waveform();
+% % subplot(213);
+% nexttile
+% plot(0:1/fs_wav:tm-1/fs_wav,real(sig));
+% xlabel('Time (s)'); 
+% ylabel('Amplitude (v)');
+% title('First 10 \mus of the FMCW signal'); 
+% axis([0 1e-5 -1 1]);
+% % subplot(214); 
+% nexttile
 % spectrogram(sig,32,16,32,fs_wav,'yaxis');
 % title('FMCW signal spectrogram');
 
+close all
+figure
+tiledlayout(1,3)
+sig = waveform();
+nexttile
+spectrogram(sig,32,16,32,fs_wav,'yaxis');
+
+sig = waveform();
+nexttile
+spectrogram(sig,32,16,32,fs_wav,'yaxis');
+title('FMCW signal spectrogram');
+sig = waveform();
+
+nexttile
+spectrogram(sig,32,16,32,fs_wav,'yaxis');
+title('FMCW signal spectrogram');
 %% Antenna
 ant_gain = 16.6;
 Ppeak = 50; % dBm
@@ -38,7 +80,7 @@ tx_gain = 9+ant_gain;                           % in dB
 
 rx_gain = 30+ant_gain;                          % in dB
 rx_nf = 4.5;                                    % in dB
-rx_nf = 0;   
+% rx_nf = 0;   
 transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
 cosineElement = phased.CosineAntennaElement;
 cosineElement.FrequencyRange = [fc (fc+bw)];
@@ -46,24 +88,34 @@ cosineElement.FrequencyRange = [fc (fc+bw)];
 Nrow = 4;
 Ncol = 4;
 
-fmcwCosineArray = phased.URA('Element', cosineElement, ...
+fmcwCosineArray = phased.URA( ...
+    'Element', cosineElement, ...
     'ArrayNormal', 'x', 'Size',[Nrow Ncol], ...
     'ElementSpacing',[0.5*lambda 0.5*lambda]);
 
-radiator = phased.Radiator('Sensor',fmcwCosineArray, ...
+radiator = phased.Radiator( ...
+    'Sensor',fmcwCosineArray, ...
     'OperatingFrequency', fc);
 
 % Collector for receive array
-collector = phased.Collector('Sensor',fmcwCosineArray, ...
+collector = phased.Collector( ...
+    'Sensor',fmcwCosineArray, ...
     'OperatingFrequency',fc);
 
-receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
-    'SampleRate',fs_wav, 'NoiseComplexity','Real');
+receiver = phased.ReceiverPreamp( ...
+    'Gain',rx_gain, ...
+    'NoiseFigure',rx_nf,...
+    'SampleRate',fs_wav, ...
+    'NoiseComplexity','Real');
 
 % angles = yaw, pitch, roll. roll axis is the direction platform is facing
-transceiver = radarTransceiver('Waveform',waveform,'Transmitter', ...
-    transmitter, 'TransmitAntenna',radiator,'ReceiveAntenna',collector, ...
-    'Receiver', receiver, 'MountingLocation', [0, 0, 0], ...
+transceiver = radarTransceiver( ...
+    'Waveform',waveform, ...
+    'Transmitter', transmitter, ...
+    'TransmitAntenna',radiator, ...
+    'ReceiveAntenna',collector, ...
+    'Receiver', receiver, ...
+    'MountingLocation', [0, 0, 0], ...
     'MountingAngles', [0 0 0]);
 % , 'MechanicalScanMode','Circular', ...
 %     'MechanicalScanRate', 360);

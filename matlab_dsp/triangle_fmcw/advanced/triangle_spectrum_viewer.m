@@ -21,7 +21,7 @@ Ns = 200;
 
 nbar = 3;
 sll = -20;
-win = taylorwin(Ns, nbar, sll);
+% win = taylorwin(Ns, nbar, sll);
 
 win =   rectwin(Ns);
 
@@ -29,12 +29,12 @@ win =   rectwin(Ns);
     import_data(subset, win.');
 
 n_sweeps = size(iq_u,1);
-n_fft = 512;
+n_fft = 1024;
 
 %%
 % FFT - note that true value is normalised by dividing by Ns
-FFT_U = fft(iq_u/Ns,n_fft,2)/Ns;
-FFT_D = fft(iq_d/Ns,n_fft,2)/Ns;
+FFT_U = fft(iq_u,n_fft,2)/Ns;
+FFT_D = fft(iq_d,n_fft,2)/Ns;
 
 % Halve FFTs
 FFT_U = FFT_U(:, 1:n_fft/2);
@@ -50,40 +50,50 @@ fs = 200e3;
 f = f_ax(n_fft, fs);
 f_neg = flip(-f(1:n_fft/2),2);
 f_pos = f((n_fft/2 + 1):end);
-rngAx = c*f_pos/(2*k);
+rngAxPos = c*f_pos/(2*k);
+rngAxNeg = c*f_neg/(2*k);
 
 ax_dims = [0 round(n_fft/2) -74 26];
 % f = fs/2*linspace(0,1,n_fft/2+1);
 ax_dims = [0 round(n_fft/2) -74 40];
 % ax_dims = [0 round(n_fft/2) -85 10];
 ax_dims = [0 max(f_pos) -150 -50];
-close all
-fig1 = figure('WindowState','maximized');
-movegui(fig1,'east')
-tiledlayout(2,1)
+% close all
+% fig1 = figure('WindowState','maximized');
+% movegui(fig1,'east')
+% tiledlayout(2,1)
+% 
+% nexttile
+% p1 = plot(f_pos, FFT_U(1,:));
+% title("UP chirp positive half")
+% axis(ax_dims)
+% 
+% nexttile
+% p2 = plot(f_neg, FFT_D(1,:));
+% title("DOWN chirp flipped negative half")
+% axis(ax_dims)
 
-nexttile
-p1 = plot(f_pos, FFT_U(1,:));
-title("UP chirp positive half")
-axis(ax_dims)
-
-nexttile
-p2 = plot(f_neg, FFT_D(1,:));
-title("DOWN chirp flipped negative half")
-axis(ax_dims)
-
-fbu = zeros(n_sweeps, 1);
-fbd = zeros(n_sweeps, 1);
+fbuIdx = zeros(n_sweeps, 1);
+fbdIdx = zeros(n_sweeps, 1);
 %%
 for i = 1:n_sweeps
-    set(p1, 'YData',FFT_U(i,:))
-    set(p2, 'YData',FFT_D(i,:))
-    [ ~ , fbu(i)] = max(FFT_U(i,:));
-    [ ~ , fbd(i)] = max(FFT_D(i,:));
-    drawnow;
+%     set(p1, 'YData',FFT_U(i,:))
+%     set(p2, 'YData',FFT_D(i,:))
+    [ ~ , fbuIdx(i)] = max(FFT_U(i,:));
+    [ ~ , fbdIdx(i)] = max(FFT_D(i,:));
+%     drawnow;
 end
 %%
-rng_u = rngAx(fbu);
-rng_d = rngAx(fbd);
-% (f_pos(fbu) + f_pos(fbd))/2;
-rng = beat2range([f_pos(fbu).'; f_pos(fbd).'], k, c);
+rng_u = rngAxPos(fbuIdx);
+rng_d = rngAxNeg(fbdIdx);
+% (f_pos(fbuIdx) + f_pos(fbdIdx))/2;
+fbu = f_pos(fbuIdx).';
+fbd = f_neg(fbdIdx).';
+
+rng = beat2range([fbu; fbd], k, c);
+fbAvg = (fbu + fbd)/2;
+
+rngManual = c*fbAvg/(2*k);
+%%
+close all
+scatter(t_stamps, rngManual)

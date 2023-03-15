@@ -11,7 +11,7 @@ addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/m4_rustenberg/
 addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/office/');
 
 %}
-function [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = ...
+function [fc, c, lambda, tm, bw, k, iq_u, iq_d, timeStamps] = ...
 import_data(sweeps, windowCoeffs)
     % Parameters
     fc = 24.005e9;
@@ -35,8 +35,9 @@ import_data(sweeps, windowCoeffs)
 % calibration
 
     iq_tbl=readtable('rhs_iq_17_57_28','Delimiter' ,' ');
+    timeStampsTbl=readtable('rhs_rad_timeStamps_17_57_28.txt','Delimiter' ,' ');
     % Split data
-    t_stamps = [];
+    timeStamps = table2array(timeStampsTbl(sweeps, 1));
     i_up = table2array(iq_tbl(sweeps,1:200));
     i_dn = table2array(iq_tbl(sweeps,201:400));
     q_up = table2array(iq_tbl(sweeps,401:600));

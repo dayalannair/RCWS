@@ -5,8 +5,8 @@ function xr_d = sim_transceiver(transceiver, Dn, simTime, tgt1, tgt2)
 % Transceiver has the waveform and tx and rx antennas and HW baked in
 % It likely performs dechirp internally
 %     rxsig = transceiver([tgt1 tgt2], simTime);
-    [rxsig, info] = transceiver(tgt2, simTime);
-    disp(tgt2)
+    [rxsig, info] = transceiver(tgt1, simTime);
+    disp(info)
 %     disp(info.Orientation)
 %     for o = 1:16
 %         plot(abs(rxsig(:,o)))
@@ -33,7 +33,7 @@ function xr_d = sim_transceiver(transceiver, Dn, simTime, tgt1, tgt2)
 %     plot(elmt4(1:100))
 %     disp(size(elmt1))
     % Decimate and apply 200-tap anti-aliasing FIR filter
-    xr_d = abs(decimate(rxsig,Dn, 200, "fir"));
+    xr_d = decimate(rxsig,Dn, 200, "fir");
 % %     xr_d = abs(decimate(elmt1,Dn, 200, "fir"));
 
 %     xr_d = elmt1(1:1200:end);
