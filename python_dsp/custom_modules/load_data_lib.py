@@ -11,7 +11,7 @@ def load_data():
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_30kmh.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_40kmh.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
-    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
 
     # file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
 
@@ -41,6 +41,10 @@ def load_data():
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_57_07.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_57_07.txt")
 
+
+    file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_57_07.txt")
+
+
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_57_50.txt")
 
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_52_43.txt")
@@ -52,10 +56,10 @@ def load_data():
 
 
     # 60kmh subset
-    subset = range(900,1100)
+    # subset = range(900,1100)
     # subset = range(0, 4000)
 
-    # subset = range(0, 2700)
+    subset = range(0, 2700)
 
     
     # 50 kmh subset - same
