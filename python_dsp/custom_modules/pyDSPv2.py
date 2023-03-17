@@ -1,49 +1,30 @@
 # from cfar_lib import os_cfar
-from CFAR import soca_cfar_far_edge, soca_cfar_edge, os_cfar_edge
+from CFAR import soca_cfar_far_edge, soca_cfar_edge, os_cfar_edge, goca_cfar_edge
 import numpy as np
 from scipy.fft import fft
 
 
 # NOTE: Range, speed, and possibly safety results of the below are not correct
-def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
-	half_train, half_guard, nbins, bin_width, f_ax, SOS, calib, scan_width, angOffsetMinRange, angOffset):
+def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
+		nbins, bin_width, fpos, fneg, SOS, calib, scan_width, angOffsetMinRange, angOffset, NVL):
 
-	# DC cancellation
-	max_voltage = 3.3
-	ADC_bits = 12
-	ADC_intervals = 2**ADC_bits
 
-	numVoltageLevels = max_voltage/ADC_intervals
+	i_u = np.subtract(np.multiply(i_data[  0:200], NVL), np.mean(np.multiply(i_data[  0:200], NVL)))
+	i_d = np.subtract(np.multiply(i_data[200:400], NVL), np.mean(np.multiply(i_data[200:400], NVL)))
+	q_u = np.subtract(np.multiply(q_data[  0:200], NVL), np.mean(np.multiply(q_data[  0:200], NVL)))
+	q_d = np.subtract(np.multiply(q_data[200:400], NVL), np.mean(np.multiply(q_data[200:400], NVL)))
 	
-	i_u = np.subtract(np.multiply(i_data[  0:200], numVoltageLevels), np.mean(np.multiply(i_data[  0:200], numVoltageLevels)))
-	i_d = np.subtract(np.multiply(i_data[200:400], numVoltageLevels), np.mean(np.multiply(i_data[200:400], numVoltageLevels)))
-	q_u = np.subtract(np.multiply(q_data[  0:200], numVoltageLevels), np.mean(np.multiply(q_data[  0:200], numVoltageLevels)))
-	q_d = np.subtract(np.multiply(q_data[200:400], numVoltageLevels), np.mean(np.multiply(q_data[200:400], numVoltageLevels)))
+	# i_u = np.multiply(i_data[  0:200], NVL)
+	# i_d = np.multiply(i_data[200:400], NVL)
+	# q_u = np.multiply(q_data[  0:200], NVL)
+	# q_d = np.multiply(q_data[200:400], NVL)
 	
-	# SQUARE LAW DETECTOR
-	
-	# Original - no mean cancelling
-	# iq_u = np.power(i_data[  0:200],2) + np.power(q_data[  0:200],2)
-	# iq_d = np.power(i_data[200:400],2) + np.power(q_data[200:400],2)
 
-	# iq_u = np.power(i_data[  0:200]*windowCoeffs,2) + np.power(q_data[  0:200]*windowCoeffs,2)
-	# iq_d = np.power(i_data[200:400]*windowCoeffs,2) + np.power(q_data[200:400]*windowCoeffs,2)
-
-
-	# iq_u = np.power(i_u,2) + np.power(i_d,2)
-	# iq_d = np.power(q_u,2) + np.power(q_d,2)
-
-	# iq_u = np.multiply(i_data[  0:200] + 1j*i_data[200:400], windowCoeffs)
-	# iq_d = np.multiply(q_data[  0:200] + 1j*q_data[200:400], windowCoeffs)
-
+	# Window signal
 	iq_u = np.multiply(i_u + 1j*q_u, windowCoeffs)
 	iq_d = np.multiply(i_d + 1j*q_d, windowCoeffs)
 
-	# Apply window function
-	# iq_u = np.multiply(iq_u, windowCoeffs)
-	# iq_d = np.multiply(iq_d, windowCoeffs)
-
-	# 512-point FFT
+	# FFT
 	FFT_U = fft(iq_u,n_fft)
 	FFT_D = fft(iq_d,n_fft)
 
@@ -52,10 +33,6 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	FFT_U = FFT_U[0:half_n_fft]
 	FFT_D = FFT_D[half_n_fft:]
 
-	# Null feedthrough
-	# FFT_U[0:num_nul-1] = 0
-	# FFT_D[len(FFT_D)-num_nul:] = 0
-	# print(len(FFT_U))
 	FFT_D = np.flip(FFT_D)
 	
 	# note the abs
@@ -72,10 +49,9 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 	# cfar_dn, dnth = soca_cfar_edge(half_train, half_guard, SOS, abs(FFT_D))
 
 	# CFAR Square law detector
-	
-	cfar_up, upth = soca_cfar_edge(half_train, half_guard, SOS, \
+	cfar_up, upth = goca_cfar_edge(half_train, half_guard, SOS, \
 				np.square(np.real(FFT_U))+np.square(np.imag(FFT_U)))
-	cfar_dn, dnth = soca_cfar_edge(half_train, half_guard, SOS, \
+	cfar_dn, dnth = goca_cfar_edge(half_train, half_guard, SOS, \
 				np.square(np.real(FFT_D))+np.square(np.imag(FFT_D)))
 
 # rank = half_train*2*3/4
@@ -135,7 +111,7 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 			beat_index = bin*bin_width + idx_d
 
 			# store down-chirp beat frequency
-			fbd[bin] = f_ax[beat_index]
+			fbd[bin] = fneg[beat_index]
 
 			# handling edge case at the beginning of the sequence
 			if (beat_index > scan_width):
@@ -148,7 +124,7 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 			else:
 				index_end = 0
 				bin_slice_u = cfar_up[0:scan_width]
-				print(bin_slice_u)
+				# print(bin_slice_u)
 
 				
 			# Get magnitude and intra-bin index of beat frequency
@@ -160,7 +136,7 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 
 			# if detection is made and target not static
 			if (magu != 0) and (idx_u != idx_d):
-				fbu[bin] = f_ax[index_end + idx_u - 1]
+				fbu[bin] = fpos[index_end + idx_u - 1]
 
 			
 				# if target moving towards radar
@@ -174,17 +150,17 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 						# if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
 						# convert Doppler to speed. fd is twice the Doppler therefore
 						# divide by 2
-						# sp_array[bin] = fd*lmda/2
+						sp_array[bin] = fd*lmda/2
 						# Note that fbd is now positive
 						rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)*calib
 
 						# to account for angle offset on left radar. for right radar, set angOffsetMinRange = 100
-						if rg_array[bin] > angOffsetMinRange:
-							sp_array[bin] = fd*lmda/(np.cos(angOffset - np.arcsin(road_width/rg_array[bin])))
+						# if rg_array[bin] > angOffsetMinRange:
+						# 	sp_array[bin] = fd*lmda/(np.cos(angOffset - np.arcsin(road_width/rg_array[bin])))
 						
-						# Else ignore/dont correct for left and calculate as normal for right
-						else:
-							sp_array[bin] = fd*lmda/(np.cos(np.arcsin(road_width/rg_array[bin])))
+						# # Else ignore/dont correct for left and calculate as normal for right
+						# else:
+						# 	sp_array[bin] = fd*lmda/(np.cos(np.arcsin(road_width/rg_array[bin])))
 	
 
 
@@ -208,7 +184,7 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, num_nul,
 		# safety_inv = 3-min(ratio)
 		
 	# log scale for display purposes
-	return cfar_up, cfar_dn, upth, dnth, FFT_U, FFT_D, safety, beat_index, index_end, rg_array, sp_array
+	return cfar_up, cfar_dn, upth, dnth, FFT_U, FFT_D, beat_index, index_end, rg_array, sp_array, safety
 	# return rg_array, sp_array, safety
 	# return cfar_res_up, cfar_res_dn, 20*np.log10(upth), 20*np.log10(dnth),\
 	#      20*np.log10(abs(FFT_U), 10),  20*np.log10(abs(FFT_D))
