@@ -3,6 +3,7 @@ import math as mt
 
 # ====================================================================================
 # CFAR LIBRARY
+# ====================================================================================
 # Author : Dayalan Nair
 # Date   : December 2022
 # Description : Set of  CFAR algorithms including OS and SOCA CFAR. Advanced edge case
@@ -17,6 +18,9 @@ import math as mt
 # Pfa = probability of false alarm
 # This version ignores all cells with insufficient lead/lag cells
 # for training
+
+# Edge in the function name refers to edge case handling. Far edge refers to edge 
+# handling being implemented for only the last CUTs
 # ====================================================================================
 
 
@@ -257,7 +261,8 @@ def goca_cfar_edge(half_train, half_guard, SOS, data):
             # print(len(lhs_train))
             # print(len(rhs_train))
 
-        elif (cutidx >= (ns-half_guard)):
+        # elif (cutidx >= (ns-half_guard)):
+        else:
             lhs_train = data[cutidx-lead:cutidx-half_guard]
             rhs_train = data[cutidx-lead-half_train:cutidx-lead]
 
@@ -266,6 +271,81 @@ def goca_cfar_edge(half_train, half_guard, SOS, data):
         # print("Train cells number = ", np.size(training_cells))
         # print(ZOS)
         ZOS = max(np.average(lhs_train),np.average(rhs_train))
+        TOS = SOS*ZOS
+        # print('TOS =', TOS)
+        th[cutidx] = TOS
+        # print('TOS =', th[cutidx])
+        if cut > TOS:
+            # index implies frequency. return magnitude for use in
+            # determining max value
+            result[cutidx] = cut
+        # ************************************************************
+    return result, th
+
+def ca_cfar_edge(half_train, half_guard, SOS, data, ns):
+
+    result = np.zeros(ns)
+    th = np.zeros(ns)
+    lead = half_train + half_guard 
+    lag = ns - lead
+    last = ns-half_guard
+    train = np.empty([2*half_train, ])
+    
+
+    for cutidx in range(ns): #cutidx = index of cell under test
+
+        # ******************* Set up training cells *****************
+        # If no LHS training cells, take cells right of RHS
+        if (cutidx<=half_guard):
+            # RHS training cells as normal
+            train[half_train:] = data[cutidx+half_guard:cutidx+lead]
+            train[0:half_train] = data[cutidx+lead:cutidx+lead+half_train]
+
+        # IF some LHS cells, use these and take remainder from RHS
+        elif (cutidx<lead):
+            # RHS train cells set as normal
+            train[half_train:] = data[cutidx+half_guard:cutidx+lead]
+            # add all cells from pos 0 up to guard to train set
+            train[0:cutidx-half_guard] = data[0:cutidx-half_guard]
+            # space = number of lhs train cells still to be filled
+            lhs_fill = half_train - len(train[0:cutidx-half_guard])#- cutidx - half_guard#
+            # add cells to the right of rhs train cells to the lhs side
+            train[0:half_train] = np.append(train[0:cutidx-half_guard], \
+            data[cutidx+lead:cutidx+lead+lhs_fill])
+
+        # IF enough train cells on either side
+        elif (cutidx <= lag):
+            train[0:half_train] = data[cutidx-lead:cutidx-half_guard]
+            train[half_train:] = data[cutidx+half_guard:cutidx+lead]
+
+        
+        # # If no training cells on the right, take from left of LHS    
+        elif (cutidx >= last):
+            # LHS training set as normal
+            train[0:half_train] = data[cutidx-lead:cutidx-half_guard]
+            train[half_train:] = data[cutidx-lead-half_train:cutidx-lead]
+            
+
+        # elif (cutidx >= (ns-half_guard)):
+        # IF too few cells on the right, take some from left of LHS
+        else:
+            # LHS training set as normal
+            train[0:half_train] = data[cutidx-lead:cutidx-half_guard]
+            rem = data[cutidx+half_guard:]
+            lenRem = len(rem)
+            # take whatever cells exist on the right
+            train[half_train:half_train+lenRem] = rem
+            rhs_fill = half_train - lenRem #- cutidx + half_guard#
+            train[half_train:] = np.append(train[half_train:half_train+lenRem], \
+            data[cutidx-lead-rhs_fill:cutidx-lead])
+
+
+
+
+        cut = data[cutidx]
+        # print("Train cells number = ", np.size(training_cells))
+        # print(ZOS)
+        ZOS = np.average(train)
         TOS = SOS*ZOS
         # print('TOS =', TOS)
         th[cutidx] = TOS
