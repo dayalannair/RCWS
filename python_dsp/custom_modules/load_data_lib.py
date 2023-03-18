@@ -3,7 +3,7 @@
 # Allows for chaning file and subset length in one place and viewing the results using different scripts
 
 from pathlib import Path
-
+import numpy as np
 def load_data():
     
 
@@ -38,11 +38,8 @@ def load_data():
     # 3 March 2023
     # =============================================================================================
 
-    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_57_07.txt")
+    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_57_07.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_57_07.txt")
-
-
-    # file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_57_07.txt")
 
 
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_57_50.txt")
@@ -56,10 +53,11 @@ def load_data():
 
 
     # 60kmh subset
-    subset = range(700,1100)
+    # subset = range(700,1100)
     # subset = range(0, 4000)
 
-    # subset = range(0, 2700)
+    # for 30-second burst captures
+    subset = range(0, 2700)
 
     
     # 50 kmh subset - same
@@ -72,6 +70,9 @@ def load_data():
     with open(file_path, "r") as raw_IQ:
             # split into sweeps
             sweeps = raw_IQ.read().split("\n")
+
+    # print(np.shape(sweeps))
+    subset = range(0, np.shape(sweeps)[0]-2)
     return sweeps, subset
 
 

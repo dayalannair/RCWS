@@ -38,7 +38,7 @@ numVoltageLevels = max_voltage/ADC_intervals
 
 # frequency and range axes
 fpos = np.linspace(0, round(fs/2)-1, round(n_fft/2))
-fneg = np.linspace(round(fs/2), round(fs/n_fft), round(n_fft/2))
+fneg = np.linspace(round(fs/n_fft), round(fs/2), round(n_fft/2))
 print(fpos)
 print(fneg)
 slope = bw/tsweep
@@ -88,7 +88,6 @@ line1, = ax[0].plot(rngAxPos, fftu)
 line2, = ax[0].plot(rngAxPos, upth)
 line3, = ax[1].plot(rngAxNeg, fftd)
 line4, = ax[1].plot(rngAxNeg, dnth)
-
 # uRAD GUI mean subtraction
 ax[0].set_xlim([0, 62.5])
 ax[0].set_ylim([-80, 30])

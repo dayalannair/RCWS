@@ -2,7 +2,7 @@
 from CFAR import soca_cfar_far_edge, soca_cfar_edge, os_cfar_edge, goca_cfar_edge, ca_cfar_edge
 import numpy as np
 from scipy.fft import fft
-
+import matplotlib.pyplot as plt
 
 # NOTE: Range, speed, and possibly safety results of the below are not correct
 def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
@@ -27,13 +27,24 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
 	# FFT
 	FFT_U = fft(iq_u,n_fft)
 	FFT_D = fft(iq_d,n_fft)
-
+	# plt.plot(20*np.log10(np.abs(FFT_D)))
+	# plt.ylim()
+	# plt.xlim([0,1024])
+	# plt.show()
+	# plt.pause(100)
+	
 	# Halve FFTs
 	half_n_fft = int(n_fft/2)
 	FFT_U = FFT_U[0:half_n_fft]
 	FFT_D = FFT_D[half_n_fft:]
-
 	FFT_D = np.flip(FFT_D)
+	# plt.plot(20*np.log10(np.abs(FFT_D)))
+	# plt.ylim()
+	# plt.xlim([0,half_n_fft])
+	# plt.show()
+	# plt.pause(100)
+
+	
 	
 	# note the abs
 	# -------------------- CFAR detection ---------------------------

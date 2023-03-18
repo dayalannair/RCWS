@@ -148,8 +148,8 @@ fd_fname = "dopp_results.txt"
 
 print("Processing Complete. Displaying results...")
 
-fig1, ax = plt.subplots(nrows=1, ncols=2, figsize=(10, 6)) #, constrained_layout=True)
-fig1.tight_layout()
+# fig1, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 6)) #, constrained_layout=True)
+plt.tight_layout()
 # set the spacing between subplots
 # plt.subplots_adjust(left=0.1,
 #                     bottom=0.1, 
@@ -162,11 +162,14 @@ fig1.tight_layout()
 # plt.grid(None)
 # plt.show()
 timeStampsTrimmed = timeStamps[0:len_subset]
-line2 = ax[0].imshow(spMtx, origin='upper', vmin=0, vmax=70, aspect='auto', \
-		     interpolation='none', extent=[0, 62.5, np.max(timeStampsTrimmed), 0]) #, extent=[0, 62.5, 0, len_subset]
-line3, = ax[1].plot(timeStampsTrimmed , sfVector)
+rngAxBins = np.linspace(0, np.max(rngAxNeg), nbins)
+plt.imshow(rngAxBins, spMtx, origin='upper', vmin=0, vmax=70, aspect='auto', \
+		     interpolation='none', extent=[0, 62.5, np.max(timeStampsTrimmed), 0], cmap='gist_ncar') #, extent=[0, 62.5, 0, len_subset]
+# line3, = ax[1].plot(timeStampsTrimmed , sfVector)
 # thismanager = get_current_fig_manager()
 # thismanager.window.SetPosition((500, 0))
+
+plt.xlabel("Range bins")
 
 # plt.grid(None)
 plt.show()
