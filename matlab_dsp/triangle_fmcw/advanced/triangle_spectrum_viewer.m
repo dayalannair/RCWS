@@ -29,7 +29,7 @@ win =   rectwin(Ns);
     import_data(subset, win.');
 
 n_sweeps = size(iq_u,1);
-n_fft = 1024;
+n_fft = 512;
 
 %%
 % FFT - note that true value is normalised by dividing by Ns
@@ -53,36 +53,40 @@ f_pos = f((n_fft/2 + 1):end);
 rngAxPos = c*f_pos/(2*k);
 rngAxNeg = c*f_neg/(2*k);
 
-ax_dims = [0 round(n_fft/2) -74 26];
-% f = fs/2*linspace(0,1,n_fft/2+1);
-ax_dims = [0 round(n_fft/2) -74 40];
-% ax_dims = [0 round(n_fft/2) -85 10];
-ax_dims = [0 max(f_pos) -150 -50];
-% close all
-% fig1 = figure('WindowState','maximized');
-% movegui(fig1,'east')
-% tiledlayout(2,1)
-% 
-% nexttile
-% p1 = plot(f_pos, FFT_U(1,:));
-% title("UP chirp positive half")
-% axis(ax_dims)
-% 
-% nexttile
-% p2 = plot(f_neg, FFT_D(1,:));
-% title("DOWN chirp flipped negative half")
-% axis(ax_dims)
+% ax_dims = [0 round(n_fft/2) -74 26];
+% % f = fs/2*linspace(0,1,n_fft/2+1);
+% ax_dims = [0 round(n_fft/2) -74 40];
+% % ax_dims = [0 round(n_fft/2) -85 10];
+% ax_dims = [0 max(f_pos) -110 20];
+% ax_dims = [0 round(n_fft/2) -110 20];
+
+ax_dims = [0 max(rngAxNeg) -110 20];
+close all
+fig1 = figure('WindowState','maximized');
+movegui(fig1,'east')
+tiledlayout(2,1)
+
+nexttile
+p1 = plot(rngAxPos, FFT_U(1,:));
+title("UP chirp positive half")
+axis(ax_dims)
+
+nexttile
+p2 = plot(rngAxNeg, FFT_D(1,:));
+title("DOWN chirp flipped negative half")
+axis(ax_dims)
 
 fbuIdx = zeros(n_sweeps, 1);
 fbdIdx = zeros(n_sweeps, 1);
 %%
 for i = 1:n_sweeps
-%     set(p1, 'YData',FFT_U(i,:))
-%     set(p2, 'YData',FFT_D(i,:))
-    [ ~ , fbuIdx(i)] = max(FFT_U(i,:));
-    [ ~ , fbdIdx(i)] = max(FFT_D(i,:));
-%     drawnow;
+    set(p1, 'YData',FFT_U(i,:))
+    set(p2, 'YData',FFT_D(i,:))
+%     [ ~ , fbuIdx(i)] = max(FFT_U(i,:));
+%     [ ~ , fbdIdx(i)] = max(FFT_D(i,:));
+    drawnow;
 end
+return
 %%
 rng_u = rngAxPos(fbuIdx);
 rng_d = rngAxNeg(fbdIdx);
@@ -91,8 +95,8 @@ fbu = f_pos(fbuIdx).';
 fbd = f_neg(fbdIdx).';
 
 rng = beat2range([fbu; fbd], k, c);
-fbAvg = (fbu + fbd)/2;
 
+fbAvg = (fbu + fbd)/2;
 rngManual = c*fbAvg/(2*k);
 %%
 close all

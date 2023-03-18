@@ -232,20 +232,21 @@ def urad_capture(duration, fname, port, timeStampFileName):
 	
 
 
+# Open capture device for each camera
 cap1 = cv2.VideoCapture(0)
 cap2 = cv2.VideoCapture(2)
 
+# set image dimensions
 cap1.set(3, 320)
 cap1.set(4, 240)
-
 cap2.set(3, 320)
 cap2.set(4, 240)
 
-# sleep(1)
-# # Define the codec and create VideoWriter object
+# create VideoWriter object with file name, codec, 
+# frame rate and frame dimensions
 fourcc = cv2.VideoWriter_fourcc(*'X264')
-out1 = cv2.VideoWriter('rhs_vid_'+now+'.avi',fourcc, 20.0, (320,240))
-out2 = cv2.VideoWriter('lhs_vid_'+now+'.avi',fourcc, 20.0, (320,240))
+out1 = cv2.VideoWriter('rhs_vid_'+now+'.avi',fourcc,20.0,(320,240))
+out2 = cv2.VideoWriter('lhs_vid_'+now+'.avi',fourcc,20.0,(320,240))
 
 # Separate files for each radar
 urad1_fname = "lhs_iq_"+now+".txt"
