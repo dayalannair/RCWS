@@ -67,7 +67,10 @@ def load_data():
     subset = range(1350,1900)
     subset = range(0,1900)
     # 20km/h subset
-    subset = range(0,550)
+    # first car unkown V
+    # subset = range(0,550)
+    # subset = range(1000,1550)
+    subset = range(0, 3999)
 
     # sys.path.append('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby')
     with open(file_path, "r") as raw_IQ:
