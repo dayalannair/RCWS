@@ -39,15 +39,15 @@ numVoltageLevels = max_voltage/ADC_intervals
 # frequency and range axes
 fpos = np.linspace(0, round(fs/2)-1, round(n_fft/2))
 fneg = np.linspace(round(fs/n_fft), round(fs/2), round(n_fft/2))
-print(fpos)
-print(fneg)
+# print(fpos)
+# print(fneg)
 slope = bw/tsweep
 rngAxPos = c*fpos/(2*slope)
 rngAxNeg = c*fneg/(2*slope)
 
 
-win = signal.windows.taylor(ns, nbar=3, sll=40, norm=False)
-
+# win = signal.windows.taylor(ns, nbar=3, sll=40, norm=False)
+win = np.ones(ns)
 # OS CFAR
 
 # half_guard = n_fft/n_samples
@@ -66,45 +66,35 @@ print("CFAR alpha value: ", SOS)
 bin_width = round((n_fft/2)/nbins)
 print("Bin width: ", str(bin_width))
 
-plt.ion()
-
 # Data structures
-fft_array       = np.empty([len_subset, round(n_fft/2)])
-threshold_array = np.empty([len_subset, round(n_fft/2)])
-up_peaks        = np.empty([len_subset, round(n_fft/2)])
 upth = np.zeros(round(n_fft/2))
 dnth = np.zeros(round(n_fft/2))
 fftu = np.zeros(round(n_fft/2))
 fftd = np.zeros(round(n_fft/2))
 
+# Interactive mode for updating data in loop
+plt.ion()
 # Configure plot
-fig1, ax = plt.subplots(nrows=1, ncols=2, figsize=(10, 6))
-
+fig1, ax = plt.subplots(nrows=2, ncols=1, figsize=(10, 6))
 fig1.tight_layout()
-rgMtx = np.zeros([len_subset, nbins])
-spMtx = np.zeros([len_subset, nbins])
-
 line1, = ax[0].plot(rngAxPos, fftu)
 line2, = ax[0].plot(rngAxPos, upth)
 line3, = ax[1].plot(rngAxNeg, fftd)
 line4, = ax[1].plot(rngAxNeg, dnth)
 # uRAD GUI mean subtraction
 ax[0].set_xlim([0, 62.5])
-ax[0].set_ylim([-80, 30])
+ax[0].set_ylim([-60, 20])
 ax[1].set_xlim([0, 62.5])
-ax[1].set_ylim([-80, 30])
-
+ax[1].set_ylim([-60, 20])
 ax[0].set_title("USB Down chirp spectrum negative half flipped")
 ax[1].set_title("USB Up chirp spectrum positive half")
-
 ax[0].set_xlabel("Coupled Range (m)")
 ax[1].set_xlabel("Coupled Range (m)")
-
 ax[0].set_ylabel("Magnitude (dB)")
 ax[1].set_ylabel("Magnitude (dB)")
 
-for i in range(0, len_subset):
-	samples = np.array(sweeps[i].split(" "))
+for sweep in subset:
+	samples = np.array(sweeps[sweep].split(" "))
 	i_data = samples[  0:400]
 	q_data = samples[400:800]
 
@@ -114,23 +104,23 @@ for i in range(0, len_subset):
 
 	t0_proc = time()
 	_, _, upth, dnth, fftu, fftd, _, _, _,\
-	rgMtx[i, :], spMtx[i, :] = py_trig_dsp(i_data,q_data, win, n_fft, half_train, \
+	_, _ = py_trig_dsp(i_data,q_data, win, n_fft, half_train, \
 	half_guard, nbins, bin_width, fpos, fneg, SOS, calib, scan_width, angOffsetMinRange, \
 	angOffset, numVoltageLevels)
-	spMtx[i, :] = spMtx[i, :]*3.6
-	t1_proc = time()
+	
+	# t1_proc = time()
 
-	print("Proc time: ", str(t1_proc-t0_proc))
+	# print("Proc time: ", str(t1_proc-t0_proc))
 
-	t0_plot = time()
+	# t0_plot = time()
 
 	line1.set_ydata(20*np.log10(abs(fftu + 10**-10)))
 	line2.set_ydata(20*np.log10(np.sqrt(upth) + 10**-10))
 	line3.set_ydata(20*np.log10(abs(fftd + 10**-10)))
 	line4.set_ydata(20*np.log10(np.sqrt(dnth) + 10**-10))
 
-	print("Max: ", np.max(20*np.log10(abs(fftu + 10**-10))))
-	print("Min: ", np.min(20*np.log10(abs(fftu + 10**-10))))
+	# print("Max: ", np.max(20*np.log10(abs(fftu + 10**-10))))
+	# print("Min: ", np.min(20*np.log10(abs(fftu + 10**-10))))
 
 	
 	fig1.canvas.draw()

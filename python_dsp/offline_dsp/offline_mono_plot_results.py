@@ -163,14 +163,14 @@ plt.tight_layout()
 # plt.show()
 timeStampsTrimmed = timeStamps[0:len_subset]
 rngAxBins = np.linspace(0, np.max(rngAxNeg), nbins)
-plt.imshow(rngAxBins, spMtx, origin='upper', vmin=0, vmax=70, aspect='auto', \
-		     interpolation='none', extent=[0, 62.5, np.max(timeStampsTrimmed), 0], cmap='gist_ncar') #, extent=[0, 62.5, 0, len_subset]
+plt.imshow(spMtx,cmap='gist_ncar', origin='upper', vmin=0, vmax=70, aspect='auto', \
+		     interpolation='none', extent=[0, 62.5, np.max(timeStampsTrimmed), 0]) #, extent=[0, 62.5, 0, len_subset]
 # line3, = ax[1].plot(timeStampsTrimmed , sfVector)
 # thismanager = get_current_fig_manager()
 # thismanager.window.SetPosition((500, 0))
 
 plt.xlabel("Range bins")
-
+plt.colorbar()
 # plt.grid(None)
 plt.show()
 

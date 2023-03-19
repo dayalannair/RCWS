@@ -29,12 +29,12 @@ import_data(sweeps, windowCoeffs)
 % iq_tbl=readtable('IQ_tri_30kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_40kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_50kmh.txt','Delimiter' ,' ');
-% iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
+iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_70kmh.txt','Delimiter' ,' ');
 
 % calibration
 
-    iq_tbl=readtable('rhs_iq_17_57_28','Delimiter' ,' ');
+%     iq_tbl=readtable('rhs_iq_17_57_28','Delimiter' ,' ');
     timeStampsTbl=readtable('rhs_rad_timeStamps_17_57_28.txt','Delimiter' ,' ');
     % Split data
     timeStamps = table2array(timeStampsTbl(sweeps, 1));

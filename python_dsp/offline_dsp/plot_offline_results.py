@@ -42,7 +42,7 @@ duration = 30
 timeAxTicks = np.linspace(0, 30, 14)
 rngAxTicks = np.linspace(0, np.max(rngAxNeg), 15)
 plt.imshow(spMtx, origin='upper', vmin=0, vmax=70, aspect='auto', \
-		     interpolation='none', extent=[0, 62.5, 30, 0], cmap='gist_ncar') #, extent=[0, 62.5, 0, len_subset]
+		     interpolation='none', extent=[0, 62.5, 30, 0], cmap='terrain_r') #, extent=[0, 62.5, 0, len_subset]
 plt.colorbar()
 
 plt.xticks(rngAxTicks)
