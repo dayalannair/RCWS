@@ -30,11 +30,15 @@ half_guard = 14
 Pfa = 1e-4
 nbins = 32
 scan_width = 32
-calib = 0.98
+calib = 0.9837
 ns = 200
 
-# Left radar angle adjustment
-angOffsetMinRange = 7.1 
+# Right radar angle correction
+rhs_road_width = 1.5
+angOffsetMinRange = 100 
+
+# Left radar angle adjustment and correction
+# angOffsetMinRange = 7.1 
 angOffset = 25*np.pi/180
 
 # DC cancellation
@@ -102,9 +106,10 @@ for sweep in subset:
 	# half_guard, nbins, bin_width, f_ax, SOS)
 
 
-	_,_,_,_,_,_,_,_,rgMtx[i, :], spMtx[i, :], sfVector[i] = py_trig_dsp(i_data,q_data, win, n_fft, half_train, \
+	_,_,_,_,_,_,_,_,rgMtx[i, :], spMtx[i, :], sfVector[i] = \
+		py_trig_dsp(i_data,q_data, win, n_fft, half_train, \
 	half_guard, nbins, bin_width, fpos, fneg, SOS, calib, scan_width, angOffsetMinRange, \
-	angOffset, numVoltageLevels)
+	angOffset, numVoltageLevels, rhs_road_width)
 
 
 	
@@ -163,7 +168,7 @@ plt.tight_layout()
 # plt.show()
 timeStampsTrimmed = timeStamps[0:len_subset]
 rngAxBins = np.linspace(0, np.max(rngAxNeg), nbins)
-plt.imshow(spMtx,cmap='gist_ncar', origin='upper', vmin=0, vmax=70, aspect='auto', \
+plt.imshow(spMtx,cmap='terrain_r', origin='upper', vmin=0, vmax=70, aspect='auto', \
 		     interpolation='none', extent=[0, 62.5, np.max(timeStampsTrimmed), 0]) #, extent=[0, 62.5, 0, len_subset]
 # line3, = ax[1].plot(timeStampsTrimmed , sfVector)
 # thismanager = get_current_fig_manager()

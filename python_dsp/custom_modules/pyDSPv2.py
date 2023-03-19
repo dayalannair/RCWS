@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 
 # NOTE: Range, speed, and possibly safety results of the below are not correct
 def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
-		nbins, bin_width, fpos, fneg, SOS, calib, scan_width, angOffsetMinRange, angOffset, NVL):
+		nbins, bin_width, fpos, fneg, SOS, calib, scan_width, \
+			angOffsetMinRange, angOffset, NVL, road_width):
 
 
 	i_u = np.subtract(np.multiply(i_data[  0:200], NVL), np.mean(np.multiply(i_data[  0:200], NVL)))
@@ -96,13 +97,6 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
 	slope = 2.4e11
 	c = 299792458
 	lmda = 0.0125
-	road_width = 2
-	correction_factor = 1
-	fd_max = 2.6667e3 # for max speed = 60km/h
-	# magu = 0
-	# idx_u = 0
-	# magd = 0
-	# idx_d = 0
 	# ********************* beat extraction for multiple targets **************************
 	for bin in range(nbins):
 		# find beat frequency in bin of down chirp
@@ -153,7 +147,10 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
 				# if target moving towards radar
 				if (fbu[bin] < fbd[bin]):
 				# if (fbu[bin] > 0 and fbd[bin] > 0):
-					fd = (-fbu[bin] + fbd[bin])*calib/2
+
+					# div by 4: first division by 2 is for beat freq, 
+					# second is for dop to vel
+					fd = (-fbu[bin] + fbd[bin])*calib/4 
 					if (fd>800): # NOTE: fmin = 800 Hz
 						# fd_array[bin] = fd/2
 						
@@ -161,17 +158,18 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
 						# if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
 						# convert Doppler to speed. fd is twice the Doppler therefore
 						# divide by 2
-						sp_array[bin] = fd*lmda/2
+						# sp_array[bin] = fd*lmda/2
 						# Note that fbd is now positive
 						rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)*calib
 
-						# to account for angle offset on left radar. for right radar, set angOffsetMinRange = 100
-						# if rg_array[bin] > angOffsetMinRange:
-						# 	sp_array[bin] = fd*lmda/(np.cos(angOffset - np.arcsin(road_width/rg_array[bin])))
+						# to account for angle offset on left radar. 
+						# for right radar, set angOffsetMinRange = 100
+						if rg_array[bin] > angOffsetMinRange:
+							sp_array[bin] = fd*lmda/(np.cos(angOffset - np.arcsin(road_width/rg_array[bin])))
 						
-						# # Else ignore/dont correct for left and calculate as normal for right
-						# else:
-						# 	sp_array[bin] = fd*lmda/(np.cos(np.arcsin(road_width/rg_array[bin])))
+						# Else ignore/dont correct for left and calculate as normal for right
+						else:
+							sp_array[bin] = fd*lmda/(np.cos(np.arcsin(road_width/rg_array[bin])))
 	
 
 

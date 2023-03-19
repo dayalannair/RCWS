@@ -7,11 +7,11 @@ import numpy as np
 def load_data():
     
 
-    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_20kmh.txt")
+    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_20kmh.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_30kmh.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_40kmh.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_50kmh.txt")
-    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
 
     # file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\car_driveby\IQ_tri_60kmh.txt")
 
@@ -52,19 +52,22 @@ def load_data():
     # file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_57_07.txt")
 
 
-    # 60kmh subset
-    subset = range(750,1100)
+    
     # subset = range(0, 4000)
 
     # for 30-second burst captures
     # subset = range(0, 2700)
 
-    
-    # 50 kmh subset - same
+    # 60kmh subset
+    subset = range(700,1110)
+    # 50 kmh subset
+    subset = range(700,1200)
     # 40 kmh subset
-    # subset = range(700,1100)
+    # subset = range(700,1250)
+    subset = range(1350,1900)
+    subset = range(0,1900)
     # 20km/h subset
-    # subset = range(1,1500)
+    subset = range(0,550)
 
     # sys.path.append('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby')
     with open(file_path, "r") as raw_IQ:
