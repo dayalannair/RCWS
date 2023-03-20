@@ -8,7 +8,7 @@ import uRAD_USB_SDK11
 import serial
 from time import time, sleep, strftime,localtime
 import sys
-from pyDSPv2 import range_speed_safety
+from pyDSPv2 import py_trig_dsp
 import numpy as np
 import cv2
 from scipy import signal
@@ -230,10 +230,30 @@ rg_array_2 = np.zeros([n_rows, nbins], dtype=int)
 sp_array_2 = np.zeros([n_rows, nbins], dtype=int)
 sf_array_2 = np.zeros([n_rows, nbins], dtype=int)
 
+rhs_road_width = 1.5
+lhs_road_width = 3
+angOffsetMinRange = 100 
+
+# Left radar angle adjustment and correction
+# angOffsetMinRange = 7.1 
+angOffset = 25*np.pi/180
+
+# DC cancellation
+max_voltage = 3.3
+ADC_bits = 12
+ADC_intervals = 2**ADC_bits
+numVoltageLevels = max_voltage/ADC_intervals
+
+# frequency and range axes
+fpos = np.linspace(0, round(fs/2)-1, round(n_fft/2))
+# negative axis flipped about y axis
+fneg = np.linspace(round(fs/n_fft), round(fs/2), round(n_fft/2))
+
 # ----------------------------------------------------------------------------
 # THREAD FUNCTION
 # ----------------------------------------------------------------------------
-def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, timeStampFileName):
+def proc_rad_vid(port, fspeed, frange, fsafety, duration, \
+		 cap, container, timeStampFileName, rd_width):
 
 	print("uRAD USB processing thread started")
 	# Global inputs
@@ -246,7 +266,9 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, timeSt
 	global bin_width
 	global nbins
 	global rank
-
+	global numVoltageLevels
+	global angOffset
+	global angOffsetMinRange
 	# Pre-allocated array sizes
 	rg_array = np.zeros([n_rows, nbins], dtype=int)
 	sp_array = np.zeros([n_rows, nbins], dtype=int)
@@ -269,10 +291,11 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, timeSt
 			closeProgram()
 
 		# remember to add the sp_array_corr[i] output to the proc lib
-		rg_array[i], sp_array[i], sf_array[i]  = \
-			range_speed_safety(raw_results[0], \
-		raw_results[1], twin, n_fft, num_nul, half_train,\
-			 half_guard, rank, nbins, bin_width, fax, SOS, calib, scan_width)
+		_,_,_,_,_,_,_,_,rg_array[i], sp_array[i], sf_array[i]  = \
+			py_trig_dsp(raw_results[0], raw_results[1], twin, n_fft, \
+	       		half_train, half_guard, nbins, bin_width,\
+			  	fpos, fneg, SOS, calib, scan_width, angOffsetMinRange,\
+				angOffset, numVoltageLevels, rd_width)
 		
 		i = i + 1
 
@@ -285,20 +308,28 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, timeSt
 		timeStamp = time()	
 		timeStampList.append(timeStamp)
 		t1 = timeStamp - t0
+
+	# print("Video capture complete.  Data captured.")
+	updateRate = np.average(1/np.ediff1d(timeStampList))
+	print("==============================================")
+	print("Thread complete: ", timeStampFileName)
+	print("----------------------------------------------")
+	print("Update rate: ", updateRate)
+	print("Elapsed time: ", str(time()-t0))
+	print("Radar sweeps processed: ", i)
+	print("==============================================")
 	
 	# Save video data	
 	for frame in frames:
 		container.write(frame)
 
+	# Save time stamps
 	with open(timeStampFileName+'_timeStamps_'+now+'.txt','w') as tfile:
 		for item in timeStampList:
 			tfile.write(f'{item}\n')
 
 	cap.release()	
 	container.release()
-	print("Video capture complete.  Data captured.")
-	print("Elapsed time: ", str(time()-t0))
-	print("----------------------------------------------")
 
 	# Save radar results
 	np.savetxt(frange, rg_array[0:i, :], fmt='%.2f', delimiter = ' ', newline='\n')
@@ -306,10 +337,7 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, timeSt
 	np.savetxt(fsafety, sf_array[0:i, :], fmt='%.2f', delimiter = ' ', newline='\n')
 	# np.savetxt(fcorr, sf_array[0:i, :], fmt='%.3f', delimiter = ' ', newline='\n')
 
-	print("uRAD USB processing thread complete. Data captured.")
-	print("Elapsed time: ", str(time()-t0))
-	print("Samples processed: ", i)
-	print("----------------------------------------------")
+	
 # ----------------------------------------------------------------------------
 # END OF THREAD FUNCTION
 # ----------------------------------------------------------------------------
@@ -329,9 +357,11 @@ try:
 	t1 = 0
 
 	urad1 = threading.Thread(target=proc_rad_vid, \
-		args=[ser1, lhs_fspeed , lhs_frange, lhs_fsafety, duration, cap2, lhs_vid, "rtp_lhs"])
+		args=[ser1, lhs_fspeed , lhs_frange, lhs_fsafety, duration, \
+	 	cap2, lhs_vid, "rtp_lhs", lhs_road_width])
 	urad2 = threading.Thread(target=proc_rad_vid, \
-		args=[ser2, rhs_fspeed , rhs_frange, rhs_fsafety, duration, cap1, rhs_vid, "rtp_rhs"])
+		args=[ser2, rhs_fspeed , rhs_frange, rhs_fsafety, duration, \
+		cap1, rhs_vid, "rtp_rhs", rhs_road_width])
 
 	t0_proc = time()
 	print("==============================================")

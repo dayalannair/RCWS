@@ -13,6 +13,7 @@ import serial
 from time import time, sleep, strftime,localtime
 import cv2
 import threading
+import numpy as np
 
 
 # True if USB, False if UART
@@ -171,9 +172,12 @@ def capture(duration, cap, out, timeStampFileName):
 			timeStampList.append(timeStamp)
 
 		t1 = timeStamp - t0
-
+	print("==============================================")
+	print("Thread complete: " , timeStampFileName)
 	print("Video recorded with duration ", str(t1))
-
+	updateRate = np.average(1/np.ediff1d(timeStampList))
+	print("Update rate: ", updateRate)
+	print("==============================================")
 	with open(timeStampFileName+'_timeStamps_'+now+'.txt','w') as tfile:
 		for item in timeStampList:
 			tfile.write(f'{item}\n')
@@ -208,9 +212,14 @@ def urad_capture(duration, fname, port, timeStampFileName):
 
 	# Store data
 	sweeps = len(I_usb)
+	updateRate = np.average(1/np.ediff1d(timeStampList))
+	print("==============================================")
+	print("uRAD Thread complete: ", fname)
+	print("Update rate: ", updateRate)
 	print("uRAD USB data recorded with duration ", str(t1))
 	print("Sweeps acquired: ", sweeps)
 	print("uRAD USB storing data...")
+	print("==============================================")
 	up_down_length = len(I_usb[0])
 	with open(fname, 'w') as usb:
 		for sweep in range(sweeps):
