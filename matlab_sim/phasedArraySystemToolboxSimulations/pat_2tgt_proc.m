@@ -22,8 +22,8 @@ for t = 1:(n_steps)
     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
     [tgt_pos, tgt_vel] = carmotion(t_step);
 %     disp(tgt_pos)
-    actual_range(i) = sqrt(tgt_pos(1, 2)^2 + tgt_pos(2,2)^2);
-    time(i) = t*t_step
+%     actual_range(i) = sqrt(tgt_pos(1, 2)^2 + tgt_pos(2,2)^2);
+%     time(i) = t*t_step
 %     actual_x = 
 
 %     % issue: helper updates target position and velocity within each
