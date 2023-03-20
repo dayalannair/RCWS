@@ -164,10 +164,10 @@ def capture(duration, cap, out, timeStampFileName):
 	t1 = 0
 	while (t1 < duration):
 		ret, frame = cap.read()
+		timeStamp = time()
 		
 		if ret==True:
 			frames.append(frame)
-			timeStamp = time()
 			timeStampList.append(timeStamp)
 
 		t1 = timeStamp - t0

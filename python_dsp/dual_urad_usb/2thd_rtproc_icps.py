@@ -233,7 +233,7 @@ sf_array_2 = np.zeros([n_rows, nbins], dtype=int)
 # ----------------------------------------------------------------------------
 # THREAD FUNCTION
 # ----------------------------------------------------------------------------
-def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, fcorr):
+def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, timeStampFileName):
 
 	print("uRAD USB processing thread started")
 	# Global inputs
@@ -251,14 +251,14 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, fcorr)
 	rg_array = np.zeros([n_rows, nbins], dtype=int)
 	sp_array = np.zeros([n_rows, nbins], dtype=int)
 	sf_array = np.zeros([n_rows, nbins], dtype=int)
-	sp_array_corr= np.zeros([n_rows, nbins], dtype=int)
+	# sp_array_corr= np.zeros([n_rows, nbins], dtype=int)
 
 	# Unsized array - to see how many sweeps were acquired
 	# rg_array = []
 	# sp_array = []
 	# sf_array = []
 	i = 0
-
+	timeStampList = []
 	t0 = time() 
 	t1 = 0
 	frames = []
@@ -277,15 +277,22 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, fcorr)
 		i = i + 1
 
 		ret, frame = cap.read()
-		
+
 		if ret==True:
 			frames.append(frame)
-		
-		t1 = time() - t0
+
+		# Time stamp for rdr + vid frame
+		timeStamp = time()	
+		timeStampList.append(timeStamp)
+		t1 = timeStamp - t0
 	
 	# Save video data	
 	for frame in frames:
 		container.write(frame)
+
+	with open(timeStampFileName+'_timeStamps_'+now+'.txt','w') as tfile:
+		for item in timeStampList:
+			tfile.write(f'{item}\n')
 
 	cap.release()	
 	container.release()
@@ -309,12 +316,12 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, cap, container, fcorr)
 lhs_frange = "2thd_lhs_range_results_"+now+".txt"
 lhs_fspeed = "2thd_lhs_speed_results_"+now+".txt"
 lhs_fsafety = "2thd_lhs_safety_results_"+now+".txt"
-lhs_fcorr = "2thd_lhs_spcorr_results_"+now+".txt"
+# lhs_fcorr = "2thd_lhs_spcorr_results_"+now+".txt"
 
 rhs_frange = "2thd_rhs_range_results_"+now+".txt"
 rhs_fspeed = "2thd_rhs_speed_results_"+now+".txt"
 rhs_fsafety = "2thd_rhs_safety_results_"+now+".txt"
-rhs_fcorr = "2thd_rhs_spcorr_results_"+now+".txt"
+# rhs_fcorr = "2thd_rhs_spcorr_results_"+now+".txt"
 
 try:
 	
@@ -322,9 +329,9 @@ try:
 	t1 = 0
 
 	urad1 = threading.Thread(target=proc_rad_vid, \
-		args=[ser1, lhs_fspeed , lhs_frange, lhs_fsafety, duration, cap2, lhs_vid, lhs_fcorr])
+		args=[ser1, lhs_fspeed , lhs_frange, lhs_fsafety, duration, cap2, lhs_vid, "rtp_lhs"])
 	urad2 = threading.Thread(target=proc_rad_vid, \
-		args=[ser2, rhs_fspeed , rhs_frange, rhs_fsafety, duration, cap1, rhs_vid, rhs_fcorr])
+		args=[ser2, rhs_fspeed , rhs_frange, rhs_fsafety, duration, cap1, rhs_vid, "rtp_rhs"])
 
 	t0_proc = time()
 	print("==============================================")

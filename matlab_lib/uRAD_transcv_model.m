@@ -55,22 +55,22 @@ waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw, ...
 % spectrogram(sig,32,16,32,fs_wav,'yaxis');
 % title('FMCW signal spectrogram');
 
-close all
-figure
-tiledlayout(1,3)
-sig = waveform();
-nexttile
-spectrogram(sig,32,16,32,fs_wav,'yaxis');
-
-sig = waveform();
-nexttile
-spectrogram(sig,32,16,32,fs_wav,'yaxis');
-title('FMCW signal spectrogram');
-sig = waveform();
-
-nexttile
-spectrogram(sig,32,16,32,fs_wav,'yaxis');
-title('FMCW signal spectrogram');
+% close all
+% figure
+% tiledlayout(1,3)
+% sig = waveform();
+% nexttile
+% spectrogram(sig,32,16,32,fs_wav,'yaxis');
+% 
+% sig = waveform();
+% nexttile
+% spectrogram(sig,32,16,32,fs_wav,'yaxis');
+% title('FMCW signal spectrogram');
+% sig = waveform();
+% 
+% nexttile
+% spectrogram(sig,32,16,32,fs_wav,'yaxis');
+% title('FMCW signal spectrogram');
 %% Antenna
 ant_gain = 16.6;
 Ppeak = 50; % dBm
@@ -81,17 +81,31 @@ tx_gain = 9+ant_gain;                           % in dB
 rx_gain = 30+ant_gain;                          % in dB
 rx_nf = 4.5;                                    % in dB
 % rx_nf = 0;   
-transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
-cosineElement = phased.CosineAntennaElement;
-cosineElement.FrequencyRange = [fc (fc+bw)];
+
 
 Nrow = 4;
 Ncol = 4;
 
+
+transmitter = phased.Transmitter( ...
+    'PeakPower',tx_ppower, ...
+    'Gain',tx_gain);
+
+cosineElement = phased.CosineAntennaElement;
+cosineElement.FrequencyRange = [fc (fc+bw)];
+
+taperRow = [0.5 1 1 0.5];
+taper = repmat(taperRow, [Nrow,1]);
 fmcwCosineArray = phased.URA( ...
     'Element', cosineElement, ...
-    'ArrayNormal', 'x', 'Size',[Nrow Ncol], ...
-    'ElementSpacing',[0.5*lambda 0.5*lambda]);
+    'ArrayNormal', 'x', ...
+    'Size',[Nrow Ncol], ...
+    'ElementSpacing', [0.5*lambda 0.5*lambda], ...
+    'Taper',taper);
+
+
+cosineArrayPattern = figure;
+pattern(fmcwCosineArray,fc);
 
 radiator = phased.Radiator( ...
     'Sensor',fmcwCosineArray, ...
