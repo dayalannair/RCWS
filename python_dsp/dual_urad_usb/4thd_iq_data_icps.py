@@ -160,6 +160,7 @@ print("Radars configured. Initialising threads...")
 def capture(duration, cap, out, timeStampFileName):
 	print("Video thread runnning...")
 	frames = []
+	# Change size for larger captures
 	timeStampList = np.zeros([3000, 1])
 	t0 = time()
 	t1 = 0
@@ -174,16 +175,17 @@ def capture(duration, cap, out, timeStampFileName):
 
 		i = i + 1
 		t1 = timeStamp - t0
+
+	timeStampList = np.trim_zeros(timeStampList)
+	# print(timeStampListNew)
 	print("==============================================")
 	print("Thread complete: " , timeStampFileName)
 	print("Video recorded with duration ", str(t1))
 	updateRate = np.average(1/np.ediff1d(timeStampList))
 	print("Update rate: ", updateRate)
-	print("==============================================")
-	with open(timeStampFileName+'_timeStamps_'+now+'.txt','w') as tfile:
-		for item in timeStampList:
-			tfile.write(f'{item}\n')
-
+	print("----------------------------------------------")
+	np.savetxt(timeStampFileName+'_timeStamps_'+now+'.txt',\
+	    timeStampList, fmt='%10.7f')
 	for frame in frames:
 		out.write(frame)
 
@@ -194,7 +196,9 @@ def urad_capture(duration, fname, port, timeStampFileName):
 	print("uRAD USB thread running...")
 	I_usb = []
 	Q_usb = []
+	# Change size for larger captures
 	timeStampList = np.zeros([3000, 1])
+	# timeStampList = []
 	t0 = time()
 	t1 = 0
 	i = 0
@@ -209,20 +213,21 @@ def urad_capture(duration, fname, port, timeStampFileName):
 
 		timeStamp = time()
 		timeStampList[i] = timeStamp
+		# timeStampList.append(timeStamp)
 
 		i = i + 1
 		t1 = timeStamp - t0
 
 	# Store data
 	sweeps = len(I_usb)
+	timeStampList = np.trim_zeros(timeStampList)
 	updateRate = np.average(1/np.ediff1d(timeStampList))
 	print("==============================================")
-	print("uRAD Thread complete: ", fname)
-	print("Update rate: ", updateRate)
-	print("uRAD USB data recorded with duration ", str(t1))
+	print("Thread complete: ", timeStampFileName)
+	print("Update rate: ", round(updateRate,4))
+	print("Elapsed time: ", str(round(time()-t0,2)))
 	print("Sweeps acquired: ", sweeps)
-	print("uRAD USB storing data...")
-	print("==============================================")
+	print("----------------------------------------------")
 	up_down_length = len(I_usb[0])
 	with open(fname, 'w') as usb:
 		for sweep in range(sweeps):
@@ -236,9 +241,8 @@ def urad_capture(duration, fname, port, timeStampFileName):
 				IQ_usb += '%d ' % Q_usb[sweep][sample]
 			usb.write(IQ_usb + '\n')
 
-	with open(timeStampFileName+'_timeStamps_'+now+'.txt','w') as tfile:
-		for item in timeStampList:
-			tfile.write(f'{item}\n')
+	np.savetxt(timeStampFileName+'_timeStamps_'+now+'.txt',\
+	    timeStampList, fmt='%10.7f')
 		# tfile.write('\n'.join(str(timeStampList)))
 	print("uRAD USB capture complete.")
 	
@@ -257,8 +261,8 @@ cap2.set(4, 240)
 # create VideoWriter object with file name, codec, 
 # frame rate and frame dimensions
 fourcc = cv2.VideoWriter_fourcc(*'X264')
-out1 = cv2.VideoWriter('rhs_vid_'+now+'.avi',fourcc,20.0,(320,240))
-out2 = cv2.VideoWriter('lhs_vid_'+now+'.avi',fourcc,20.0,(320,240))
+out1 = cv2.VideoWriter('rhs_vid_'+now+'.avi',fourcc,30.0,(320,240))
+out2 = cv2.VideoWriter('lhs_vid_'+now+'.avi',fourcc,30.0,(320,240))
 
 # Separate files for each radar
 urad1_fname = "lhs_iq_"+now+".txt"

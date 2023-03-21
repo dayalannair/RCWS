@@ -273,6 +273,8 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, \
 
 		if ret==True:
 			frames.append(frame)
+		else:
+			print("Missed video frame: ", timeStampFileName)
 
 		# Time stamp for rdr + vid frame
 		timeStamp = time()	
@@ -284,8 +286,8 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, \
 	print("==============================================")
 	print("Thread complete: ", timeStampFileName)
 	print("----------------------------------------------")
-	print("Update rate: ", updateRate)
-	print("Elapsed time: ", str(time()-t0))
+	print("Update rate: ", round(updateRate,4))
+	print("Elapsed time: ", str(round(time()-t0,2)))
 	print("Radar sweeps processed: ", i)
 	print("==============================================")
 	
