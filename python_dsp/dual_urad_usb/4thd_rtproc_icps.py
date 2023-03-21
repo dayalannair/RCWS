@@ -230,7 +230,7 @@ def captureVid(duration, cap, container, side):
 	t0 = time()
 	while (t1<duration):
 		ret, frame = cap.read()
-		timeStamp = time()
+		
 		if ret==True:
 			frames.append(frame)
 			# timeStampList[i] = timeStamp
@@ -239,12 +239,11 @@ def captureVid(duration, cap, container, side):
 			print("Missed frame: ", side)
 			# exit()
 
+		timeStamp = time()
 		timeStampList.append(timeStamp)
-
-		
-		
 		# i = i + 1
 		t1 = timeStamp - t0
+		
 	t_end = time()
 	tElapsed = t_end-t0
 	for frame in frames:

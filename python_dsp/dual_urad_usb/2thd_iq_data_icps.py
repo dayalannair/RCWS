@@ -178,10 +178,11 @@ def proc_rad_vid(port, duration, cap, container, fname):
 	Q_usb = []
 	# i = 0
 
-	t0 = time() 
+	
 	t1 = 0
 	frames = []
-
+	timeStampList = []
+	t0 = time() 
 	while (t1<duration):
 		return_code, _, raw_results = uRAD_USB_SDK11.detection(port)
 		
@@ -198,8 +199,12 @@ def proc_rad_vid(port, duration, cap, container, fname):
 		
 		if ret==True:
 			frames.append(frame)
-		
-		t1 = time() - t0
+		else:
+			print("Missed video frame: ", fname)
+
+		timeStamp = time()	
+		timeStampList.append(timeStamp)
+		t1 = timeStamp - t0
 	
 	# Save video data	
 	for frame in frames:
@@ -207,8 +212,12 @@ def proc_rad_vid(port, duration, cap, container, fname):
 
 	cap.release()	
 	container.release()
-	print("Video capture complete.  Data captured.")
-	print("Elapsed time: ", str(time()-t0))
+	updateRate = np.average(1/np.ediff1d(timeStampList))
+	print("==============================================")
+	print("Thread complete: ", fname)
+	print("----------------------------------------------")
+	print("Update rate: ", round(updateRate,4))
+	print("Elapsed time: ", str(round(time()-t0,2)))
 	print("----------------------------------------------")
 
 	# Save radar results
