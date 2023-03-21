@@ -15,7 +15,9 @@ import cv2
 import threading
 import numpy as np
 
-
+print("==============================================")
+print("ICPS - FOUR THREAD RAW DATA CAPTURE")
+print("==============================================")
 # True if USB, False if UART
 usb_communication = True
 
@@ -28,28 +30,26 @@ try:
 	now = strftime("%H_%M_%S", t)  
 	fs = 200000
 	if mode_in == "s":
-		print("********** SAWTOOTH MODE **********")
+		print("Sawtooth FMCW: ")
 		resultsFileName = 'IQ_saw_' + str(BW) + '_' + str(Ns) +  '_' + str(now) + '.txt'
 		mode = 2					
 	elif mode_in == "t":
-		print("********** TRIANGLE MODE **********")
+		print("Triangle FMCW: ")
 		resultsFileName = 'IQ_tri_' + str(BW) + '_' + str(Ns) + '_' + str(now) + '.txt'
 		mode = 3	
 	elif mode_in == "d":
-		print("********** DUAL RATE MODE **********")
+		print("Dual Rate FMCW: ")
 		resultsFileName = 'IQ_dual_' + str(BW) + '_' + str(Ns) + '_' + str(now) + '.txt'
 		mode = 4					
 	else: 
 		print("Invalid mode")
 		exit()
-	print("BW = ",str(BW),"\nNs = ",str(Ns),"\nSweeps = ",str(duration))
-	print("Duration: ",str(duration), 's')
+	print("BW (MHz) = ",str(BW),"\tNs = ",str(Ns),"\tDuration (s) = ",str(duration))
 except: 
 	print("Invalid mode")
 	exit()
 
-# input parameters
-# BW and Ns input as arguments
+# Radar configuration
 f0 = 5						# starting at 24.005 GHz
 I_true = True 				# In-Phase Component (RAW data) requested
 Q_true = True 				# Quadrature Component (RAW data) requested
@@ -160,17 +160,19 @@ print("Radars configured. Initialising threads...")
 def capture(duration, cap, out, timeStampFileName):
 	print("Video thread runnning...")
 	frames = []
-	timeStampList = []
+	timeStampList = np.zeros([3000, 1])
 	t0 = time()
 	t1 = 0
+	i=0
 	while (t1 < duration):
 		ret, frame = cap.read()
 		timeStamp = time()
 		
 		if ret==True:
 			frames.append(frame)
-			timeStampList.append(timeStamp)
+			timeStampList[i] = timeStamp
 
+		i = i + 1
 		t1 = timeStamp - t0
 	print("==============================================")
 	print("Thread complete: " , timeStampFileName)
@@ -192,10 +194,10 @@ def urad_capture(duration, fname, port, timeStampFileName):
 	print("uRAD USB thread running...")
 	I_usb = []
 	Q_usb = []
-	timeStampList = []
+	timeStampList = np.zeros([3000, 1])
 	t0 = time()
 	t1 = 0
-
+	i = 0
 	# Capture data
 	while (t1 < duration):
 		return_code, _, raw_results = uRAD_USB_SDK11.detection(port)
@@ -206,8 +208,9 @@ def urad_capture(duration, fname, port, timeStampFileName):
 		Q_usb.append(raw_results[1])
 
 		timeStamp = time()
-		timeStampList.append(timeStamp)
+		timeStampList[i] = timeStamp
 
+		i = i + 1
 		t1 = timeStamp - t0
 
 	# Store data

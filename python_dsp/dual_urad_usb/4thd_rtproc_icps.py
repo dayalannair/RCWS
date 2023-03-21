@@ -5,7 +5,7 @@ import uRAD_USB_SDK11
 import serial
 from time import time, sleep, strftime,localtime
 import sys
-from pyDSPv2 import range_speed_safety
+from pyDSPv2 import py_trig_dsp
 import numpy as np
 import cv2
 from scipy import signal
@@ -13,7 +13,9 @@ import threading
 
 # True if USB, False if UART
 usb_communication = True
-
+print("==============================================")
+print("ICPS - FOUR THREAD REAL-TIME PROCESSING")
+print("==============================================")
 try:
 	mode_in = str(sys.argv[1])
 	BW = int(sys.argv[2])
@@ -22,17 +24,16 @@ try:
 	t = localtime()
 	now = strftime("%H_%M_%S", t)  
 	fs = 200000
-	# runtime = sweeps*Ns/200000
 	if mode_in == "s":
-		print("********** SAWTOOTH MODE **********")
+		print("Sawtooth FMCW: ")
 		resultsFileName = 'IQ_saw_' + str(BW) + '_' + str(Ns) +  '_' + str(now) + '.txt'
 		mode = 2					
 	elif mode_in == "t":
-		print("********** TRIANGLE MODE **********")
+		print("Triangle FMCW: ")
 		resultsFileName = 'IQ_tri_' + str(BW) + '_' + str(Ns) + '_' + str(now) + '.txt'
 		mode = 3	
 	elif mode_in == "d":
-		print("********** DUAL RATE MODE **********")
+		print("Dual Rate FMCW: ")
 		resultsFileName = 'IQ_dual_' + str(BW) + '_' + str(Ns) + '_' + str(now) + '.txt'
 		mode = 4					
 	else: 
@@ -44,8 +45,7 @@ except:
 	print("Invalid mode")
 	exit()
 
-# input parameters
-# BW and Ns input as arguments
+# Radar configuration
 f0 = 5						# starting at 24.005 GHz
 I_true = True 				# In-Phase Component (RAW data) requested
 Q_true = True 				# Quadrature Component (RAW data) requested
@@ -151,48 +151,47 @@ if (return_code != 0):
 
 print("Radars configured. Initialising threads...")
 
-# Tunable Parameters
-n_fft = 512
-nul_width_factor = 0.04
-ns = 200
-half_guard = 7
-half_train = 8
-Pfa = 0.008
-SOS = ns*(Pfa**(-1/ns)-1)
-print("Pfa: ", str(Pfa))
-print("CFAR alpha value: ", SOS)
-nbins = 16
+# Tunable Processing Parameters
+n_fft = 1024
+half_train = 16
+half_guard = 14
+Pfa = 1e-4
+SOS = Ns*(Pfa**(-1/Ns)-1)
+nbins = 32
 bin_width = round((n_fft/2)/nbins)
-scan_width = 8
-calib = 1.2463
-
-
-# half_guard = n_fft/ns
-# half_guard = int(np.floor(half_guard/2)*2) # make even
-
-# half_train = round(20*n_fft/ns)
-# half_train = int(np.floor(half_train/2))
-# rank = 2*half_train -2*half_guard
-
-# Generate axes
-fax = np.linspace(0, round(fs/2), round(n_fft/2))
-tsweep = 1e-3
-bw = 240e6
-slope = bw/tsweep
-c = 299792458
-rng_ax = c*fax/(2*slope)
-
-# rg_full = np.zeros(16*sweeps)
+scan_width = 32
+calib = 0.9837
 twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
-num_nul = round((n_fft/2)*nul_width_factor)
 
+# frequency axes
+fpos = np.linspace(0, round(fs/2)-1, round(n_fft/2))
+# negative axis flipped about y axis
+fneg = np.linspace(round(fs/n_fft), round(fs/2), round(n_fft/2))
 
-# tsweep = 1e-3
-# bw = 240e6
-# # can optimise out this calculation
-# slope = bw/tsweep
+# Fixed parameters
+tsweep = 1e-3
+slope = BW/tsweep
+c = 299792458
+# Fixed parameters
+tsweep = 1e-3
+slope = BW/tsweep
+c = 299792458
+rhs_road_width = 1.5
+lhs_road_width = 3
+angOffsetMinRangeRhs = 100 
 
+# Left radar angle adjustment and correction
+angOffsetMinRangeLhs = 7.1 
+angOffset = 25*np.pi/180
 
+# DC cancellation
+max_voltage = 3.3
+ADC_bits = 12
+ADC_intervals = 2**ADC_bits
+numVoltageLevels = max_voltage/ADC_intervals
+
+# print("Pfa: ", str(Pfa))
+# print("CFAR alpha value: ", SOS)
 print("System running...")
 
 # ======================= CAMERAS ================================
@@ -205,47 +204,61 @@ cap1.set(4, 240)
 cap2.set(3, 320)
 cap2.set(4, 240)
 
-sleep(0.5)
+# sleep(0.5)
 
-ret,frame1 = cap1.read()
-ret,frame2 = cap2.read()
+# ret,frame1 = cap1.read()
+# ret,frame2 = cap2.read()
 
 fourcc = cv2.VideoWriter_fourcc(*'X264')
 lhs_vid = cv2.VideoWriter('lhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
 rhs_vid = cv2.VideoWriter('rhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
 
-def capture(duration, cap, container):
+def captureVid(duration, cap, container, side):
 	t0 = time()
 	t1 = 0
 	frames = []
+	timeStampList = np.zeros([3000, 1])
 	print("Video thread runnning...")
 	while (t1<duration):
 		ret, frame = cap.read()
-		
+		timeStamp = time()
 		if ret==True:
 			frames.append(frame)
-		
-		t1 = time() - t0
+			timeStampList[i] = timeStamp
+
+		i = i + 1
+		t1 = timeStamp - t0
 
 	for frame in frames:
 		container.write(frame)
 
 	cap.release()	
 	container.release()
-	print("Video capture complete.  Data captured.")
+
+	with open(side+'rad_timeStamps_'+now+'.txt','w') as tfile:
+		for item in timeStampList:
+			tfile.write(f'{item}\n')
+
+	print("==============================================")
+	print("Thread complete: " , side)
+	print("Video recorded with duration ", str(t1))
+	updateRate = np.average(1/np.ediff1d(timeStampList))
+	print("Update rate: ", updateRate)
 	print("Elapsed time: ", str(time()-t0))
 	print("----------------------------------------------")
 
-n_rows = 16384
-rg_array = np.zeros([n_rows, nbins], dtype=int)
-sp_array = np.zeros([n_rows, nbins], dtype=int)
-sf_array = np.zeros([n_rows, nbins], dtype=int)
+# Burst captures expected to be around 30 seconds long
+n_rows = 3000
+# rg_array = np.zeros([n_rows, nbins], dtype=int)
+# sp_array = np.zeros([n_rows, nbins], dtype=int)
+# sf_array = np.zeros([n_rows, nbins], dtype=int)
 
-rg_array_2 = np.zeros([n_rows, nbins], dtype=int)
-sp_array_2 = np.zeros([n_rows, nbins], dtype=int)
-sf_array_2 = np.zeros([n_rows, nbins], dtype=int)
+# rg_array_2 = np.zeros([n_rows, nbins], dtype=int)
+# sp_array_2 = np.zeros([n_rows, nbins], dtype=int)
+# sf_array_2 = np.zeros([n_rows, nbins], dtype=int)
 
-def urad_process(port, fspeed, frange, fsafety):
+def urad_process(port, fspeed, frange, fsafety, \
+		 angOffsetMinRange, angOffset, rd_width):
 
 	print("uRAD USB processing thread started")
 	# Global inputs
@@ -254,15 +267,17 @@ def urad_process(port, fspeed, frange, fsafety):
 	global num_nul
 	global half_guard
 	global half_train
-	global fax
+	global fpos
+	global fneg
 	global bin_width
 	global nbins
+	global scan_width
 	# global rank
 
 	rg_array = np.zeros([n_rows, nbins], dtype=int)
 	sp_array = np.zeros([n_rows, nbins], dtype=int)
 	sf_array = np.zeros([n_rows, nbins], dtype=int)
-
+	timeStampList = np.zeros([n_rows, 1])
 	i = 0
 
 	t0 = time() 
@@ -272,19 +287,32 @@ def urad_process(port, fspeed, frange, fsafety):
 		if (return_code != 0):
 			closeProgram()
 
-		rg_array[i], sp_array[i], sf_array[i] = range_speed_safety(raw_results[0], \
-			raw_results[1], twin, n_fft, num_nul, half_train, \
-				half_guard, _, nbins, bin_width, fax, SOS, calib, scan_width)
+		_,_,_,_,_,_,_,_,rg_array[i], sp_array[i], sf_array[i]  = \
+			py_trig_dsp(raw_results[0], raw_results[1], twin, n_fft, \
+	       		half_train, half_guard, nbins, bin_width,\
+			  	fpos, fneg, SOS, calib, scan_width, angOffsetMinRange,\
+				angOffset, numVoltageLevels, rd_width)
 		
 		i = i + 1
 
-		t1 = time() - t0
+		timeStamp = time()	
+		timeStampList[i] = timeStamp
+		t1 = timeStamp - t0
+
+	# Save time stamps
+	if angOffset == 0:
+		side = "rhs_"
+	with open(side+'rad_timeStamps_'+now+'.txt','w') as tfile:
+		for item in timeStampList:
+			tfile.write(f'{item}\n')
 
 	np.savetxt(frange, rg_array[0:i, :], fmt='%.3f', delimiter = ' ', newline='\n')
 	np.savetxt(fspeed, sp_array[0:i, :], fmt='%.3f', delimiter = ' ', newline='\n')
 	np.savetxt(fsafety, sf_array[0:i, :], fmt='%.3f', delimiter = ' ', newline='\n')
-
-	print("uRAD USB processing thread complete. Data captured.")
+	updateRate = np.average(1/np.ediff1d(timeStampList))
+	print("==============================================")
+	print("uRAD Thread complete: ", side)
+	print("Update rate: ", updateRate)
 	print("Elapsed time: ", str(time()-t0))
 	print("Sweeps processed: ", i)
 	print("----------------------------------------------")
@@ -298,27 +326,27 @@ rhs_fspeed = "rhs_speed_results_"+now+".txt"
 rhs_fsafety = "rhs_safety_results_"+now+".txt"
 
 try:
-	
+
 	t0 = time()
 	t1 = 0
 
-	vid1 = threading.Thread(target=capture, args=[duration, cap2, lhs_vid])
-	vid2 = threading.Thread(target=capture, args=[duration, cap1, rhs_vid])
+	vid1 = threading.Thread(target=captureVid, args=[duration, cap2, lhs_vid, 'lhs_'])
+	vid2 = threading.Thread(target=captureVid, args=[duration, cap1, rhs_vid, 'lhs_'])
 
 	urad1 = threading.Thread(target=urad_process, \
-		args=[ser1, lhs_fspeed , lhs_frange, lhs_fsafety])
+		args=[ser1, lhs_fspeed , lhs_frange, lhs_fsafety, angOffsetMinRangeLhs,\
+	 angOffset, lhs_road_width])
 
 	urad2 = threading.Thread(target=urad_process, \
-		args=[ser2, rhs_fspeed , rhs_frange, rhs_fsafety])
+		args=[ser2, rhs_fspeed , rhs_frange, rhs_fsafety, angOffsetMinRangeRhs,\
+	 0, rhs_road_width])
 
 	t0_proc = time()
-	print("==============================================")
 	# Start separate threads for each sensor
 	vid1.start()
 	vid2.start()
 	urad1.start()
 	urad2.start()
-	print("==============================================")
 	# wait for all threads to finish
 	vid1.join()
 	vid2.join()

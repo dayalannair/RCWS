@@ -107,7 +107,6 @@ except:
 	print("COM port 2 failed to open")
 	closeProgram()
 
-
 # switch ON uRAD
 return_code = uRAD_USB_SDK11.turnON(ser1)
 if (return_code != 0):
@@ -152,54 +151,43 @@ if (return_code != 0):
 
 print("Radars configured. Initialising threads...")
 
-# Tunable Parameters
-n_fft = 512
-nul_width_factor = 0.04
-ns = 200
-half_guard = 7
-half_train = 8
-Pfa = 0.008
-SOS = ns*(Pfa**(-1/ns)-1)
-print("Pfa: ", str(Pfa))
-print("CFAR alpha value: ", SOS)
-nbins = 16
+# Tunable Processing Parameters
+n_fft = 1024
+half_train = 16
+half_guard = 14
+Pfa = 1e-4
+SOS = Ns*(Pfa**(-1/Ns)-1)
+nbins = 32
 bin_width = round((n_fft/2)/nbins)
-scan_width = 8
-calib = 1.2463
-
-# Generate axes
-fax = np.linspace(0, round(fs/2), round(n_fft/2))
-tsweep = 1e-3
-bw = 240e6
-slope = bw/tsweep
-c = 299792458
-rng_ax = c*fax/(2*slope)
-
-# rg_full = np.zeros(16*sweeps)
+scan_width = 32
+calib = 0.9837
 twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
-nul_width_factor = 0.04
-num_nul = round((n_fft/2)*nul_width_factor)
 
-# CFAR parameters
-n_samples = 200
-half_guard = n_fft/n_samples
-half_guard = int(np.floor(half_guard/2)*2) # make even
+# frequency axes
+fpos = np.linspace(0, round(fs/2)-1, round(n_fft/2))
+# negative axis flipped about y axis
+fneg = np.linspace(round(fs/n_fft), round(fs/2), round(n_fft/2))
 
-half_train = round(20*n_fft/n_samples)
-half_train = int(np.floor(half_train/2))
-rank = 2*half_train -2*half_guard
-# rank = half_train*2
-Pfa_expected = 15e-3
-# factorial needs integer values
+# Fixed parameters
+tsweep = 1e-3
+slope = BW/tsweep
+c = 299792458
+rhs_road_width = 1.5
+lhs_road_width = 3
+angOffsetMinRangeRhs = 100 
 
-nbins = 16
-bin_width = round((n_fft/2)/nbins)
+# Left radar angle adjustment and correction
+angOffsetMinRangeLhs = 7.1 
+angOffset = 25*np.pi/180
 
-# tsweep = 1e-3
-# bw = 240e6
-# # can optimise out this calculation
-# slope = bw/tsweep
+# DC cancellation
+max_voltage = 3.3
+ADC_bits = 12
+ADC_intervals = 2**ADC_bits
+numVoltageLevels = max_voltage/ADC_intervals
 
+# print("Pfa: ", str(Pfa))
+# print("CFAR alpha value: ", SOS)
 print("System running...")
 
 # ======================= CAMERAS ================================
@@ -212,48 +200,31 @@ cap1.set(4, 240)
 cap2.set(3, 320)
 cap2.set(4, 240)
 
-sleep(0.5)
+# sleep(0.5)
 
-ret,frame1 = cap1.read()
-ret,frame2 = cap2.read()
+# ret,frame1 = cap1.read()
+# ret,frame2 = cap2.read()
 
 fourcc  = cv2.VideoWriter_fourcc(*'X264')
 lhs_vid = cv2.VideoWriter('2thd_lhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
 rhs_vid = cv2.VideoWriter('2thd_rhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
 
-n_rows = 16384
-rg_array = np.zeros([n_rows, nbins], dtype=int)
-sp_array = np.zeros([n_rows, nbins], dtype=int)
-sf_array = np.zeros([n_rows, nbins], dtype=int)
+# Burst captures expected to be around 30 seconds long
+n_rows = 3000
+# rg_array = np.zeros([n_rows, nbins], dtype=int)
+# sp_array = np.zeros([n_rows, nbins], dtype=int)
+# sf_array = np.zeros([n_rows, nbins], dtype=int)
 
-rg_array_2 = np.zeros([n_rows, nbins], dtype=int)
-sp_array_2 = np.zeros([n_rows, nbins], dtype=int)
-sf_array_2 = np.zeros([n_rows, nbins], dtype=int)
-
-rhs_road_width = 1.5
-lhs_road_width = 3
-angOffsetMinRange = 100 
-
-# Left radar angle adjustment and correction
-# angOffsetMinRange = 7.1 
-angOffset = 25*np.pi/180
-
-# DC cancellation
-max_voltage = 3.3
-ADC_bits = 12
-ADC_intervals = 2**ADC_bits
-numVoltageLevels = max_voltage/ADC_intervals
-
-# frequency and range axes
-fpos = np.linspace(0, round(fs/2)-1, round(n_fft/2))
-# negative axis flipped about y axis
-fneg = np.linspace(round(fs/n_fft), round(fs/2), round(n_fft/2))
+# rg_array_2 = np.zeros([n_rows, nbins], dtype=int)
+# sp_array_2 = np.zeros([n_rows, nbins], dtype=int)
+# sf_array_2 = np.zeros([n_rows, nbins], dtype=int)
 
 # ----------------------------------------------------------------------------
 # THREAD FUNCTION
 # ----------------------------------------------------------------------------
 def proc_rad_vid(port, fspeed, frange, fsafety, duration, \
-		 cap, container, timeStampFileName, rd_width):
+		 cap, container, timeStampFileName, angOffsetMinRange, \
+			angOffset, rd_width):
 
 	print("uRAD USB processing thread started")
 	# Global inputs
@@ -267,8 +238,7 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, \
 	global nbins
 	global rank
 	global numVoltageLevels
-	global angOffset
-	global angOffsetMinRange
+	global n_rows
 	# Pre-allocated array sizes
 	rg_array = np.zeros([n_rows, nbins], dtype=int)
 	sp_array = np.zeros([n_rows, nbins], dtype=int)
@@ -358,10 +328,10 @@ try:
 
 	urad1 = threading.Thread(target=proc_rad_vid, \
 		args=[ser1, lhs_fspeed , lhs_frange, lhs_fsafety, duration, \
-	 	cap2, lhs_vid, "rtp_lhs", lhs_road_width])
+	 	cap2, lhs_vid, "rtp_lhs", angOffsetMinRangeLhs, angOffset, lhs_road_width])
 	urad2 = threading.Thread(target=proc_rad_vid, \
 		args=[ser2, rhs_fspeed , rhs_frange, rhs_fsafety, duration, \
-		cap1, rhs_vid, "rtp_rhs", rhs_road_width])
+		cap1, rhs_vid, "rtp_rhs", angOffsetMinRangeRhs, 0, rhs_road_width])
 
 	t0_proc = time()
 	print("==============================================")
