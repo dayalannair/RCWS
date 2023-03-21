@@ -161,22 +161,27 @@ def capture(duration, cap, out, timeStampFileName):
 	print("Video thread runnning...")
 	frames = []
 	# Change size for larger captures
-	timeStampList = np.zeros([3000, 1])
+	# timeStampList = np.zeros([10000, 1])
+	timeStampList = []
 	t0 = time()
 	t1 = 0
-	i=0
+	# i=0
 	while (t1 < duration):
 		ret, frame = cap.read()
 		timeStamp = time()
 		
 		if ret==True:
 			frames.append(frame)
-			timeStampList[i] = timeStamp
+			# timeStampList[i] = timeStamp
+			timeStampList.append(timeStamp)
+		else:
+			print("Missed capture")
+			# exit()
 
-		i = i + 1
+		# i = i + 1
 		t1 = timeStamp - t0
 
-	timeStampList = np.trim_zeros(timeStampList)
+	# timeStampList = np.trim_zeros(timeStampList)
 	# print(timeStampListNew)
 	print("==============================================")
 	print("Thread complete: " , timeStampFileName)
@@ -197,11 +202,11 @@ def urad_capture(duration, fname, port, timeStampFileName):
 	I_usb = []
 	Q_usb = []
 	# Change size for larger captures
-	timeStampList = np.zeros([3000, 1])
-	# timeStampList = []
+	# timeStampList = np.zeros([10000, 1])
+	timeStampList = []
 	t0 = time()
 	t1 = 0
-	i = 0
+	# i = 0
 	# Capture data
 	while (t1 < duration):
 		return_code, _, raw_results = uRAD_USB_SDK11.detection(port)
@@ -212,15 +217,15 @@ def urad_capture(duration, fname, port, timeStampFileName):
 		Q_usb.append(raw_results[1])
 
 		timeStamp = time()
-		timeStampList[i] = timeStamp
-		# timeStampList.append(timeStamp)
+		# timeStampList[i] = timeStamp
+		timeStampList.append(timeStamp)
 
-		i = i + 1
+		# i = i + 1
 		t1 = timeStamp - t0
 
 	# Store data
 	sweeps = len(I_usb)
-	timeStampList = np.trim_zeros(timeStampList)
+	# timeStampList = np.trim_zeros(timeStampList)
 	updateRate = np.average(1/np.ediff1d(timeStampList))
 	print("==============================================")
 	print("Thread complete: ", timeStampFileName)
@@ -296,6 +301,7 @@ try:
 	cap2.release()
 	out1.release()
 	out2.release()
+	cv2.destroyAllWindows()
 	uRAD_USB_SDK11.turnOFF(ser1)
 	uRAD_USB_SDK11.turnOFF(ser2)
 	print("Complete.")
@@ -305,6 +311,7 @@ except KeyboardInterrupt:
 	cap2.release()
 	out1.release()
 	out2.release()
+	cv2.destroyAllWindows()
 	uRAD_USB_SDK11.turnOFF(ser1)
 	uRAD_USB_SDK11.turnOFF(ser2)
 	print("Interrupted.")

@@ -251,9 +251,9 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, \
 	# sf_array = []
 	i = 0
 	timeStampList = []
-	t0 = time() 
 	t1 = 0
 	frames = []
+	t0 = time() 
 	while (t1<duration):
 		return_code, _, raw_results = uRAD_USB_SDK11.detection(port)
 		

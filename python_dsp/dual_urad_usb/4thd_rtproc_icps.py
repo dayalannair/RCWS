@@ -198,6 +198,12 @@ print("System running...")
 cap1 = cv2.VideoCapture(0)
 cap2 = cv2.VideoCapture(2)
 
+# cap1.release()
+# cap2.release()
+
+# cap1 = cv2.VideoCapture(0)
+# cap2 = cv2.VideoCapture(2)
+
 cap1.set(3, 320)
 cap1.set(4, 240)
 
@@ -214,47 +220,52 @@ lhs_vid = cv2.VideoWriter('lhs_vid_'+now+'_rtproc.avi',fourcc, 30.0, (320,240))
 rhs_vid = cv2.VideoWriter('rhs_vid_'+now+'_rtproc.avi',fourcc, 30.0, (320,240))
 
 def captureVid(duration, cap, container, side):
-	t0 = time()
+	
 	t1 = 0
 	frames = []
-	timeStampList = np.zeros([3000, 1])
-	# timeStampList = []
+	# timeStampList = np.zeros([10000, 1])
+	timeStampList = []
 	i = 0
 	print("Video thread runnning...")
+	t0 = time()
 	while (t1<duration):
 		ret, frame = cap.read()
 		timeStamp = time()
 		if ret==True:
 			frames.append(frame)
+			# timeStampList[i] = timeStamp
+			
 		else:
 			print("Missed frame: ", side)
+			# exit()
 
-		# timeStampList.append(timeStamp)
+		timeStampList.append(timeStamp)
 
-		timeStampList[i] = timeStamp
-
-		i = i + 1
+		
+		
+		# i = i + 1
 		t1 = timeStamp - t0
-
+	t_end = time()
+	tElapsed = t_end-t0
 	for frame in frames:
 		container.write(frame)
 
-	cap.release()	
-	container.release()
-
-	timeStampList = np.trim_zeros(timeStampList)
-	np.savetxt(side+'_4thd_rtp_vid_timeStamps_'+now+'.txt',\
+	nFrames = len(frames)
+	# timeStampList = np.trim_zeros(timeStampList)
+	np.savetxt(side+'4thd_rtp_vid_timeStamps_'+now+'.txt',\
 	timeStampList, fmt='%10.7f')
 	print("==============================================")
 	print("Video thread complete: " , side)
-	print("Duration ", str(t1))
-	updateRate = np.average(1/np.ediff1d(timeStampList))
+	print("Duration ", str(tElapsed))
+	# updateRate = np.average(1/np.ediff1d(timeStampList))
+	updateRate = nFrames/tElapsed
 	print("Update rate: ", round(updateRate,4))
-	print("Elapsed time: ", str(round(time()-t0,2)))
+	print("Frames: ", len(frames))
+	# print("Elapsed time: ", str(round(time()-t0,2)))
 	print("----------------------------------------------")
 
 # Burst captures expected to be around 30 seconds long
-n_rows = 3000
+n_rows = 10000
 # rg_array = np.zeros([n_rows, nbins], dtype=int)
 # sp_array = np.zeros([n_rows, nbins], dtype=int)
 # sf_array = np.zeros([n_rows, nbins], dtype=int)
@@ -283,8 +294,8 @@ def urad_process(port, fspeed, frange, fsafety, \
 	rg_array = np.zeros([n_rows, nbins], dtype=int)
 	sp_array = np.zeros([n_rows, nbins], dtype=int)
 	sf_array = np.zeros([n_rows, nbins], dtype=int)
-	timeStampList = np.zeros([n_rows, 1])
-	# timeStampList = []
+	# timeStampList = np.zeros([n_rows, 1])
+	timeStampList = []
 	i = 0
 
 	t0 = time() 
@@ -303,10 +314,12 @@ def urad_process(port, fspeed, frange, fsafety, \
 		i = i + 1
 
 		timeStamp = time()	
-		timeStampList[i] = timeStamp
-		# timeStampList.append(timeStamp)
+		# timeStampList[i] = timeStamp
+		timeStampList.append(timeStamp)
 		t1 = timeStamp - t0
-
+	t_end = time()
+	tElapsed = t_end-t0
+	AvgUpdateRate = i/tElapsed
 	# Save time stamps
 	if angOffset == 0:
 		side = "rhs_"
@@ -316,15 +329,16 @@ def urad_process(port, fspeed, frange, fsafety, \
 	np.savetxt(frange, rg_array[0:i, :], fmt='%.3f', delimiter = ' ', newline='\n')
 	np.savetxt(fspeed, sp_array[0:i, :], fmt='%.3f', delimiter = ' ', newline='\n')
 	np.savetxt(fsafety, sf_array[0:i, :], fmt='%.3f', delimiter = ' ', newline='\n')
-	timeStampList = np.trim_zeros(timeStampList)
-	np.savetxt(side+'_4thd_rtp_rad_timeStamps_'+now+'.txt',\
+	# timeStampList = np.trim_zeros(timeStampList)
+	np.savetxt(side+'4thd_rtp_rad_timeStamps_'+now+'.txt',\
 	timeStampList, fmt='%10.7f')
 	updateRate = np.average(1/np.ediff1d(timeStampList))
 	print("==============================================")
 	print("uRAD Thread complete: ", side)
 	print("Update rate: ", round(updateRate,4))
-	print("Elapsed time: ", str(round(time()-t0,2)))
-	print("Sweeps processed: ", i)
+	print("Avg. update rate: ", round(AvgUpdateRate,4))
+	print("Elapsed time: ", str(round(tElapsed,2)))
+	# print("Sweeps processed: ", i)
 	print("----------------------------------------------")
 
 lhs_frange = "lhs_range_results_"+now+".txt"
@@ -369,6 +383,11 @@ try:
 	print("Results capture complete.")
 	print("Total processing time: ", str(t1_proc))
 	print("==============================================")
+	cap1.release()
+	cap2.release()
+	lhs_vid.release()
+	rhs_vid.release()
+	cv2.destroyAllWindows()
 	uRAD_USB_SDK11.turnOFF(ser1)
 	uRAD_USB_SDK11.turnOFF(ser2)
 
@@ -377,6 +396,7 @@ except KeyboardInterrupt:
 	cap2.release()
 	lhs_vid.release()
 	rhs_vid.release()
+	cv2.destroyAllWindows()
 	uRAD_USB_SDK11.turnOFF(ser1)
 	uRAD_USB_SDK11.turnOFF(ser2)
 	print("Interrupted.")
