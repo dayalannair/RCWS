@@ -35,9 +35,10 @@ iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
 % calibration
 
 %     iq_tbl=readtable('rhs_iq_17_57_28','Delimiter' ,' ');
-    timeStampsTbl=readtable('rhs_rad_timeStamps_17_57_28.txt','Delimiter' ,' ');
+%     timeStampsTbl=readtable('rhs_rad_timeStamps_17_57_28.txt','Delimiter' ,' ');
     % Split data
-    timeStamps = table2array(timeStampsTbl(sweeps, 1));
+%     timeStamps = table2array(timeStampsTbl(sweeps, 1));
+    timeStamps = 0; % when not used
     i_up = table2array(iq_tbl(sweeps,1:200));
     i_dn = table2array(iq_tbl(sweeps,201:400));
     q_up = table2array(iq_tbl(sweeps,401:600));

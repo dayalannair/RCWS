@@ -24,8 +24,8 @@ nbar = 3;
 sll = -20;
 % win = taylorwin(Ns, nbar, sll);
 
-win =   rectwin(Ns);
-win = kaiser(Ns, 2.5);
+% win =   rectwin(Ns);
+win = kaiser(Ns, 5);
 
 [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = ...
     import_data(subset, win.');

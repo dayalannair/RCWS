@@ -10,8 +10,8 @@ addpath('../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby/');
 %%
 n_samples = 200;
 % Taylor
-nbar = 4;
-sll = -38;
+nbar = 3;
+sll = -50;
 twin = taylorwin(n_samples, nbar, sll);
 % Gaussian
 gwin = gausswin(n_samples);
@@ -20,7 +20,7 @@ gwin = gausswin(n_samples);
 bwin = blackman(n_samples);
 % Kaiser
 % See shape factor
-kbeta = 5;
+kbeta = 2.5;
 kwin = kaiser(n_samples, kbeta);
 % Nuttall's Blackman-Harris
 % See sflag 'periodic' option
@@ -30,57 +30,80 @@ nbhwin = nuttallwin(n_samples);
 hmwin = hamming(n_samples);
 % Hanning
 hnwin = hann(n_samples);
-rwin = ones(n_samples, 1);
+% rwin = ones(n_samples, 1);
+rwin = rectwin(n_samples);
 wins = cat(2, rwin, twin, gwin, bwin, kwin, nbhwin, hmwin, hnwin);
+% wins = cat(2, rwin, twin, bwin, kwin, hnwin);
 % return
 
 nfft = 1024;
 fs = 200e3;
 f = f_ax(nfft, fs);
-f = f/1000;
+% f = f/1000
 
+[fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = ...
+    import_data(sweeps, rwin.');
+rngAx = beat2range(f.', k, c);
 FFTS = zeros(nfft, 8);
+FFTSdbsft = zeros(nfft, 8);
+data = iq_u(116, :).';
 for i = 1:8
     win = wins(:, i);
-    [fc, c, lambda, tm, bw, k, iq_u, iq_d, t_stamps] = ...
-        import_data(sweeps, win.');
-    FFTS(:, i) = fft(iq_u(116, :), nfft, 2);
+    FFTS(:, i) = fft(data.*win, nfft, 1);
+    FFTSdbsft(:, i) = sftmagdb(FFTS(:, i));
+    max_arr = max(FFTSdbsft(:, i));
+    FFTSdbsft(:, i) = FFTSdbsft(:, i) - max_arr;
 end
-%%
-FFTSdbsft = sftmagdb(FFTS);
-max_arr = max(FFTSdbsft);
-FFTSdbsft = FFTSdbsft - max_arr;
+
+% test = fft(data, nfft, 1);
+% FFTS(:,1)-test
+% % test-test
+% test = mag2db(fftshift(abs(test)))
+% %%
+% 
+% test - FFTSdbsft(:,1)
+% return
+% max_arr = max(FFTSdbsft);
+% FFTSdbsft = FFTSdbsft - max_arr;
 %%
 close all
 figure
 set(gcf,'color','w');
 % plot(f, U))), 'DisplayName','Rectangular')
 % title("Effect of windowing on signal spectrum for 1024 point FFT",'FontSize', 12)
-
+ grid on
 % wins = cat(2, rwin, twin, gwin, bwin, kwin, nbhwin, hmwin, hnwin);
-plot(f, FFTSdbsft(:,1),'DisplayName','Rectangular')
-ylabel("Normalised Magnitude (dB)", 'FontSize', 16)
-xlabel("Freqeuncy (kHz)", 'FontSize', 16)
-axis([38, 65, -65, 20])
+plot(rngAx.', FFTSdbsft(:,1),'DisplayName','Rectangular');
+ylabel("Normalised Magnitude (dB)", 'FontSize', 14)
+xlabel("Freqeuncy (kHz)", 'FontSize', 14)
+% axis([38, 65, -65, 20])
+axis([24, 33, -65, -10])
 ax = gca; 
-ax.FontSize = 16; 
+ax.FontSize = 14; 
 
 hold on
-plot(f, FFTSdbsft(:,2),'DisplayName','Taylor')
-hold on
-plot(f, FFTSdbsft(:,3),'DisplayName','Gaussian')
-hold on
-plot(f, FFTSdbsft(:,4),'DisplayName','Blackman')
-hold on
-plot(f, FFTSdbsft(:,5),'DisplayName','Kaiser')
-hold on
-plot(f, FFTSdbsft(:,6),'DisplayName','Nuttall')
-hold on
-plot(f, FFTSdbsft(:,7),'DisplayName','Hamming')
-hold on
-plot(f, FFTSdbsft(:,8),'DisplayName','Hanning')
+plot(rngAx.', FFTSdbsft(:,2),'DisplayName','Taylor, nbar=3, sll=50 dB');
+ grid on
+% % hold on
+% % plot(rngAx, FFTSdbsft(:,3),'DisplayName','Gaussian');
+% hold on
+plot(rngAx.', FFTSdbsft(:,4),'DisplayName','Blackman');
+ grid on
+plot(rngAx.', FFTSdbsft(:,5),'DisplayName','Kaiser, \beta = 2.5');
+ grid on
+% % hold on
+% % plot(rngAx, FFTSdbsft(:,6),'DisplayName','Nuttall');
+% % hold on
+% % plot(rngAx, FFTSdbsft(:,7),'DisplayName','Hamming');
+% hold on
+plot(rngAx.', FFTSdbsft(:,8),'DisplayName','Hanning');
+legend('FontSize', 13)
+ grid on
 hold off
-legend('FontSize', 16)
+
+% legend({''})
+% legend([p1,p2,p3,p4,p5)
+% legend([p1,p2,p3,p4,p5],'FontSize', 16)
 
 
 % close all
@@ -92,8 +115,12 @@ legend('FontSize', 16)
 % hold on
 % plot(f, U))),'DisplayName','No')
 % legend
-
+%%
 % NOTES: Does not seem to improve much after 1024 point fft
-
+% x = sftmagdb(fft(iq_u(116,:),nfft,2));
+% 
+% 
+% close all
+% plot(x)
 
 % plot(real(FFTS))
