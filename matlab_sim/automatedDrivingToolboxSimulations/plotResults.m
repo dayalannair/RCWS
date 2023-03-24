@@ -55,6 +55,8 @@ for i = 1:N
         else
             measuredVelocity2(i,j) = detectionsRadar1{j}.Measurement(5);
             measuredPosition2(i,j) = detectionsRadar1{j}.Measurement(2);
+            % range not x and y:
+%             measuredPosition2(i,j) = (detectionsRadar1{j}.Measurement(2)^2 + detectionsRadar1{j}.Measurement(1)^2)^0.5;
 
             % Angle corrected measurements
 %             theta = asin(lhs_road_width/measuredPosition2(i,j));
@@ -77,8 +79,8 @@ for i = 1:N
     car1_v(i) = data(i).ActorPoses(2).Velocity(2);
     car1_r(i) = data(i).ActorPoses(2).Position(2);
 
-%     car2_v(i) = data(i).ActorPoses(3).Velocity(2);
-%     car2_r(i) = data(i).ActorPoses(3).Position(2);
+    car2_v(i) = data(i).ActorPoses(3).Velocity(2);
+    car2_r(i) = data(i).ActorPoses(3).Position(2);
 
     % ENSURE HOST PLACED AT COORD 0,0,0!
     % Ensures tracks are correct for each target plot
@@ -120,7 +122,7 @@ car2_r(car2_r<0)=nan;
 %% Plots
 close all
 figure1 = figure('WindowState','maximized');
-tl = tiledlayout(2, 2);
+tl = tiledlayout(1, 2);
 nexttile
 hold on
 scatter(t, abs(measuredVelocity2(:, :)), 70,'Marker','.')
@@ -134,19 +136,19 @@ ylabel("Speed (m/s)")
 axis([0 max(t) 0 25])
 legend([p1 p2],'Location', 'southeast')
 % 
-nexttile
-hold on
-scatter(t, abs(measuredVelocity1(:, :)),70, 'Marker','.')
-% p2 = plot(t, abs(actualVelocity1), 'DisplayName', 'Actual');
-p12 = plot(t, abs(car1_v), 'DisplayName', 'Car 1 Actual');
-p22 = plot(t, abs(car2_v), 'DisplayName', 'Car 2 Actual');
-% p12 = plot(t, abs(actualVelocity1), 'DisplayName', 'Car 1 Actual');
-% p22 = plot(t, abs(actualVelocity2), 'DisplayName', 'Car 2 Actual');
-title("RHS Radar Velocity Measurements")
-xlabel("Time (s)")
-ylabel("Speed (m/s)")
-axis([0 max(t) 0 25])
-legend([p12 p22],'Location', 'southeast')
+% nexttile
+% hold on
+% scatter(t, abs(measuredVelocity1(:, :)),70, 'Marker','.')
+% % p2 = plot(t, abs(actualVelocity1), 'DisplayName', 'Actual');
+% p12 = plot(t, abs(car1_v), 'DisplayName', 'Car 1 Actual');
+% p22 = plot(t, abs(car2_v), 'DisplayName', 'Car 2 Actual');
+% % p12 = plot(t, abs(actualVelocity1), 'DisplayName', 'Car 1 Actual');
+% % p22 = plot(t, abs(actualVelocity2), 'DisplayName', 'Car 2 Actual');
+% title("RHS Radar Velocity Measurements")
+% xlabel("Time (s)")
+% ylabel("Speed (m/s)")
+% axis([0 max(t) 0 25])
+% legend([p12 p22],'Location', 'southeast')
 
 nexttile
 hold on
@@ -160,19 +162,19 @@ xlabel("Time (s)")
 ylabel("Range (m)")
 legend([p3, p4],'Location', 'southeast')
 
-nexttile
-hold on
-scatter(t, abs(measuredPosition1(:, :)), 70, 'Marker','.')
-% p5 = plot(t, abs(actualPosition1), 'DisplayName', 'Actual');
-p32 = plot(t, abs(car1_r_right), 'DisplayName', 'Car 1 Actual');
-p42 = plot(t, abs(car2_r_right), 'DisplayName', 'Car 2 Actual');
-% p32 = plot(t, abs(actualPosition1), 'DisplayName', 'Car 1 Actual');
-% p42 = plot(t, abs(actualPosition2), 'DisplayName', 'Car 2 Actual');
-title("RHS Radar Range Measurements")
-xlabel("Time (s)")
-ylabel("Range (m)")
-legend([p32, p42],'Location', 'southeast')
-% legend(p32,'Location', 'southeast')
+% nexttile
+% hold on
+% scatter(t, abs(measuredPosition1(:, :)), 70, 'Marker','.')
+% % p5 = plot(t, abs(actualPosition1), 'DisplayName', 'Actual');
+% p32 = plot(t, abs(car1_r_right), 'DisplayName', 'Car 1 Actual');
+% p42 = plot(t, abs(car2_r_right), 'DisplayName', 'Car 2 Actual');
+% % p32 = plot(t, abs(actualPosition1), 'DisplayName', 'Car 1 Actual');
+% % p42 = plot(t, abs(actualPosition2), 'DisplayName', 'Car 2 Actual');
+% title("RHS Radar Range Measurements")
+% xlabel("Time (s)")
+% ylabel("Range (m)")
+% legend([p32, p42],'Location', 'southeast')
+% % legend(p32,'Location', 'southeast')
 
 tl.Padding = 'tight';
 % tl.TileSpacing = 'compact';
