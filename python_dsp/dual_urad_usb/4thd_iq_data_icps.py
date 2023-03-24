@@ -162,35 +162,35 @@ def capture(duration, cap, out, timeStampFileName):
 	frames = []
 	# Change size for larger captures
 	# timeStampList = np.zeros([10000, 1])
-	timeStampList = []
+	# timeStampList = []
 	t0 = time()
 	t1 = 0
 	# i=0
 	while (t1 < duration):
 		ret, frame = cap.read()
-		timeStamp = time()
+		# timeStamp = time()
 		
 		if ret==True:
 			frames.append(frame)
 			# timeStampList[i] = timeStamp
-			timeStampList.append(timeStamp)
+			# timeStampList.append(timeStamp)
 		else:
 			print("Missed capture")
 			# exit()
 
 		# i = i + 1
-		t1 = timeStamp - t0
+		t1 = time() - t0
 
 	# timeStampList = np.trim_zeros(timeStampList)
 	# print(timeStampListNew)
 	print("==============================================")
 	print("Thread complete: " , timeStampFileName)
 	print("Video recorded with duration ", str(t1))
-	updateRate = np.average(1/np.ediff1d(timeStampList))
-	print("Update rate: ", updateRate)
+	# updateRate = np.average(1/np.ediff1d(timeStampList))
+	# print("Update rate: ", updateRate)
 	print("----------------------------------------------")
-	np.savetxt(timeStampFileName+'_timeStamps_'+now+'.txt',\
-	    timeStampList, fmt='%10.7f')
+	# np.savetxt(timeStampFileName+'_timeStamps_'+now+'.txt',\
+	#     timeStampList, fmt='%10.7f')
 	for frame in frames:
 		out.write(frame)
 
@@ -203,7 +203,7 @@ def urad_capture(duration, fname, port, timeStampFileName):
 	Q_usb = []
 	# Change size for larger captures
 	# timeStampList = np.zeros([10000, 1])
-	timeStampList = []
+	# timeStampList = []
 	t0 = time()
 	t1 = 0
 	# i = 0
@@ -216,20 +216,20 @@ def urad_capture(duration, fname, port, timeStampFileName):
 		I_usb.append(raw_results[0])
 		Q_usb.append(raw_results[1])
 
-		timeStamp = time()
+		# timeStamp = time()
 		# timeStampList[i] = timeStamp
-		timeStampList.append(timeStamp)
+		# timeStampList.append(timeStamp)
 
 		# i = i + 1
-		t1 = timeStamp - t0
+		t1 = time() - t0
 
 	# Store data
 	sweeps = len(I_usb)
 	# timeStampList = np.trim_zeros(timeStampList)
-	updateRate = np.average(1/np.ediff1d(timeStampList))
+	# updateRate = np.average(1/np.ediff1d(timeStampList))
 	print("==============================================")
-	print("Thread complete: ", timeStampFileName)
-	print("Update rate: ", round(updateRate,4))
+	# print("Thread complete: ", timeStampFileName)
+	# print("Update rate: ", round(updateRate,4))
 	print("Elapsed time: ", str(round(time()-t0,2)))
 	print("Sweeps acquired: ", sweeps)
 	print("----------------------------------------------")
@@ -246,8 +246,8 @@ def urad_capture(duration, fname, port, timeStampFileName):
 				IQ_usb += '%d ' % Q_usb[sweep][sample]
 			usb.write(IQ_usb + '\n')
 
-	np.savetxt(timeStampFileName+'_timeStamps_'+now+'.txt',\
-	    timeStampList, fmt='%10.7f')
+	# np.savetxt(timeStampFileName+'_timeStamps_'+now+'.txt',\
+	#     timeStampList, fmt='%10.7f')
 		# tfile.write('\n'.join(str(timeStampList)))
 	print("uRAD USB capture complete.")
 	
