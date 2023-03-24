@@ -6,7 +6,9 @@ an N-point FFT
 % Import data and parameters
 % subset = 900:1100;
 subset = 1:2700;
-subset = 750:1100;
+subset=1300:2000;
+subset=1700:2100;
+% subset = 750:1100;
 addpath('../../../matlab_lib/');
 addpath(['../../../../../OneDrive - ' ...
     'University of Cape Town/RCWS_DATA/car_driveby/']);
@@ -15,6 +17,7 @@ addpath(['../../../../../OneDrive - University of Cape Town/' ...
 
 addpath(['../../../../../OneDrive - University of Cape Town/' ...
     'RCWS_DATA/calibration']);
+addpath('../../../../controlled_test_23_03_2023/');
 % Import video
 % addpath(['../../../../../OneDrive - ' ...
 %     'University of Cape Town/RCWS_DATA/videos/']);
@@ -88,6 +91,7 @@ while(1)
     %     [ ~ , fbuIdx(i)] = max(FFT_U(i,:));
     %     [ ~ , fbdIdx(i)] = max(FFT_D(i,:));
         drawnow;
+        disp(i)
     end
 end
 return

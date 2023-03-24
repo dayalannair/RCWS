@@ -9,8 +9,8 @@ addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/trig_fmcw_data
 addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/trolley_test/');
 addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/m4_rustenberg/');
 addpath('../../../../OneDrive - University of Cape Town/RCWS_DATA/office/');
-
 %}
+
 function [fc, c, lambda, tm, bw, k, iq_u, iq_d, timeStamps] = ...
 import_data(sweeps, windowCoeffs)
     % Parameters
@@ -29,7 +29,7 @@ import_data(sweeps, windowCoeffs)
 % iq_tbl=readtable('IQ_tri_30kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_40kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_50kmh.txt','Delimiter' ,' ');
-iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
+% iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_70kmh.txt','Delimiter' ,' ');
 
 % calibration
@@ -38,6 +38,18 @@ iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
 %     timeStampsTbl=readtable('rhs_rad_timeStamps_17_57_28.txt','Delimiter' ,' ');
     % Split data
 %     timeStamps = table2array(timeStampsTbl(sweeps, 1));
+
+
+    % CONTROLLED TEST 23 MARCH 2023
+
+%     45 km/h
+    iq_tbl=readtable('rhs_iq_12_43_55','Delimiter' ,' ');
+
+%     60 km/h
+    iq_tbl=readtable('rhs_iq_12_47_44','Delimiter' ,' ');
+
+%     75 km/h
+    iq_tbl=readtable('rhs_iq_12_52_43','Delimiter' ,' ');
     timeStamps = 0; % when not used
     i_up = table2array(iq_tbl(sweeps,1:200));
     i_dn = table2array(iq_tbl(sweeps,201:400));

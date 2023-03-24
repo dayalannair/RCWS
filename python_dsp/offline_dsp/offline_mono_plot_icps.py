@@ -44,7 +44,7 @@ fneg = np.linspace(round(fs/n_fft), round(fs/2), round(n_fft/2))
 slope = bw/tsweep
 rngAxPos = c*fpos/(2*slope)
 rngAxNeg = c*fneg/(2*slope)
-
+rhs_road_width = 1.5
 
 # win = signal.windows.taylor(ns, nbar=3, sll=40, norm=False)
 win = np.ones(ns)
@@ -106,7 +106,9 @@ for sweep in subset:
 	_, _, upth, dnth, fftu, fftd, _, _, _,\
 	_, _ = py_trig_dsp(i_data,q_data, win, n_fft, half_train, \
 	half_guard, nbins, bin_width, fpos, fneg, SOS, calib, scan_width, angOffsetMinRange, \
-	angOffset, numVoltageLevels)
+	angOffset, numVoltageLevels, rhs_road_width)
+
+	
 	
 	# t1_proc = time()
 
