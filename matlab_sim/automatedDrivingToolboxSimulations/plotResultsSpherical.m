@@ -45,7 +45,7 @@ for i = 1:N
     for j = 1:length(detections)
         % Stack detections from radar 1 - RHS
         if detections{j}.SensorIndex == 1
-            measuredVelocity1(i,j) = detections{j}.Measurement(5);
+            measuredVelocity1(i,j) = detections{j}.Measurement(3);
             measuredPosition1(i,j) = detections{j}.Measurement(2);
             
             % Angle corrected measurements
@@ -55,9 +55,9 @@ for i = 1:N
 
         % Stack detections from radar 2 - LHS
         else
-            measuredVelocity2(i,j) = detections{j}.Measurement(5);
+            measuredVelocity2(i,j) = detections{j}.Measurement(3);
             % add the radar offset from the origin
-            measuredPosition2(i,j) = detections{j}.Measurement(2) + 2; %+ 1.3628;
+            measuredPosition2(i,j) = detections{j}.Measurement(2); %+ 1.3628;
             measuredPosition2_x(i,j) = detections{j}.Measurement(1);
             % range not x and y:
 %             measuredPosition2(i,j) = (detections{j}.Measurement(2)^2 + detections{j}.Measurement(1)^2)^0.5;
@@ -135,6 +135,8 @@ y_offset = -0.9;
 x_offset =  3.7;
 y_rad    =  2 + y_offset;
 x_rad    = -6 + x_offset;
+% x_car = 1;
+% lhs_x_range = -x_rad+x_car;
 
 % account for radar coordinates not being at the origin
 lhsActual_y = car2_r - y_rad;
@@ -151,7 +153,7 @@ close all
 figure
 plot(t, lhsActualRange)
 hold on
-scatter(t, lhsMeasRange)
+scatter(t, measuredPosition2)
 hold off
 return
 
