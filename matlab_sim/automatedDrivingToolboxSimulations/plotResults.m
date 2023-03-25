@@ -12,6 +12,7 @@ measuredPosition1 = NaN(N,15);
 measuredVelocity1 = NaN(N,15);
 measuredPosition2 = NaN(N,15);
 measuredVelocity2 = NaN(N,15);
+measuredPosition2_x = NaN(N,15);
 
 numActors = 3;
 actualPosition = NaN(15, numActors);
@@ -39,29 +40,31 @@ angle_offset = 0;
 disp(angle_offset)
 for i = 1:N
     t(i) = data(i).Time;
-    detectionsRadar1 = data(i).ObjectDetections;
-    for j = 1:length(detectionsRadar1)
+    detections = data(i).ObjectDetections;
+    for j = 1:length(detections)
         % Stack detections from radar 1 - RHS
-        if detectionsRadar1{j}.SensorIndex == 1
-            measuredVelocity1(i,j) = detectionsRadar1{j}.Measurement(5);
-            measuredPosition1(i,j) = detectionsRadar1{j}.Measurement(2);
+        if detections{j}.SensorIndex == 1
+            measuredVelocity1(i,j) = detections{j}.Measurement(5);
+            measuredPosition1(i,j) = detections{j}.Measurement(2);
             
             % Angle corrected measurements
 %             theta = asin(rhs_road_width/measuredPosition1(i,j));
 %             measuredVelocity1(i,j) = ...
-%                 detectionsRadar1{j}.Measurement(5)/cos(theta-angle_offset);
+%                 detections{j}.Measurement(5)/cos(theta-angle_offset);
 
         % Stack detections from radar 2 - LHS
         else
-            measuredVelocity2(i,j) = detectionsRadar1{j}.Measurement(5);
-            measuredPosition2(i,j) = detectionsRadar1{j}.Measurement(2);
+            measuredVelocity2(i,j) = detections{j}.Measurement(5);
+            % add the radar offset from the origin
+            measuredPosition2(i,j) = detections{j}.Measurement(2) + 2;
+            measuredPosition2_x(i,j) = detections{j}.Measurement(1);
             % range not x and y:
-%             measuredPosition2(i,j) = (detectionsRadar1{j}.Measurement(2)^2 + detectionsRadar1{j}.Measurement(1)^2)^0.5;
+%             measuredPosition2(i,j) = (detections{j}.Measurement(2)^2 + detections{j}.Measurement(1)^2)^0.5;
 
             % Angle corrected measurements
 %             theta = asin(lhs_road_width/measuredPosition2(i,j));
 %             measuredVelocity2(i,j) = ...
-%                 detectionsRadar1{j}.Measurement(5)/cos(theta-angle_offset);
+%                 detections{j}.Measurement(5)/cos(theta-angle_offset);
         end
     end
 %     measuredVelocity1(i) = data(i).ObjectDetections{1}.Measurement(5);
@@ -85,8 +88,8 @@ for i = 1:N
     % ENSURE HOST PLACED AT COORD 0,0,0!
     % Ensures tracks are correct for each target plot
     % If RHS range is negative, proceed as normal
-    % If RHS range is positive, target is has crossed over to other radar
-%     if car2_r(i) > 0
+    % If RHS range is positive, target is hklkas crossed over to other radar
+%     if car1_r(i) > 0
 %         actualVelocity2(i)   = data(i).ActorPoses(3).Velocity(2);
 %         actualPosition2(i)   = data(i).ActorPoses(3).Position(2);
 %     else
@@ -95,7 +98,7 @@ for i = 1:N
 % 
 %     end
 %     % if LHS range is negative, target crossed to other side
-%     if ap1 < 0
+%     if car2_r(i) > 0
 %         actualVelocity1(i)   = data(i).ActorPoses(2).Velocity(2);
 %         actualPosition1(i)   = data(i).ActorPoses(2).Position(2);
 %     else
@@ -118,6 +121,17 @@ car2_r(car2_r<0)=nan;
 % Negative speed is direction of travel
 % car1_v(car1_v<0)=nan;
 % car2_v(car2_v<0)=nan;
+%% Position coordinates
+% close all
+% figure
+% scatter(measuredPosition2, measuredPosition2_x)
+% return
+% 
+
+% Calculate range from coordinates
+y_rad = 2+halfbonnet
+x_rad = -6+3.7
+% radarCoords = 
 
 %% Plots
 close all
@@ -198,6 +212,39 @@ meanMeasuredVel1 = mean(measuredVelocity1, 2, 'omitnan');
 %     end
 % end
 %%
+
+
+% close all
+% figure1 = figure('WindowState','maximized');
+% tl = tiledlayout(1, 2);
+% nexttile
+% hold on
+% scatter(t, abs(measuredVelocity2(:, :)), 70,'Marker','.')
+% % p1 = plot(t, abs(car1_v), 'DisplayName', 'Car 1 Actual');
+% % p2 = plot(t, abs(car2_v), 'DisplayName', 'Car 2 Actual');
+% p1 = plot(t, abs(actualVelocity1), 'DisplayName', 'Car 1 Actual');
+% p2 = plot(t, abs(actualVelocity2), 'DisplayName', 'Car 2 Actual');
+% title("LHS Radar Velocity Measurements")
+% xlabel("Time (s)")
+% ylabel("Speed (m/s)")
+% axis([0 max(t) 0 25])
+% legend([p1 p2],'Location', 'southeast')
+% 
+% nexttile
+% hold on
+% scatter(t, abs(measuredPosition2(:, :)),70, 'Marker','.')
+% p3 = plot(t, abs(car1_r), 'DisplayName', 'Car 1 Actual');
+% p4 = plot(t, abs(car2_r), 'DisplayName', 'Car 2 Actual');
+% % p3 = plot(t, abs(actualPosition1), 'DisplayName', 'Car 1 Actual');
+% % p4 = plot(t, abs(actualPosition2), 'DisplayName', 'Car 2 Actual');
+% title("LHS Radar Range Measurements")
+% xlabel("Time (s)")
+% ylabel("Range (m)")
+% legend([p3, p4],'Location', 'southeast')
+% 
+
+%%
+
 % Create textarrow
 % annotation(figure1,'textarrow',[0.148958333333333 0.203125],...
 %     [0.789598290598291 0.873931623931624],'String',{'Car 1'});
