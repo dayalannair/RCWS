@@ -148,10 +148,18 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
 				if (fbu[bin] < fbd[bin]):
 				# if (fbu[bin] > 0 and fbd[bin] > 0):
 
-					# div by 4: first division by 2 is for beat freq, 
-					# second is for dop to vel
+					# NOTE: div by 4: first division by 2 is for beat freq, 
+					# second is for dop to vel - reducing the number of divisions
+
 					fd = (-fbu[bin] + fbd[bin])*calib/4 
-					if (fd>800): # NOTE: fmin = 800 Hz
+					
+					# NOTE: fmin = 400 Hz corresponds to 9 km/h
+					# fmin = 667 Hz corresponds to 15 km/h
+					# fmax = 3125 Hz corresponds to 70 km/h
+					# speeds are limited to these values on main roads
+					# these are divided by two due to the optimisation above
+					# fmin = 21 km/h corresponds to 933 Hz -> use 467 below
+					if (1563>fd>467): 
 						# fd_array[bin] = fd/2
 						
 						# if less than max expected and filter clutter doppler
@@ -170,8 +178,10 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
 						# Else ignore/dont correct for left and calculate as normal for right
 						else:
 							sp_array[bin] = fd*lmda/(np.cos(np.arcsin(road_width/rg_array[bin])))
-	
-
+						
+						# debug high speed getting through
+						# if sp_array[bin]*3.6 > 70:
+						# 	print("Speed violation when fd = ", str(fd))
 
 						# ************* Angle correction *******************
 						# Theta in radians

@@ -29,6 +29,7 @@ slope = bw/tsweep
 rngAxPos = c*fpos/(2*slope)
 rngAxNeg = c*fneg/(2*slope)
 
+# Comparison test
 # rng_fname1 = "range_results.txt"
 spd_fname1 = "speed_results_20kmph.txt"
 # rng_fname2 = "range_results.txt"
@@ -41,6 +42,11 @@ spMtx2 = np.loadtxt(spd_fname2,  delimiter=' ')
 # rgMtx2 = np.loadtxt(rng_fname2,  delimiter=' ')
 spMtx3 = np.loadtxt(spd_fname3,  delimiter=' ')
 # rgMtx3 = np.loadtxt(rng_fname3,  delimiter=' ')
+
+# Normal
+# spd_fname1 = "speed_results_20kmph.txt"
+spd_fname1 = "speed_results.txt"
+spMtx1 = np.loadtxt(spd_fname1,  delimiter=' ')
 
 print("Processing Complete. Displaying results...")
 
@@ -57,8 +63,10 @@ duration = lenSubset/92
 
 timeAxTicks = np.linspace(0, duration, 20)
 rngAxTicks = np.linspace(0, np.max(rngAxNeg), 15)
-plt.imshow((spMtx1+spMtx2+spMtx3), origin='upper', vmin=0, vmax=70, aspect='auto', \
-		     interpolation='none', extent=[0, 62.5, duration, 0], cmap='terrain_r') #, extent=[0, 62.5, 0, len_subset]
+plt.imshow(spMtx1, origin='upper', vmin=0, vmax=70, aspect='auto', \
+		     interpolation='none', extent=[0, 62.5, duration, 0], cmap='terrain_r')
+# plt.imshow((spMtx1+spMtx2+spMtx3), origin='upper', vmin=0, vmax=70, aspect='auto', \
+# 		     interpolation='none', extent=[0, 62.5, duration, 0], cmap='terrain_r') #, extent=[0, 62.5, 0, len_subset]
 # plt.imshow(spMtx2, origin='upper', vmin=0, vmax=70, aspect='auto', \
 # 		     interpolation='none', extent=[0, 62.5, duration, 0], cmap='terrain_r') #, extent=[0, 62.5, 0, len_subset]
 # plt.imshow(spMtx3, origin='upper', vmin=0, vmax=70, aspect='auto', \
