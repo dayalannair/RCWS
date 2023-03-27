@@ -1,12 +1,14 @@
+import sys
+sys.path.append('../custom_modules')
 import uRAD_USB_SDK11		# import uRAD libray
 import serial
 from time import time, sleep
-
+import numpy as np
 # True if USB, False if UART
 usb_communication = True
 
 # input parameters
-mode = 2					# sawtooth mode
+mode = 3					# sawtooth mode
 f0 = 5						# starting at 24.005 GHz
 BW = 240					# using all the BW available = 240 MHz
 Ns = 200					# 200 samples
@@ -25,7 +27,8 @@ movement_true = False 		# Don't apply as only raw data is desired
 # Serial Port configuration
 ser = serial.Serial()
 if (usb_communication):
-	ser.port = 'COM1'
+	# ser.port = 'COM1'
+	ser.port = '/dev/ttyACM0'
 	ser.baudrate = 1e6
 else:
 	ser.port = '/dev/serial0'
@@ -72,11 +75,12 @@ if (not usb_communication):
 resultsFileName = 'IQ.txt'
 fileResults = open(resultsFileName, 'a')
 iterations = 0
+periods = []
 t_0 = time()
 
 # infinite detection loop
-while True:
-
+# while True:
+for i in range(0,2000):
 	# target detection request
 	return_code, results, raw_results = uRAD_USB_SDK11.detection(ser)
 	if (return_code != 0):
@@ -87,6 +91,7 @@ while True:
 	Q = raw_results[1]
 
 	t_i = time()
+	periods.append(t_i)
 
 	IQ_string = ''
 	for index in range(len(I)):
@@ -96,10 +101,12 @@ while True:
 
 	fileResults.write(IQ_string + '%1.3f\n' % t_i)
 
-	iterations += 1
+	# iterations += 1
 
-	if (iterations > 100):
-		print('Fs %1.2f Hz' % (iterations/(t_i-t_0)))
+	# if (iterations > 100):
+	# 	print('Fs %1.2f Hz' % (iterations/(t_i-t_0)))
 
 	if (not usb_communication):
 		sleep(timeSleep)
+updateRate = np.average(1/np.ediff1d(periods))
+print("Update rate: ", round(updateRate,4))

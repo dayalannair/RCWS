@@ -216,11 +216,12 @@ def urad_capture(duration, fname, port, timeStampFileName):
 		I_usb.append(raw_results[0])
 		Q_usb.append(raw_results[1])
 
-		# timeStamp = time()
+		timeStamp = time()
 		# timeStampList[i] = timeStamp
 		# timeStampList.append(timeStamp)
 
 		# i = i + 1
+		# t1 = timeStamp - t0
 		t1 = time() - t0
 
 	# Store data
@@ -229,7 +230,7 @@ def urad_capture(duration, fname, port, timeStampFileName):
 	# updateRate = np.average(1/np.ediff1d(timeStampList))
 	print("==============================================")
 	# print("Thread complete: ", timeStampFileName)
-	# print("Update rate: ", round(updateRate,4))
+	print("Update rate: ", round(updateRate,4))
 	print("Elapsed time: ", str(round(time()-t0,2)))
 	print("Sweeps acquired: ", sweeps)
 	print("----------------------------------------------")
