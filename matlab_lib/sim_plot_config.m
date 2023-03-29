@@ -42,10 +42,10 @@ spMtxCorr1 = zeros(nswp1, nbins);
 tiledlayout(2,2, 'Padding', 'none', 'TileSpacing', 'compact'); 
 nexttile
 % subplot(2,2,1);
-p1 = plot(rng_ax, absmagdb(IQ_UP(1:256)));
+p1 = plot(rng_ax, absmagdb(IQ_UP(1:round(nfft/2))));
 % p1 = plot(rng_ax, absmagdb(pkuClean1));
 hold on
-p1th = plot(rng_ax, absmagdb(upTh1(1:256)));
+p1th = plot(rng_ax, absmagdb(upTh1(1:round(nfft/2))));
 % p1th = plot(zeros(200,1));
 x  =linspace(1, nbins, nbins);
 colors = cat(2, 2*x, 2*x);
@@ -61,10 +61,10 @@ ylabel("Magnitude (dB)")
 grid on
 nexttile
 % subplot(2,2,2);
-p2 = plot(rng_ax, absmagdb(IQ_DN(1:256)));
+p2 = plot(rng_ax, absmagdb(IQ_DN(1:round(nfft/2))));
 % p2 = plot(rng_ax, absmagdb(pkdClean1));
 hold on
-p2th = plot(rng_ax, absmagdb(dnTh1(1:256)));
+p2th = plot(rng_ax, absmagdb(dnTh1(1:round(nfft/2))));
 win2 = scatter(cat(1,fb_idx1, fb_idx_end1), ones(2*nbins, 1)*BIN_MAG, ...
     2000, colors, 'Marker', '|', 'LineWidth',1.5);
 hold off

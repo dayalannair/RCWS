@@ -12,8 +12,6 @@ proc_config;
 sim_plot_config;
 %%
 
-
-
 i = 0;
 for t = 1:(n_steps)
 %     pause(1)
@@ -22,7 +20,8 @@ for t = 1:(n_steps)
     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
     [tgt_pos, tgt_vel] = carmotion(t_step);
 %     disp(tgt_pos)
-%     actual_range(i) = sqrt(tgt_pos(1, 2)^2 + tgt_pos(2,2)^2);
+    actual_rng(i, :) = sqrt(tgt_pos(1, 1)^2 + tgt_pos(2,1)^2);
+    actual_spd(i, :) = tgt_vel(1,1);
 %     time(i) = t*t_step
 %     actual_x = 
 
@@ -80,35 +79,61 @@ for t = 1:(n_steps)
 
     fb_idx1 = rng_ax(fb_idx1);
     fb_idx_end1 = rng_ax(fb_idx_end1);
-    set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
-    set(win2,'XData',cat(1,fb_idx1, fb_idx_end1))
-
-    set(p1, 'YData', absmagdb(IQ_UP))
-    set(p2, 'YData', absmagdb(IQ_DN))
-
-%     set(p1, 'YData', pkuClean1)
-%     set(p2, 'YData', pkdClean2)
-
-    set(p1th, 'YData', absmagdb(upTh1))
-    set(p2th, 'YData', absmagdb(dnTh1))
-%     set(p1th, 'YData', abs(xrd))
-
-%     set(p3, 'CData', rgMtx1)
-    set(p3, 'YData', safety)
-    % Plot speed with angle correction
-    set(p4, 'CData', abs(spMtxCorr1)*3.6)
-
-    % Plot speed without angle correction
-%     set(p4, 'CData', spMtx1*3.6)
-    pause(0.000000001)
+%     set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
+%     set(win2,'XData',cat(1,fb_idx1, fb_idx_end1))
+% 
+%     set(p1, 'YData', absmagdb(IQ_UP))
+%     set(p2, 'YData', absmagdb(IQ_DN))
+% 
+% %     set(p1, 'YData', pkuClean1)
+% %     set(p2, 'YData', pkdClean2)
+% 
+%     set(p1th, 'YData', absmagdb(upTh1))
+%     set(p2th, 'YData', absmagdb(dnTh1))
+% %     set(p1th, 'YData', abs(xrd))
+% 
+% %     set(p3, 'CData', rgMtx1)
+%     set(p3, 'YData', safety)
+%     % Plot speed with angle correction
+%     set(p4, 'CData', abs(spMtxCorr1)*3.6)
+% 
+%     % Plot speed without angle correction
+% %     set(p4, 'CData', spMtx1*3.6)
+%     pause(0.000000001)
 end
 %% 2D plots
-
+t_ax = linspace(0,t_total,n_steps);
 close all
 f1 = figure();
-plot(rgMtx1)
+% hold on
+% p1=plot(rgMtx1,  'b');
+% legend(p1,'Measured')
+% p2=plot(actual_rng, 'r');
+% legend(p2,'Actual')
+% % legend([p1,p2],['Measured','Actual'])
+% f2 = figure();
+% plot(spMtx1*3.6, 'b')
+% hold on
+% plot(actual_spd*3.6, 'r')
+% rgMax=max(rgMtx1);
+plot(t_ax, rgMtx1,  'b', DisplayName="Measured")
+xlabel("Time (s)", 'FontSize',14)
+ylabel("Range (m)", 'FontSize',14)
+hold on
+plot(t_ax, actual_rng, 'r', DisplayName="Actual")
+% legend
 f2 = figure();
-plot(spMtx1*3.6)
+
+plot(t_ax, spMtx1*3.6, 'b', DisplayName="Measured")
+xlabel("Time (s)", 'FontSize',14)
+ylabel("Speed (km/h)", 'FontSize',14)
+hold on
+plot(t_ax, actual_spd*3.6, 'r', DisplayName="Actual")
+
+% legend
+%%
+f3 = figure();
+imagesc(spMtx1*3.6)
 %% Results
 
 

@@ -1,6 +1,6 @@
 
 t_total = 3.7;
-t_step = 0.1;% 100 ms - updates 10 times per second
+t_step = 0.05;% 100 ms - updates 10 times per second
 Nsweep = 1; % Number of ups and downs, not number of periods
 n_steps = t_total/t_step;
 
@@ -14,15 +14,15 @@ v = zeros(n_steps, 2);
 
 Dn = fix(fs_wav/fs_adc);
 Ns = 200;
-nfft = 512;
+nfft = 1024;
 % faxis_kHz = f_ax(nfft, fs_adc)/1000;
-n_fft = 512;
+n_fft = 1024;
 train = 16;%n_fft/8;%64;
 guard = 14;%n_fft/64;%8;
 rank = round(3*train/4);
 nbar = 3;
 sll = -150;
-F = 8*10e-3;
+F = 6*10e-3;
 v_max = 60/3.6; 
 fd_max = speed2dop(v_max, lambda)*2;
 % Minimum sample number for 1024 point FFT corresponding to min range = 10m
@@ -36,12 +36,12 @@ n_min = 42;
 % scan_width = 21; % see calcs: Delta f * 21 ~ 8 kHz
 
 nbins = 16;
-bin_width = 16; % account for scan width = 21
-scan_width = 16;
+bin_width = 32; % account for scan width = 21
+scan_width = 32;
 
 calib = 1.2463;
-lhs_road_width = 4;
-rhs_road_width = 2;
+lhs_road_width = 3.3;
+rhs_road_width = 1.1;
 
 % Taylor window
 win = taylorwin(Ns, nbar, sll);
@@ -98,7 +98,8 @@ fdMtx1 = zeros(nswp1, nbins);
 rgMtx1 = zeros(nswp1, nbins);
 spMtx1 = zeros(nswp1, nbins);
 safety = zeros(nswp1, 1);
-
+actual_rng = zeros(nswp1, nbins);
+actual_spd = zeros(nswp1, nbins);
 
 beat_count_out1 = zeros(1,256);
 beat_count_out2 = zeros(1,256);
@@ -110,10 +111,10 @@ beat_count_in2 = zeros(1,256);
 % upTh1 = zeros(nswp1, 512);
 % dnTh1 = zeros(nswp1, 512);
 
-IQ_UP = zeros(1, 512);
-IQ_DN = zeros(1, 512);
-upTh1 = zeros(512, 1);
-dnTh1 = zeros(512, 1);
+IQ_UP = zeros(1, nfft);
+IQ_DN = zeros(1, nfft);
+upTh1 = zeros(nfft, 1);
+dnTh1 = zeros(nfft, 1);
 
 BIN_MAG = -60;
 

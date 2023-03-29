@@ -74,12 +74,12 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
 %                     beat_count_out(beat_index) < 5
                 
                 % If fbu < fbd, it is not 0 and the target has +ve Dopp
-                if fbu(bin+1) < fbd(bin+1) 
+                if fbu(bin+1) < fbd(bin+1)
                     % Doppler shift is twice the difference in beat 
                     % frequency
     %               calibrate beats for doppler shift
                     fd = ((-fbu(bin+1) + fbd(bin+1))*calib)/2;
-                    if (fd>800)
+                    if (2*1563>fd)&& (fd>2*467)
                         fdMtx(bin+1) = fd;
                     
                     
@@ -92,10 +92,10 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
                         % Capture data after all filters passed
                         beat_indices_end(bin+1) = index_end;
                         beat_indices(bin+1) = beat_index;
-                        beat_count_out(beat_index) = ...
-                            beat_count_out(beat_index) +1;
+%                         beat_count_out(beat_index) = ...
+%                             beat_count_out(beat_index) +1;
                         
-                        spMtx(bin+1) = fd*lambda/2;
+%                         spMtx(bin+1) = fd*lambda/2;
                         
                         rgMtx(bin+1) = calib*beat2range( ...
                             [fbu(bin+1) -fbd(bin+1)], k, c);
@@ -104,8 +104,8 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
                         theta = asin(road_width/rgMtx(bin+1));
     
     %                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
-                        real_v = fd*lambda/(2*cos(theta));
-                        spMtxCorr(bin+1) = round(real_v,2);
+%                         real_v = fd*lambda/(2*cos(theta));
+                        spMtx(bin+1) = fd*lambda/(2*cos(theta));
                     end
                
                 end
