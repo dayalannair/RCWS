@@ -41,6 +41,8 @@ def load_data():
     # =============================================================================================
     file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_57_07.txt")
     file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_52_01.txt")
+
+    file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\test_radar\rhs_iq_17_01_40.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_57_07.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_57_07.txt")
 
@@ -82,7 +84,7 @@ def load_data():
     # 75 km/h
     # subset=range(1700,2100)
 
-    subset=range(0,2700)
+    # subset=range(0,2700)
     
 
     # 20km/h subset
@@ -97,7 +99,7 @@ def load_data():
             sweeps = raw_IQ.read().split("\n")
 
     # print(np.shape(sweeps))
-    # subset = range(0, np.shape(sweeps)[0]-2)
+    subset = range(0, np.shape(sweeps)[0]-2)
     return sweeps, subset
 
 
