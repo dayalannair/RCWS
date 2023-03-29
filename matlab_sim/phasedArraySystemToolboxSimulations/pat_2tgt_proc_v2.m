@@ -12,15 +12,20 @@ proc_config;
 sim_plot_config;
 %%
 
-
+close all
+figure
+hold on
+p1 = plot(absmagdb(IQ_UP));
+p2 = plot(absmagdb(IQ_UP));
+hold off
 
 i = 0;
 for t = 1:(n_steps)
 %     pause(1)
     i = t;
     %disp(t)
-    sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
-    [tgt_pos, tgt_vel] = carmotion(t_step);
+%     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
+%     [tgt_pos, tgt_vel] = carmotion(t_step);
 %     disp(tgt_pos)
 %     actual_range(i) = sqrt(tgt_pos(1, 2)^2 + tgt_pos(2,2)^2);
 %     time(i) = t*t_step
@@ -45,18 +50,19 @@ for t = 1:(n_steps)
 
     XRU = fft(xru, nfft).';
     XRD = fft(xrd, nfft).';
-
-    IQ_UP = XRU(:, 1:n_fft/2);
-    IQ_DN = XRD(:, n_fft/2+1:end);
     
-    IQ_UP(:, 1:num_nul1) = repmat(IQ_UP(:, num_nul1+1), [1, num_nul1]);
-    IQ_DN(:, end-num_nul1+1:end) = ...
-    repmat(IQ_DN(:, end-num_nul1), [1, num_nul1]);
+    % Halve FFTs
+    IQ_UP = XRU(:, 1:nfft/2);
+    IQ_DN = XRD(:, nfft/2+1:end);
+    
+%     IQ_UP(:, 1:num_nul1) = repmat(IQ_UP(:, num_nul1+1), [1, num_nul1]);
+%     IQ_DN(:, end-num_nul1+1:end) = ...
+%     repmat(IQ_DN(:, end-num_nul1), [1, num_nul1]);
     
     IQ_DN = flip(IQ_DN,2);
 
-    [up_os1, upTh1] = OS1(abs(IQ_UP)', 1:n_fft/2);
-    [dn_os1, dnTh1] = OS1(abs(IQ_DN)', 1:n_fft/2);
+    [up_os1, upTh1] = OS1(abs(IQ_UP)', 1:nfft/2);
+    [dn_os1, dnTh1] = OS1(abs(IQ_DN)', 1:nfft/2);
 
     upDets1 = abs(IQ_UP).*up_os1';
     dnDets1 = abs(IQ_DN).*dn_os1';
@@ -65,8 +71,8 @@ for t = 1:(n_steps)
     [rgMtx1(i,:), spMtx1(i,:), spMtxCorr1(i,:), pkuClean1, ...
     pkdClean1, fbu1(i,:), fbd1(i,:), fdMtx1(i,:), fb_idx1, fb_idx_end1, ...
     beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
-    lambda, k, c, dnDets1, upDets1, nbins, n_fft, ...
-    f_pos,f_neg, scan_width, 1, lhs_road_width, beat_count_in1);
+    lambda, k, c, dnDets1, upDets1, nbins, nfft, ...
+    f_pos, f_neg, scan_width, 1, lhs_road_width, beat_count_in1);
 %     disp(rgMtx1(i,:))
     ratio = rgMtx1(i,:)./spMtx1(i,:);
     if (any(ratio<t_safe))
@@ -78,29 +84,30 @@ for t = 1:(n_steps)
 %         safe_sweeps(sweep) = t_safe-min(ratio);
     end
 
-    fb_idx1 = rng_ax(fb_idx1);
-    fb_idx_end1 = rng_ax(fb_idx_end1);
-    set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
-    set(win2,'XData',cat(1,fb_idx1, fb_idx_end1))
-
-    set(p1, 'YData', absmagdb(IQ_UP))
-    set(p2, 'YData', absmagdb(IQ_DN))
-
-%     set(p1, 'YData', pkuClean1)
-%     set(p2, 'YData', pkdClean2)
-
-    set(p1th, 'YData', absmagdb(upTh1))
-    set(p2th, 'YData', absmagdb(dnTh1))
-%     set(p1th, 'YData', abs(xrd))
-
-%     set(p3, 'CData', rgMtx1)
-    set(p3, 'YData', safety)
-    % Plot speed with angle correction
-    set(p4, 'CData', abs(spMtxCorr1)*3.6)
-
-    % Plot speed without angle correction
-%     set(p4, 'CData', spMtx1*3.6)
-    pause(0.000000001)
+%     fb_idx1 = rng_ax(fb_idx1);
+%     fb_idx_end1 = rng_ax(fb_idx_end1);
+%     set(win1,'XData',cat(1,fb_idx1, fb_idx_end1))
+%     set(win2,'XData',cat(1,fb_idx1, fb_idx_end1))
+% 
+%     set(p1, 'YData', absmagdb(IQ_UP))
+%     set(p2, 'YData', absmagdb(IQ_DN))
+% 
+% %     set(p1, 'YData', pkuClean1)
+% %     set(p2, 'YData', pkdClean2)
+% 
+%     set(p1th, 'YData', absmagdb(upTh1))
+%     set(p2th, 'YData', absmagdb(dnTh1))
+% %     set(p1th, 'YData', abs(xrd))
+% 
+% %     set(p3, 'CData', rgMtx1)
+%     set(p3, 'YData', safety)
+%     % Plot speed with angle correction
+%     set(p4, 'CData', abs(spMtxCorr1)*3.6)
+% 
+%     % Plot speed without angle correction
+% %     set(p4, 'CData', spMtx1*3.6)
+%     pause(0.000000001)
+%     disp('Running')
 end
 %% 2D plots
 

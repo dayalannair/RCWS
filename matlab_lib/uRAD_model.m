@@ -46,4 +46,4 @@ rx_nf = 10;                                    % in dB
 
 transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
 receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
-    'SampleRate',fs_wav, 'NoiseComplexity','Real', );
+    'SampleRate',fs_wav, 'NoiseComplexity','Real', 'LossFactor', 2);

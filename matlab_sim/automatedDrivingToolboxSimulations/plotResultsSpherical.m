@@ -113,22 +113,25 @@ xlabel("Time (s)", 'FontSize', 14)
 ylabel("Speed (m/s)", 'FontSize', 14)
 axis([0 max(t) 0 25])
 legend([p1 p2],'Location', 'northeast', 'FontSize', 13)
-% 
-% nexttile
+% % 
+
+% fig1 = figure();
 % hold on
-% scatter(t, abs(measuredVelocity1(:, :)),70, 'Marker','.')
+% % nexttile
+% scatter(t, abs(measuredVelocity1),70, 'Marker','.')
 % % p2 = plot(t, abs(actualVelocity1), 'DisplayName', 'Actual');
 % p12 = plot(t, abs(car1_v), 'DisplayName', 'Car 1 Actual');
 % p22 = plot(t, abs(car2_v), 'DisplayName', 'Car 2 Actual');
 % % p12 = plot(t, abs(actualVelocity1), 'DisplayName', 'Car 1 Actual');
 % % p22 = plot(t, abs(actualVelocity2), 'DisplayName', 'Car 2 Actual');
+% hold off
 % title("RHS Radar Velocity Measurements")
-% xlabel("Time (s)")
-% ylabel("Speed (m/s)")
+% xlabel("Time (s)", 'FontSize', 14)
+% ylabel("Speed (m/s)", 'FontSize', 14)
 % axis([0 max(t) 0 25])
-% legend([p12 p22],'Location', 'southeast')
+% legend([p12 p22],'Location', 'southeast', 'FontSize', 13)
 
-% nexttile
+nexttile
 fig2 = figure();
 hold on
 scatter(t, abs(measuredPosition2),70, 'Marker','.')
@@ -143,7 +146,8 @@ xlabel("Time (s)", 'FontSize', 14)
 ylabel("Range (m)", 'FontSize', 14)
 legend([p3, p4],'Location', 'northeast', 'FontSize', 13)
 
-% nexttile
+% fig2 = figure();
+% % nexttile
 % hold on
 % scatter(t, abs(measuredPosition1(:, :)), 70, 'Marker','.')
 % % p5 = plot(t, abs(actualPosition1), 'DisplayName', 'Actual');
@@ -151,11 +155,12 @@ legend([p3, p4],'Location', 'northeast', 'FontSize', 13)
 % p42 = plot(t, abs(car2_r_right), 'DisplayName', 'Car 2 Actual');
 % % p32 = plot(t, abs(actualPosition1), 'DisplayName', 'Car 1 Actual');
 % % p42 = plot(t, abs(actualPosition2), 'DisplayName', 'Car 2 Actual');
+% hold off
 % title("RHS Radar Range Measurements")
 % xlabel("Time (s)")
 % ylabel("Range (m)")
 % legend([p32, p42],'Location', 'southeast')
-% % legend(p32,'Location', 'southeast')
+% legend(p32,'Location', 'southeast')
 
 % tl.Padding = 'tight';
 % tl.TileSpacing = 'compact';
