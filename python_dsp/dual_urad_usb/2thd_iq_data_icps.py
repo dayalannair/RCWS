@@ -201,6 +201,7 @@ def proc_rad_vid(port, duration, cap, container, fname):
 			frames.append(frame)
 		else:
 			print("Missed video frame: ", fname)
+			exit()
 
 		timeStamp = time()	
 		timeStampList.append(timeStamp)

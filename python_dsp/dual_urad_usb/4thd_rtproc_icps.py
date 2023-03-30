@@ -237,7 +237,7 @@ def captureVid(duration, cap, container, side):
 			
 		else:
 			print("Missed frame: ", side)
-			# exit()
+			exit()
 
 		timeStamp = time()
 		timeStampList.append(timeStamp)

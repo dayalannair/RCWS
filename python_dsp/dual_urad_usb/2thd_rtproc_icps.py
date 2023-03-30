@@ -275,6 +275,7 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, \
 			frames.append(frame)
 		else:
 			print("Missed video frame: ", timeStampFileName)
+			exit()
 
 		# Time stamp for rdr + vid frame
 		timeStamp = time()	
