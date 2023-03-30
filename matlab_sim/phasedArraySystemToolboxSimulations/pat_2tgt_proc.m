@@ -116,7 +116,9 @@ f1 = figure();
 % hold on
 % plot(actual_spd*3.6, 'r')
 % rgMax=max(rgMtx1);
-plot(t_ax, rgMtx1,  'b', DisplayName="Measured")
+rgMtx1(rgMtx1==0)=NaN;
+spMtx1(spMtx1==0)=NaN;
+scatter(t_ax, rgMtx1,  'b', DisplayName="Measured")
 xlabel("Time (s)", 'FontSize',14)
 ylabel("Range (m)", 'FontSize',14)
 hold on
@@ -124,7 +126,7 @@ plot(t_ax, actual_rng, 'r', DisplayName="Actual")
 % legend
 f2 = figure();
 
-plot(t_ax, spMtx1*3.6, 'b', DisplayName="Measured")
+scatter(t_ax, spMtx1*3.6, 'b', DisplayName="Measured")
 xlabel("Time (s)", 'FontSize',14)
 ylabel("Speed (km/h)", 'FontSize',14)
 hold on
@@ -177,3 +179,13 @@ end
 %           B(i,:) = r;
 %      end
 % end
+
+%% get legend
+x = [1,2,3,4,5]
+y = [2,3,6,9,9]
+
+close all
+hold on
+p1 = scatter(y, x, 'b', Marker='o');
+p2 = plot(y, 'r');
+legend([p1,p2], 'Measured', 'Actual', 'FontSize',14)

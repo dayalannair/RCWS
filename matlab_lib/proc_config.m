@@ -7,10 +7,10 @@ n_steps = t_total/t_step;
 t_ax = linspace(0,t_total,n_steps);
 
 % Set up arrays for two targets
-fbu = zeros(n_steps, 2);
-fbd = zeros(n_steps, 2);
-r = zeros(n_steps, 2);
-v = zeros(n_steps, 2);
+fbu = NaN(n_steps, 2);
+fbd = NaN(n_steps, 2);
+r = NaN(n_steps, 2);
+v = NaN(n_steps, 2);
 
 Dn = fix(fs_wav/fs_adc);
 Ns = 200;
@@ -22,7 +22,7 @@ guard = 14;%n_fft/64;%8;
 rank = round(3*train/4);
 nbar = 3;
 sll = -150;
-F = 6*10e-3;
+F = 3*10e-3;
 v_max = 60/3.6; 
 fd_max = speed2dop(v_max, lambda)*2;
 % Minimum sample number for 1024 point FFT corresponding to min range = 10m
@@ -84,37 +84,37 @@ OS2 = phased.CFARDetector('NumTrainingCells',train, ...
 f_bin_edges_idx = size(f_pos(),2)/nbins;
 prev_det = 0;
 
-fb_idx1 = zeros(nbins,1);
-fb_idx2 = zeros(nbins,1);
-fb_idx_end1 = zeros(nbins,1);
-fb_idx_end2 = zeros(nbins,1);
+fb_idx1 = NaN(nbins,1);
+fb_idx2 = NaN(nbins,1);
+fb_idx_end1 = NaN(nbins,1);
+fb_idx_end2 = NaN(nbins,1);
 ax_dims = [0 max(rng_ax) -140 -10];
 ax_ticks = 1:2:60;
 nswp1  = n_steps;
 
-fbu1   = zeros(nswp1, nbins);
-fbd1   = zeros(nswp1, nbins);
-fdMtx1 = zeros(nswp1, nbins);
-rgMtx1 = zeros(nswp1, nbins);
-spMtx1 = zeros(nswp1, nbins);
-safety = zeros(nswp1, 1);
-actual_rng = zeros(nswp1, nbins);
-actual_spd = zeros(nswp1, nbins);
+fbu1   = NaN(nswp1, nbins);
+fbd1   = NaN(nswp1, nbins);
+fdMtx1 = NaN(nswp1, nbins);
+rgMtx1 = NaN(nswp1, nbins);
+spMtx1 = NaN(nswp1, nbins);
+safety = NaN(nswp1, 1);
+actual_rng = NaN(nswp1, nbins);
+actual_spd = NaN(nswp1, nbins);
 
-beat_count_out1 = zeros(1,256);
-beat_count_out2 = zeros(1,256);
-beat_count_in1 = zeros(1,256);
-beat_count_in2 = zeros(1,256);
+beat_count_out1 = NaN(1,256);
+beat_count_out2 = NaN(1,256);
+beat_count_in1 = NaN(1,256);
+beat_count_in2 = NaN(1,256);
 
-% IQ_UP = zeros(nswp1, 512);
-% IQ_DN = zeros(nswp1, 512);
-% upTh1 = zeros(nswp1, 512);
-% dnTh1 = zeros(nswp1, 512);
+% IQ_UP = NaN(nswp1, 512);
+% IQ_DN = NaN(nswp1, 512);
+% upTh1 = NaN(nswp1, 512);
+% dnTh1 = NaN(nswp1, 512);
 
-IQ_UP = zeros(1, nfft);
-IQ_DN = zeros(1, nfft);
-upTh1 = zeros(nfft, 1);
-dnTh1 = zeros(nfft, 1);
+IQ_UP = NaN(1, nfft);
+IQ_DN = NaN(1, nfft);
+upTh1 = NaN(nfft, 1);
+dnTh1 = NaN(nfft, 1);
 
 BIN_MAG = -60;
 
