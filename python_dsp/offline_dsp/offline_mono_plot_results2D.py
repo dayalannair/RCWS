@@ -81,9 +81,9 @@ print("Bin width: ", str(bin_width))
 plt.ion()
 
 # Data structures
-rgMtx = np.zeros([len_subset, nbins])
-spMtx = np.zeros([len_subset, nbins])
-sfVector = np.zeros(len_subset)
+rgMtx = np.full([len_subset, nbins], np.nan)
+spMtx = np.full([len_subset, nbins], np.nan)
+sfVector = np.full(len_subset, np.nan)
 
 # duration = 30*len_subset/2750
 
@@ -164,10 +164,22 @@ fig1 = plt.figure()
 plt.ylabel("Speed (km/h)")
 plt.xlabel("Time (s)")
 plt.ylim([0, 75])
-# for i in range(32):
-# 	plt.plot(timeStampsTrimmed, spMtx[:, i])
+spMtx[spMtx==0]=np.nan
+rgMtx[rgMtx==0]=np.nan
+print(np.shape(spMtx))
+for i in range(32):
+	plt.scatter(timeStampsTrimmed, spMtx[:, i])
 
-plt.plot(spMtx)
+# plt.scatter(timeStampsTrimmed, spMtx[:, 20])
+# plt.scatter(timeStampsTrimmed, spMtx[:, 21])
+# plt.scatter(timeStampsTrimmed, spMtx[:, 22])s
+# plt.scatter(timeStampsTrimmed, spMtx[:, 23])
+# print(spMtx[:, 20])
+# deviation = np.abs(spMtx - 70)
+# print(deviation)
+print(np.nanmean(spMtx))
+print(np.nanstd(spMtx))
+# plt.plot(spMtx)
 	# cursor = mplcursors.cursor(plot)
 	# @cursor.connect("add")
 
@@ -176,7 +188,7 @@ plt.ylabel("Range (m)")
 plt.xlabel("Time (s)")
 plt.ylim([0, 65])
 for i in range(32):
-	plt.plot(timeStampsTrimmed, rgMtx[:, i])
+	plt.scatter(timeStampsTrimmed, rgMtx[:, i])
 
 # plt.grid(None)
 plt.show()

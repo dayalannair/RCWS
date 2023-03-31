@@ -81,9 +81,9 @@ print("Bin width: ", str(bin_width))
 plt.ion()
 
 # Data structures
-rgMtx = np.zeros([len_subset, nbins])
-spMtx = np.zeros([len_subset, nbins])
-sfVector = np.zeros(len_subset)
+rgMtx = np.full([len_subset, nbins],np.nan)
+spMtx = np.full([len_subset, nbins],np.nan)
+sfVector = np.full(len_subset,np.nan)
 timeStamps = np.linspace(0,30,2749)
 
 print("Processing...")

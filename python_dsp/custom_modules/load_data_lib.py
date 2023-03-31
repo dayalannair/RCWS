@@ -66,12 +66,12 @@ def load_data():
     # Controlled test : 23 March 2023
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_43_55.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_47_44.txt")
-    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_52_43.txt")
+    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_52_43.txt")
 
     # Dell XPS
     # file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_43_55.txt")
     # file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_47_44.txt")
-    file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_52_43.txt")
+    # file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_52_43.txt")
     # subset = range(0, 4000)
 
     # for 30-second burst captures
