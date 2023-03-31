@@ -16,7 +16,7 @@ close all
 figure
 tiledlayout(2, 1)
 nexttile
-plot(spdKmh)
+scatter(gps_data.dateTime.Second- gps_data.dateTime.Second(1),spdKmh)
 ylabel('Speed (km/h)')
 nexttile
 scatter(gps_data.latitude, gps_data.longitude)

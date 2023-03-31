@@ -27,7 +27,7 @@ bw = 240e6
 half_train = 16
 half_guard = 14
 
-Pfa = 1e-2
+Pfa = 2e-3
 nbins = 32
 scan_width = 32
 calib = 0.9837
@@ -167,14 +167,20 @@ plt.tight_layout()
 # plt.grid(None)
 # plt.show()
 timeStampsTrimmed = timeStamps[0:len_subset]
-rngAxBins = np.linspace(0, np.max(rngAxNeg), nbins)
+# timeAxTicks = np.linspace(0, duration, 20)
+# rngAxTicks = np.linspace(0, np.max(rngAxNeg), 15)
+
+rngAxBins = np.linspace(0, np.max(rngAxNeg), 10)
+
 plt.imshow(spMtx,cmap='terrain_r', origin='upper', vmin=0, vmax=70, aspect='auto', \
 		     interpolation='none', extent=[0, 62.5, np.max(timeStampsTrimmed), 0]) #, extent=[0, 62.5, 0, len_subset]
 # line3, = ax[1].plot(timeStampsTrimmed , sfVector)
 # thismanager = get_current_fig_manager()
 # thismanager.window.SetPosition((500, 0))
-
-plt.xlabel("Range bins")
+rngTicks = [0,5,10,15,20,25,30,35,40,45,50,55,60]
+plt.xticks(rngTicks)
+plt.xlabel("Range (m)")
+plt.ylabel("Time (s)")
 plt.colorbar()
 # plt.grid(None)
 plt.show()
