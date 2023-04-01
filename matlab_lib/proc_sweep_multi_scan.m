@@ -95,7 +95,7 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
 %                         beat_count_out(beat_index) = ...
 %                             beat_count_out(beat_index) +1;
                         
-%                         spMtx(bin+1) = fd*lambda/2;
+                        spMtx(bin+1) = fd*lambda/2;
                         
                         rgMtx(bin+1) = calib*beat2range( ...
                             [fbu(bin+1) -fbd(bin+1)], k, c);
@@ -105,7 +105,7 @@ function [rgMtx, spMtx, spMtxCorr, pkuClean, ...
     
     %                     real_v = dop2speed(fd/2,lambda)/(2*cos(theta));
 %                         real_v = fd*lambda/(2*cos(theta));
-                        spMtx(bin+1) = fd*lambda/(2*cos(theta));
+                        spMtxCorr(bin+1) = fd*lambda/(2*cos(theta));
                     end
                
                 end

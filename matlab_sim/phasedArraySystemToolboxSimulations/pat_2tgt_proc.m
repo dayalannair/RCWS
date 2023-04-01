@@ -65,7 +65,7 @@ for t = 1:(n_steps)
     pkdClean1, fbu1(i,:), fbd1(i,:), fdMtx1(i,:), fb_idx1, fb_idx_end1, ...
     beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
     lambda, k, c, dnDets1, upDets1, nbins, n_fft, ...
-    f_pos,f_neg, scan_width, 1, lhs_road_width, beat_count_in1);
+    f_pos,f_neg, scan_width, 1, rhs_road_width, beat_count_in1);
 %     disp(rgMtx1(i,:))
     ratio = rgMtx1(i,:)./spMtx1(i,:);
     if (any(ratio<t_safe))
@@ -118,6 +118,7 @@ f1 = figure();
 % rgMax=max(rgMtx1);
 rgMtx1(rgMtx1==0)=NaN;
 spMtx1(spMtx1==0)=NaN;
+spMtxCorr1(spMtxCorr1==0)=NaN;
 scatter(t_ax, rgMtx1,  'b', DisplayName="Measured")
 xlabel("Time (s)", 'FontSize',14)
 ylabel("Range (m)", 'FontSize',14)
@@ -125,12 +126,16 @@ hold on
 plot(t_ax, actual_rng, 'r', DisplayName="Actual")
 % legend
 f2 = figure();
-
-scatter(t_ax, spMtx1*3.6, 'b', DisplayName="Measured")
+hold on
+scatter(t_ax, spMtx1*3.6, 'b', ...
+    'MarkerEdgeColor', "b", ...
+    DisplayName="Measured")
+scatter(t_ax, spMtxCorr1*3.6, ...
+    'MarkerEdgeColor', 'r', ...
+    DisplayName="Measured")
 xlabel("Time (s)", 'FontSize',14)
 ylabel("Speed (km/h)", 'FontSize',14)
-hold on
-plot(t_ax, actual_spd*3.6, 'r', DisplayName="Actual")
+plot(t_ax, actual_spd*3.6, 'm',DisplayName="Actual", LineWidth=1.5)
 
 % legend
 %%
