@@ -86,7 +86,7 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
 	rg_array = np.zeros(nbins)
 	# fd_array = np.zeros(nbins)
 	sp_array = np.zeros(nbins)
-	ratio = np.zeros(nbins)
+	ratio = np.ones(nbins)*4 # above the unsafe time
 	# sp_array_corrected = np.zeros(nbins)
 	# beat_arr = np.zeros(nbins)
 
@@ -192,13 +192,14 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
 					
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************
-	np.divide(rg_array,sp_array, ratio, where=sp_array!=0)
+	np.divide(rg_array,sp_array, ratio, where=sp_array>0)
 	# t_safe = 3
-	if (np.any(ratio<3)):
+	if (np.any(ratio<3.6)):
 		# 1 indicates sweep contained target at unsafe distance
 		# UPDATE: put the ratio/time into array to scale how
 		# safe the turn is
 		safety = min(ratio)
+		# print("Unsafe Turn: ", safety)
 		# for colour map:
 		# safety_inv = 3-min(ratio)
 		

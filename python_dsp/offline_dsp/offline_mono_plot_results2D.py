@@ -147,7 +147,7 @@ np.savetxt(spd_fname,  spMtx, fmt='%.2f')
 
 
 # fd_arr = np.subtract(fbd, fbu)/2
-fd_fname = "dopp_results.txt"
+# fd_fname = "dopp_results.txt"
 # np.savetxt(fd_fname,  fbd, fmt='%10.5f')
 
 # cfu_fname = "cfar_u_results.txt"
@@ -190,6 +190,9 @@ plt.ylim([0, 65])
 for i in range(32):
 	plt.scatter(timeStampsTrimmed, rgMtx[:, i])
 
+sfVector[sfVector==0] = np.nan
+fig3 = plt.figure()
+plt.scatter(timeStampsTrimmed,sfVector)
 # plt.grid(None)
 plt.show()
 
