@@ -96,25 +96,67 @@ rhsRngActual = (car1_r_y.^2 + car1_r_x.^2).^0.5;
 
 %% Plots
 close all
-% figure1 = figure('WindowState','maximized');
+% fig1 = figure('WindowState','maximized');
 fig1 = figure();
+axes1 = axes('Parent',fig1);
+hold(axes1,'on');
+colororder([0.0745098039215686 0.623529411764706 1]);
 % tl = tiledlayout(1, 2);
 % nexttile
 hold on
-scatter(t, abs(measuredVelocity2), 70,'Marker','.')
+scatter(t, abs(measuredVelocity2)*3.6, 20,'Marker','o', ...
+    MarkerFaceColor=[0.49,0.18,0.56], MarkerEdgeColor=[0.49,0.18,0.56])
 % plot(t, abs(lhsVelClusterMean))
-p1 = plot(t, abs(car1_v), 'DisplayName', 'Car 1 Actual');
-p2 = plot(t, abs(car2_v), 'DisplayName', 'Car 2 Actual');
+p1 = plot(t, abs(car1_v)*3.6, 'm','DisplayName', 'Car 1 Actual', ...
+    'LineWidth',1);
+p2 = plot(t, abs(car2_v)*3.6, 'DisplayName', 'Car 2 Actual', ...
+    'LineWidth',1, 'Color',[1 0.411764705882353 0.16078431372549]);
 hold off
 % p1 = plot(t, abs(actualVelocity1), 'DisplayName', 'Car 1 Actual');
 % p2 = plot(t, abs(actualVelocity2), 'DisplayName', 'Car 2 Actual');
 % title("LHS Radar Velocity vs. Time", 'FontSize', 14)
 xlabel("Time (s)", 'FontSize', 14)
 ylabel("Speed (m/s)", 'FontSize', 14)
-axis([0 max(t) 0 25])
+% axis([0 max(t) 0 25])
 legend([p1 p2],'Location', 'northeast', 'FontSize', 13)
-% % 
 
+
+
+
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'LineWidth',1);
+% Create legend
+legend1 = legend(axes1,'show');
+set(legend1,...
+    'Position',[0.152738091150919 0.146746029293726 0.262500004087176 0.113571431023734],...
+    'FontSize',13);
+
+% Create textbox
+annotation(fig1,'textbox',...
+    [0.759214285714284 0.514285714285716 0.139 0.0819047619047627],...
+    'String','Deviation',...
+    'FontSize',13,...
+    'FitBoxToText','off',...
+    'EdgeColor','none');
+
+% Create textarrow
+annotation(fig1,'textarrow',[0.451785714285714 0.534642857142857],...
+    [0.560428571428573 0.40904761904762],'String',{'Car 1 masked by Car 2'},...
+    'LineWidth',1,...
+    'FontSize',13);
+
+% Create textarrow
+annotation(fig1,'textarrow',[0.816071428571426 0.511785714285713],...
+    [0.589000000000005 0.788095238095241],'LineWidth',1);
+
+% Create textarrow
+annotation(fig1,'textarrow',[0.827499999999999 0.731071428571427],...
+    [0.523333333333334 0.35857142857143],'LineWidth',1);
+
+
+% % 
+%%
 % fig1 = figure();
 % hold on
 % % nexttile
@@ -133,11 +175,16 @@ legend([p1 p2],'Location', 'northeast', 'FontSize', 13)
 
 nexttile
 fig2 = figure();
+axes1 = axes('Parent',fig2);
+hold(axes1,'on');
 hold on
-scatter(t, abs(measuredPosition2),70, 'Marker','.')
+scatter(t, abs(measuredPosition2),20,'Marker','o', ...
+    MarkerFaceColor=[0.49,0.18,0.56], MarkerEdgeColor=[0.49,0.18,0.56])
 % plot(t, lhsRngClusterMean)
-p3 = plot(t, abs(lhsRngActual), 'DisplayName', 'Car 1 Actual');
-p4 = plot(t, abs(rhsRngActual), 'DisplayName', 'Car 2 Actual');
+p3 = plot(t, abs(lhsRngActual), 'm','DisplayName', 'Car 1 Actual', ...
+    'LineWidth',1);
+p4 = plot(t, abs(rhsRngActual), 'DisplayName', 'Car 2 Actual', ...
+    'LineWidth',1, 'Color',[1 0.411764705882353 0.16078431372549]);
 hold off
 % p3 = plot(t, abs(actualPosition1), 'DisplayName', 'Car 1 Actual');
 % p4 = plot(t, abs(actualPosition2), 'DisplayName', 'Car 2 Actual');
@@ -146,6 +193,20 @@ xlabel("Time (s)", 'FontSize', 14)
 ylabel("Range (m)", 'FontSize', 14)
 legend([p3, p4],'Location', 'northeast', 'FontSize', 13)
 
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'LineWidth',1);
+% Create legend
+legend1 = legend(axes1,'show');
+set(legend1,...
+    'Position',[0.152738091150919 0.146746029293726 0.262500004087176 0.113571431023734],...
+    'FontSize',13);
+
+% Create textarrow
+annotation(fig2,'textarrow',[0.451785714285714 0.534642857142857],...
+    [0.560428571428573 0.40904761904762],'String',{'Car 1 masked by Car 2'},...
+    'LineWidth',1,...
+    'FontSize',13);
 % fig2 = figure();
 % % nexttile
 % hold on
@@ -187,7 +248,7 @@ meanMeasuredVel1 = mean(measuredVelocity1, 2, 'omitnan');
 
 
 % close all
-% figure1 = figure('WindowState','maximized');
+% fig1 = figure('WindowState','maximized');
 % tl = tiledlayout(1, 2);
 % nexttile
 % hold on
@@ -218,34 +279,34 @@ meanMeasuredVel1 = mean(measuredVelocity1, 2, 'omitnan');
 %%
 
 % Create textarrow
-% annotation(figure1,'textarrow',[0.148958333333333 0.203125],...
+% annotation(fig1,'textarrow',[0.148958333333333 0.203125],...
 %     [0.789598290598291 0.873931623931624],'String',{'Car 1'});
 % 
 % % Create textarrow
-% annotation(figure1,'textarrow',[0.358854166666667 0.323958333333333],...
+% annotation(fig1,'textarrow',[0.358854166666667 0.323958333333333],...
 %     [0.75434188034188 0.841880341880342],'String',{'Car 2'});
 % 
 % % Create textarrow
-% annotation(figure1,'textarrow',[0.213541666666667 0.189583333333333],...
+% annotation(fig1,'textarrow',[0.213541666666667 0.189583333333333],...
 %     [0.359042735042735 0.27991452991453],'String',{'Car 1'});
 % 
 % % Create textarrow
-% annotation(figure1,'textarrow',[0.634895833333333 0.684895833333333],...
+% annotation(fig1,'textarrow',[0.634895833333333 0.684895833333333],...
 %     [0.757547008547009 0.870726495726496],'String',{'Car 2'});
 % 
 % % Create textarrow
-% annotation(figure1,'textarrow',[0.799479166666667 0.771875],...
+% annotation(fig1,'textarrow',[0.799479166666667 0.771875],...
 %     [0.776777777777778 0.862179487179487],'String',{'Car 1'});
 % 
 % % Create textarrow
-% annotation(figure1,'textarrow',[0.3296875 0.359895833333333],...
+% annotation(fig1,'textarrow',[0.3296875 0.359895833333333],...
 %     [0.345153846153846 0.264957264957265],'String',{'Car 2'});
 % 
 % % Create textarrow
-% annotation(figure1,'textarrow',[0.7 0.657291666666667],...
+% annotation(fig1,'textarrow',[0.7 0.657291666666667],...
 %     [0.36865811965812 0.286324786324786],'String',{'Car 2'});
 % 
 % % Create textarrow
-% annotation(figure1,'textarrow',[0.768233387358185 0.80226904376013],...
+% annotation(fig1,'textarrow',[0.768233387358185 0.80226904376013],...
 %     [0.301245250431779 0.250431778929188],'String',{'Car 1'});
 

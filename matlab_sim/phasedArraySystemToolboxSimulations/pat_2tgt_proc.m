@@ -17,7 +17,14 @@ for t = 1:(n_steps)
 %     pause(1)
     i = t;
     %disp(t)
-    sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
+    
+    % dual radar
+    dual_rdr_pos = [rdr_pos,rdr_pos];
+    dual_rdr_vel = [rdr_vel,rdr_vel];
+    sceneview(dual_rdr_pos,dual_rdr_vel,tgt_pos,tgt_vel);
+
+    % single radar 
+%     sceneview(rdr_pos,rdr_vel,tgt_pos,tgt_vel);
     [tgt_pos, tgt_vel] = carmotion(t_step);
 %     disp(tgt_pos)
     actual_rng(i, :) = sqrt(tgt_pos(1, 1)^2 + tgt_pos(2,1)^2);
@@ -188,9 +195,11 @@ end
 %% get legend
 x = [1,2,3,4,5]
 y = [2,3,6,9,9]
+z = [2,5,9,3,6]
 
 close all
 hold on
 p1 = scatter(y, x, 'b', Marker='o');
-p2 = plot(y, 'r');
-legend([p1,p2], 'Measured', 'Actual', 'FontSize',14)
+p3 = scatter(y, x, 'r', Marker='o');
+p2 = plot(y, 'm');
+legend([p1, p3, p2], 'Measured','Corrected' ,'Actual', 'FontSize',14)

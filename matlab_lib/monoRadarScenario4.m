@@ -2,21 +2,23 @@
 % two cars passing by, LHS radar side
 % two extra cars going right to left
 % CASE 4: Target overtake
+
+% These parameters were adjusted to morph the 3 target scenario as needed
 car1_x_dist = -60;
-car1_y_dist = 1.1;
-car1_speed = 60/3.6;
+car1_y_dist = 3.3;
+car1_speed = 45/3.6;
 
-car2_x_dist = -10;
-car2_y_dist = 101.1;
-car2_speed = -30/3.6;
+car2_x_dist = -40;
+car2_y_dist = 3.3;
+car2_speed = 60/3.6;
 
-car3_x_dist = -5;
-car3_y_dist = 101.1;
-car3_speed = -25/3.6;
+car3_x_dist = 60;
+car3_y_dist = 1.1;
+car3_speed = -70/3.6;
 
-car4_x_dist = 0;
-car4_y_dist = 101.1;
-car4_speed = -20/3.6;
+car4_x_dist = 30;
+car4_y_dist = 1.1;
+car4_speed = -30/3.6;
 
 car1_dist = sqrt(car1_x_dist^2 + car1_y_dist^2);
 car2_dist = sqrt(car2_x_dist^2 + car2_y_dist^2);
