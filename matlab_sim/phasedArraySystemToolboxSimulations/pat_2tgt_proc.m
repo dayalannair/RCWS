@@ -72,7 +72,7 @@ for t = 1:(n_steps)
     pkdClean1, fbu1(i,:), fbd1(i,:), fdMtx1(i,:), fb_idx1, fb_idx_end1, ...
     beat_count_out1] = proc_sweep_multi_scan(bin_width, ...
     lambda, k, c, dnDets1, upDets1, nbins, n_fft, ...
-    f_pos,f_neg, scan_width, 1, rhs_road_width, beat_count_in1);
+    f_pos,f_neg, scan_width, 1, lhs_road_width, beat_count_in1);
 %     disp(rgMtx1(i,:))
     ratio = rgMtx1(i,:)./spMtx1(i,:);
     if (any(ratio<t_safe))
@@ -163,9 +163,9 @@ spMtxCorr1Kmh = real(spMtxCorr1*3.6);
 % rgMtx1_NAN(rgMtx1_NAN == 0) = nan;
 % rgMtx1Clean = rmmissing(rgMtx1_NAN, 2)
 for i = 1:size(rgMtx1(:,1))
-    rgMtx1_mean(i,:) = mean(nonzeros(rgMtx1(i,:)));
-    spMtx1Kmh_mean(i,:) = mean(nonzeros(spMtx1Kmh(i,:)));
-    spMtxCorr1Kmh_mean(i,:) = mean(nonzeros(spMtxCorr1Kmh(i,:)));
+    rgMtx1_mean(i,:) = mean(nonzeros(rgMtx1(i,:)), "omitnan");
+    spMtx1Kmh_mean(i,:) = mean(nonzeros(spMtx1Kmh(i,:)), "omitnan");
+    spMtxCorr1Kmh_mean(i,:) = mean(nonzeros(spMtxCorr1Kmh(i,:)), "omitnan");
 end
 % spMtx1Kmh_mean = mean(removeMatZeros(spMtx1Kmh), 2, 'omitnan');
 % spMtxCorr1Kmh_mean = mean(removeMatZeros(spMtxCorr1Kmh), 2, 'omitnan');
