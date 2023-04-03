@@ -1,0 +1,2 @@
+pscp pi@192.168.210.194:/home/pi/RCWS/python_dsp/dual_urad_usb/*.avi C:\Users\pregg\Desktop\controlled_test_03_04_2023
+pscp pi@192.168.210.194:/home/pi/RCWS/python_dsp/dual_urad_usb/*.txt C:\Users\pregg\Desktop\controlled_test_03_04_2023
