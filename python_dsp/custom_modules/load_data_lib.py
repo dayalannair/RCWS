@@ -64,7 +64,7 @@ def load_data():
 
 
     # Controlled test : 23 March 2023
-    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_43_55.txt")
+    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_45_23.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_47_44.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_52_43.txt")
 
@@ -75,14 +75,16 @@ def load_data():
     # subset = range(0, 4000)
 
     # Controlled test : 03 April 2023
-    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_43_55.txt")
-    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_47_44.txt")
-    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_52_43.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_03_04_2023\lhs_iq_12_25_03.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_03_04_2023\lhs_iq_12_27_14.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_03_04_2023\lhs_iq_12_29_45.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_03_04_2023\lhs_iq_12_32_47.txt")
+
 
     # Dell XPS
     # file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_43_55.txt")
     # file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_47_44.txt")
-    file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_03_04_2023\lhs_iq_12_32_47.txt")
+    # file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_03_04_2023\lhs_iq_12_32_47.txt")
     # for 30-second burst captures
     # subset = range(0, 2700)
 
@@ -106,21 +108,30 @@ def load_data():
     # subset=range(0,400)
     # subset=range(400,800)
     # subset=range(0,1100)
-    subset=range(0,2700)
+    # subset=range(0,2700)
 
-
-        # Controlled tests 23 March 2023
+    # ------------------------------
+    # Controlled tests 23 March 2023
+    # ------------------------------
     # 45 km/h
-    # subset=range(0,540) 
+    subset=range(490,1050) 
     # 60 km/h
     # subset=range(1520,1890)
     # 70 km/h
     # subset=range(1700,2060)
 
-    # subset=range(0,400)
-    # subset=range(400,800)
-    # subset=range(0,1100)
-    subset=range(900,1400)
+    # ------------------------------
+    # Controlled tests 03 April 2023
+    # ------------------------------
+    # 45 km/h
+    # subset=range(1030,1430)
+    # 60 km/h
+    # subset=range(1040,1350)
+    # 70 km/h
+    # subset=range(1100,1400)
+    # 60 km/h
+    # subset=range(950,1200)
+    # subset=range(0,2700)
     
 
     # 20km/h subset

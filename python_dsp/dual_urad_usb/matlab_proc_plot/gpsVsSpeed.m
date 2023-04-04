@@ -8,22 +8,30 @@ addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
 % gps_data40 = readtable('20221105-110129 - 40ane60.txt','Delimiter' ,',');
 
 
-% gps_data = readtable('20230323-121458 - 45.txt','Delimiter' ,',');
-gps_data = readtable('20230323-121730 - 60.txt','Delimiter' ,',');
+gps_data = readtable('20230323-121458 - 45.txt','Delimiter' ,',');
+% gps_data = readtable('20230323-121730 - 60.txt','Delimiter' ,',');
 % gps_data = readtable('20230323-122237 - 70_2.txt','Delimiter' ,',');
 
 
 %% Load offline processed speed data 
 addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
     'RCWS_DATA\controlled_test_23_03_2023\offlineProc\']);
-spMeasTbl = readtable('speed_results_ct60.txt','Delimiter' ,' ');
+spMeasTbl = readtable('speed_results_ct45.txt','Delimiter' ,' ');
+% spMeasTbl = readtable('speed_results_ct60.txt','Delimiter' ,' ');
 % spMeasTbl = readtable('speed_results_ct70.txt','Delimiter' ,' ');
 spMtx = table2array(spMeasTbl);
 
 %% Organise data
 % subset_start = 1700;
+
+% 60 km/h
 subset_start = 1520;
 subset_end = 2753;
+
+% 45 km/h
+subset_start = 190;
+subset_end = 1050;
+
 gpsSpd = gps_data.speed_m_s_*3.6;
 t_ax_rdr = linspace(0,30,subset_end);
 t_ax_rdr = t_ax_rdr(subset_start+1:subset_start+length(spMtx));
@@ -32,13 +40,15 @@ t_ax_gps = gps_data.dateTime.Second - gps_data.dateTime.Second(1);
 
 % 70 km/h
 timeAlign = 11;
-tIdxStart = find(t_ax_gps==16);
+tIdxStart = find(t_ax_gps==5);
 tIdxEnd = find(t_ax_gps==21);
 t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
 gpsSpd = gpsSpd(tIdxStart:tIdxEnd);
 % t_ax_gps = 
 %% Plot
 spMtx(spMtx==0)=nan;
+% spMtx(spMtx<50)=nan;
+% spMtx(spMtx>60)=nan;
 spMtxVector = max(spMtx,[], 2);
 
 %%
@@ -49,8 +59,19 @@ hold on
 numAx = linspace(1,370,370);
 plot(t_ax_gps, gpsSpd, LineWidth=1.5)
 % plot(t_ax_rdr,spMtxVector)
-scatter(t_ax_rdr, spMtxVector.',200, Marker=".")
+scatter(t_ax_rdr, spMtx.', 200, Marker=".")
+% surf(spMtx)
+% plot(t_ax_rdr, spMtx(:, :).')
+% p1 = plot(t_ax_rdr, spMtx(:, 5).');
 
+% for i=1:370
+%   plot(t_ax_rdr, flip(spMtx(:, i).'));
+%   drawnow;
+%   pause(0.1);
+% end
+% scatter(spMtx)
+% imagesc(spMtx)
+% plot(spMtx.')
 ylabel('Speed (km/h)')
 
 % gps_dataTest1 = readtable('20221105-105303 - Test1.txt','Delimiter' ,',');
