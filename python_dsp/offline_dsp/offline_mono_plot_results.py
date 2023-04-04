@@ -27,7 +27,7 @@ bw = 240e6
 half_train = 16
 half_guard = 14
 
-Pfa = 2e-3
+Pfa = 9e-3
 nbins = 32
 scan_width = 32
 calib = 0.9837
