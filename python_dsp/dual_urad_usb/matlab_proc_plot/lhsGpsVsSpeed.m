@@ -10,7 +10,7 @@ addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
 
 % gps_data = readtable('20230323-121458 - 45.txt','Delimiter' ,',');
 % gps_data = readtable('20230323-121730 - 60.txt','Delimiter' ,',');
-gps_data = gpxread('20230403-121955 - 45.gpx');
+gps_data = readtable('20230403-121955 - 45.txt');
 
 
 %% Load offline processed speed data 
