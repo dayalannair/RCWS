@@ -1,7 +1,7 @@
 % addpath(['..\..\..\..\OneDrive - University of Cape Town' ...
 %     '\RCWS_DATA\road_data_05_11_2022\gps_data\']);
 addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
-    'RCWS_DATA\controlled_test_23_03_2023\gps_data\']);
+    'RCWS_DATA\controlled_test_03_04_2023\gps_data\']);
 
 % gps_data30 = readtable('20221105-111150 - 3030.txt','Delimiter' ,',');
 % gps_data50 = readtable('20221105-111817 - 5050.txt','Delimiter' ,',');
@@ -10,7 +10,7 @@ addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
 
 % gps_data = readtable('20230323-121458 - 45.txt','Delimiter' ,',');
 % gps_data = readtable('20230323-121730 - 60.txt','Delimiter' ,',');
-gps_data = readtable('20230323-122237 - 70_2.txt','Delimiter' ,',');
+gps_data = gpxread('20230403-121955 - 45.gpx');
 
 
 %% Load offline processed speed data 
