@@ -159,7 +159,8 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
 					# speeds are limited to these values on main roads
 					# these are divided by two due to the optimisation above
 					# fmin = 21 km/h corresponds to 933 Hz -> use 467 below
-					if (1563>fd>467): 
+					# fmin = 1333.33 Hz for vmin = 30 km/h -> use 667 Hz below 
+					if (1563>fd>667): 
 						# fd_array[bin] = fd/2
 						
 						# if less than max expected and filter clutter doppler

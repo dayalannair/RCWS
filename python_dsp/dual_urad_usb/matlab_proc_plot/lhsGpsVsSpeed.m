@@ -1,24 +1,16 @@
-% addpath(['..\..\..\..\OneDrive - University of Cape Town' ...
-%     '\RCWS_DATA\road_data_05_11_2022\gps_data\']);
+
 addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
     'RCWS_DATA\controlled_test_03_04_2023\gps_data\']);
-
-% gps_data30 = readtable('20221105-111150 - 3030.txt','Delimiter' ,',');
-% gps_data50 = readtable('20221105-111817 - 5050.txt','Delimiter' ,',');
-% gps_data40 = readtable('20221105-110129 - 40ane60.txt','Delimiter' ,',');
-
-
-% gps_data = readtable('20230323-121458 - 45.txt','Delimiter' ,',');
-% gps_data = readtable('20230323-121730 - 60.txt','Delimiter' ,',');
-gps_data = readtable('20230403-121955 - 45.txt');
-
+gps_data = readtable('20230403-121955 - 45.txt','Delimiter' ,',');
+% gps_data = readtable('20230403-122706 - 60.txt','Delimiter' ,',');
+% gps_data = readtable('20230403-122941 - 70.txt','Delimiter' ,',');
 
 %% Load offline processed speed data 
 addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
-    'RCWS_DATA\controlled_test_23_03_2023\offlineProc\']);
-% spMeasTbl = readtable('speed_results_ct45.txt','Delimiter' ,' ');
-% spMeasTbl = readtable('speed_results_ct60.txt','Delimiter' ,' ');
-spMeasTbl = readtable('speed_results_ct70.txt','Delimiter' ,' ');
+    'RCWS_DATA\controlled_test_03_04_2023\offline_proc\']);
+spMeasTbl = readtable('lhs_speed_results_ct45.txt','Delimiter' ,' ');
+spMeasTbl = readtable('lhs_speed_results_ct60.txt','Delimiter' ,' ');
+% % spMeasTbl = readtable('lhs_speed_results_ct70.txt','Delimiter' ,' ');
 spMtx = table2array(spMeasTbl);
 
 %% Organise data
@@ -40,6 +32,10 @@ subset_end = 2060;
 % subset_end = 1050;
 
 gpsSpd = gps_data.speed_m_s_*3.6;
+close all
+plot(gpsSpd)
+return;
+%%
 t_ax_rdr = linspace(0,30,subset_length);
 t_ax_rdr = t_ax_rdr(subset_start+1:subset_end);
 hms_clean = gps_data.dateTime - gps_data.dateTime(1);
@@ -65,12 +61,7 @@ t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
 % tIdxEnd = find(t_ax_gps==17);
 % t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd)-5.5;
 
-
-
 gpsSpd = gpsSpd(tIdxStart:tIdxEnd);
-
-
-
 
 
 % t_ax_gps = 

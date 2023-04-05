@@ -27,7 +27,7 @@ bw = 240e6
 half_train = 16
 half_guard = 14
 
-Pfa = 1e-3
+Pfa = 3e-3
 nbins = 16
 scan_width = 32
 calib = 0.9837
@@ -124,32 +124,16 @@ for sweep in subset:
 # print(sfVector)
 print("Saving data...")
 spMtx = spMtx*3.6 # km/h
-# safety_fname = "safety_results.txt"
-rng_fname = "range_results.txt"
-spd_fname = "speed_results.txt"
-fbu_fname = "fbu_results.txt"
-fbd_fname = "fbd_results.txt"
-# np.savetxt(safety_fname,  safety, fmt='%3.4f')
-# np.savetxt(rng_fname,  rgMtx, fmt='%10.5f')
-# np.savetxt(spd_fname,  spMtx, fmt='%10.5f')
-# np.savetxt(fbu_fname,  fbu, fmt='%10.5f')
-# np.savetxt(fbd_fname,  fbd, fmt='%10.5f')
+safety_fname = "rhs_safety_results_ct45.txt"
+rng_fname = "rhs_range_results_ct45.txt"
+spd_fname = "rhs_speed_results_ct45.txt"
+
+
 
 np.savetxt(rng_fname,  rgMtx, fmt='%.2f')
 np.savetxt(spd_fname,  spMtx, fmt='%.2f')
-# np.savetxt(fbu_fname,  fbu, fmt='%.2f')
-# np.savetxt(fbd_fname,  fbd, fmt='%.2f')
+np.savetxt(safety_fname, sfVector, fmt='%.4f')
 
-
-# fd_arr = np.subtract(fbd, fbu)/2
-fd_fname = "dopp_results.txt"
-# np.savetxt(fd_fname,  fbd, fmt='%10.5f')
-
-# cfu_fname = "cfar_u_results.txt"
-# cfd_fname = "cfar_d_results.txt"
-# # np.savetxt(safety_fname,  safety, fmt='%3.4f')
-# np.savetxt(cfu_fname,  cfar_up, fmt='%10.5f')
-# np.savetxt(cfd_fname,  cfar_dn, fmt='%10.5f')
 
 print("Processing Complete. Displaying results...")
 

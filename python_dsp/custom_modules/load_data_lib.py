@@ -64,9 +64,9 @@ def load_data():
 
 
     # Controlled test : 23 March 2023
-    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_45_23.txt")
+    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_45_23.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_47_44.txt")
-    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_52_43.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_52_43.txt")
 
     # Dell XPS
     # file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_43_55.txt")
@@ -114,21 +114,21 @@ def load_data():
     # Controlled tests 23 March 2023
     # ------------------------------
     # 45 km/h
-    # subset=range(490,1050) 
+    subset=range(490,1050) 
     # 60 km/h
     # subset=range(1520,1890)
     # 70 km/h
-    subset=range(1700,2060)
+    # subset=range(1700,2060)
 
     # ------------------------------
     # Controlled tests 03 April 2023
     # ------------------------------
     # 45 km/h
-    # subset=range(1030,1430)
+    # subset=range(1030,1390)
     # 60 km/h
-    # subset=range(1040,1350)
+    # subset=range(1060,1320)
     # 70 km/h
-    # subset=range(1100,1400)
+    # subset=range(1100,1360)
     # 60 km/h
     # subset=range(950,1200)
     # subset=range(0,2700)
