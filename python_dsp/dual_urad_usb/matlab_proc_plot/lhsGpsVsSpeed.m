@@ -2,64 +2,64 @@
 addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
     'RCWS_DATA\controlled_test_03_04_2023\gps_data\']);
 gps_data = readtable('20230403-121955 - 45.txt','Delimiter' ,',');
-% gps_data = readtable('20230403-122706 - 60.txt','Delimiter' ,',');
-% gps_data = readtable('20230403-122941 - 70.txt','Delimiter' ,',');
+gps_data = readtable('20230403-122706 - 60.txt','Delimiter' ,',');
+gps_data = readtable('20230403-122941 - 70.txt','Delimiter' ,',');
 
 %% Load offline processed speed data 
 addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
     'RCWS_DATA\controlled_test_03_04_2023\offline_proc\']);
 spMeasTbl = readtable('lhs_speed_results_ct45.txt','Delimiter' ,' ');
 spMeasTbl = readtable('lhs_speed_results_ct60.txt','Delimiter' ,' ');
-% % spMeasTbl = readtable('lhs_speed_results_ct70.txt','Delimiter' ,' ');
+spMeasTbl = readtable('lhs_speed_results_ct70.txt','Delimiter' ,' ');
 spMtx = table2array(spMeasTbl);
 
 %% Organise data
 % subset_start = 1700;
 
 % 70 km/h
-subset_length= 2752;
-subset_start = 1700;
-subset_end = 2060;
+subset_length= 2749;
+subset_start = 1100;
+subset_end = 1360;
 
 % 60 km/h
 % subset_length= 2753;
-% subset_start = 1520;
-% subset_end = 1890;
+% subset_start = 1060;
+% subset_end = 1320;
 
 % 45 km/h
-% subset_length= 2744; % 45 km/h
-% subset_start = 490;
-% subset_end = 1050;
+% subset_length= 2750;
+% subset_start = 1030;
+% subset_end = 1390;
 
 gpsSpd = gps_data.speed_m_s_*3.6;
-close all
-plot(gpsSpd)
-return;
+% close all
+% plot(gpsSpd)
+% return;
 %%
-t_ax_rdr = linspace(0,30,subset_length);
-t_ax_rdr = t_ax_rdr(subset_start+1:subset_end);
+t_ax_rdr_full = linspace(0,30,subset_length);
+t_ax_rdr = t_ax_rdr_full(subset_start+1:subset_end);
 hms_clean = gps_data.dateTime - gps_data.dateTime(1);
 t_ax_gps = seconds(hms_clean);
 
 
-% 70 km/h
-t_min_rdr = round(min(t_ax_rdr))-1;
-t_max_rdr = round(max(t_ax_rdr))-1;
-tIdxStart = find(t_ax_gps==t_min_rdr);
-tIdxEnd = find(t_ax_gps==t_max_rdr);
-t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
-
-% % 60 km/h
-% t_min_rdr = round(min(t_ax_rdr));
-% t_max_rdr = round(max(t_ax_rdr));
+% 45 km/h
+% t_min_rdr = round(min(t_ax_rdr))-1;
+% t_max_rdr = round(max(t_ax_rdr))+1;
 % tIdxStart = find(t_ax_gps==t_min_rdr);
 % tIdxEnd = find(t_ax_gps==t_max_rdr);
 % t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
 
+% % 60 km/h
+t_min_rdr = round(min(t_ax_rdr));
+t_max_rdr = round(max(t_ax_rdr));
+tIdxStart = find(t_ax_gps==t_min_rdr);
+tIdxEnd = find(t_ax_gps==t_max_rdr);
+t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
+
 % 45 km/h
 % tIdxStart = find(t_ax_gps==9);
 % tIdxEnd = find(t_ax_gps==17);
-% t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd)-5.5;
+% t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
 
 gpsSpd = gpsSpd(tIdxStart:tIdxEnd);
 
@@ -67,10 +67,15 @@ gpsSpd = gpsSpd(tIdxStart:tIdxEnd);
 % t_ax_gps = 
 %% Plot
 spMtx(spMtx==0)=nan;
+t_ax_rdr = t_ax_rdr.';
 % spMtx(spMtx<50)=nan;
 % spMtx(spMtx>60)=nan;
-spMtxVector = max(spMtx,[], 2);
-
+spMtxVector = mean(spMtx, 2, "omitnan");
+close all
+scatter(t_ax_rdr,spMtxVector)
+hold on
+plot(t_ax_gps, gpsSpd, LineWidth=1.5)
+return
 %%
 close all
 figure
