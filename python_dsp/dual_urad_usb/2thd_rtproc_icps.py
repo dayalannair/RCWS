@@ -232,7 +232,7 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, \
 	print("uRAD USB processing thread started")
 	# Global inputs
 	global n_fft
-	global twin
+	global win
 	global num_nul
 	global half_guard
 	global half_train
@@ -264,7 +264,7 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, \
 			closeProgram()
 
 		_,_,_,_,_,_,_,_,rg_array[i], sp_array[i], sf_array[i]  = \
-			py_trig_dsp(raw_results[0], raw_results[1], twin, n_fft, \
+			py_trig_dsp(raw_results[0], raw_results[1], win, n_fft, \
 	       		half_train, half_guard, nbins, bin_width,\
 			  	fpos, fneg, SOS, calib, scan_width, angOffsetMinRange,\
 				angOffset, numVoltageLevels, rd_width)
@@ -277,7 +277,7 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, \
 			frames.append(frame)
 		else:
 			print("Missed video frame: ", timeStampFileName)
-			exit()
+			os._exit(1)
 
 		# Time stamp for rdr + vid frame
 		timeStamp = time()	
