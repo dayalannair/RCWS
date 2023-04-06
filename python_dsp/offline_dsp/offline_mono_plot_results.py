@@ -18,65 +18,65 @@ from load_data_lib import load_data
 sweeps, subset = load_data()
 len_subset = len(subset)
 print("Subset length: ", str(len_subset))
-# Parameters
+# Radar parameters
 fs = 200e3
 n_fft = 1024
 c = 299792458
 tsweep = 1e-3
 bw = 240e6
-half_train = 16
-half_guard = 14
-
-Pfa = 3e-3
-nbins = 16
-scan_width = 32
-calib = 0.9837
-ns = 200
-
-# Right radar angle correction
-rhs_road_width = 1.5
-angOffsetMinRange = 100 
-
-# Left radar angle adjustment and correction
-# angOffsetMinRange = 7.1 
-angOffset = 25*np.pi/180
-
+slope = bw/tsweep
 # DC cancellation
 max_voltage = 3.3
 ADC_bits = 12
 ADC_intervals = 2**ADC_bits
 numVoltageLevels = max_voltage/ADC_intervals
 
-# frequency and range axes
+# Processing parameters
+half_train = 16
+half_guard = 14
+Pfa = 3e-3
+nbins = 16
+scan_width = 32
+calib = 0.9837
+ns = 200
+win = signal.windows.taylor(ns, nbar=3, sll=40, norm=False)
+SOS = ns*(Pfa**(-1/ns)-1)
+print("Pfa: ", str(Pfa))
+print("CFAR alpha value: ", SOS)
+bin_width = round((n_fft/2)/nbins)
+print("Bin width: ", str(bin_width))
+
+# System parameters
+# NOTE: comment out which is not being used!
+# Right radar angle correction
+
+road_width = 1.5
+angOffsetMinRange = 100 
+# Left radar angle adjustment and correction
+road_width = 3.3
+angOffsetMinRange = 7.1 
+
+angOffset = 25*np.pi/180
+
+
+# frequency axes
+# positive axis contains 0 Hz
 fpos = np.linspace(0, round(fs/2)-1, round(n_fft/2))
 # negative axis flipped about y axis
 fneg = np.linspace(round(fs/n_fft), round(fs/2), round(n_fft/2))
-# print(fpos)
-# print(fneg)
-slope = bw/tsweep
+
+# For plots
 rngAxPos = c*fpos/(2*slope)
 rngAxNeg = c*fneg/(2*slope)
 
 
-win = signal.windows.taylor(ns, nbar=3, sll=40, norm=False)
-
 # OS CFAR
-
 # half_guard = n_fft/n_samples
 # half_guard = int(np.floor(half_guard/2)*2) # make even
-
 # half_train = round(20*n_fft/n_samples)
 # half_train = int(np.floor(half_train/2))
 # rank = 2*half_train -2*half_guard
 # rank = half_train*2
-
-SOS = ns*(Pfa**(-1/ns)-1)
-
-print("Pfa: ", str(Pfa))
-print("CFAR alpha value: ", SOS)
-
-bin_width = round((n_fft/2)/nbins)
-print("Bin width: ", str(bin_width))
 
 plt.ion()
 
@@ -109,7 +109,7 @@ for sweep in subset:
 	_,_,_,_,_,_,_,_,rgMtx[i, :], spMtx[i, :], sfVector[i] = \
 		py_trig_dsp(i_data,q_data, win, n_fft, half_train, \
 	half_guard, nbins, bin_width, fpos, fneg, SOS, calib, scan_width, angOffsetMinRange, \
-	angOffset, numVoltageLevels, rhs_road_width)
+	angOffset, numVoltageLevels, road_width)
 
 
 	

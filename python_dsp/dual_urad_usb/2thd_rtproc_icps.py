@@ -148,47 +148,55 @@ return_code, results, raw_results = uRAD_USB_SDK11.detection(ser2)
 if (return_code != 0):
 	print("Error requesting data from uRAD 2")
 	closeProgram()
-
-print("Radars configured. Initialising threads...")
-
-# Tunable Processing Parameters
+print("Radars configured")
+# Radar parameters
+fs = 200e3
 n_fft = 1024
-half_train = 16
-half_guard = 14
-Pfa = 1e-4
-SOS = Ns*(Pfa**(-1/Ns)-1)
-nbins = 32
-bin_width = round((n_fft/2)/nbins)
-scan_width = 32
-calib = 0.9837
-twin = signal.windows.taylor(200, nbar=3, sll=100, norm=False)
-
-# frequency axes
-fpos = np.linspace(0, round(fs/2)-1, round(n_fft/2))
-# negative axis flipped about y axis
-fneg = np.linspace(round(fs/n_fft), round(fs/2), round(n_fft/2))
-
-# Fixed parameters
-tsweep = 1e-3
-slope = BW/tsweep
 c = 299792458
-rhs_road_width = 1.5
-lhs_road_width = 3
-angOffsetMinRangeRhs = 100 
-
-# Left radar angle adjustment and correction
-angOffsetMinRangeLhs = 7.1 
-angOffset = 25*np.pi/180
-
+tsweep = 1e-3
+bw = 240e6
+slope = bw/tsweep
 # DC cancellation
 max_voltage = 3.3
 ADC_bits = 12
 ADC_intervals = 2**ADC_bits
 numVoltageLevels = max_voltage/ADC_intervals
 
-# print("Pfa: ", str(Pfa))
-# print("CFAR alpha value: ", SOS)
-print("System running...")
+# Processing parameters
+half_train = 16
+half_guard = 14
+Pfa = 3e-3
+nbins = 16
+scan_width = 32
+calib = 0.9837
+ns = 200
+win = signal.windows.taylor(ns, nbar=3, sll=40, norm=False)
+SOS = ns*(Pfa**(-1/ns)-1)
+print("Pfa: ", str(Pfa))
+print("CFAR alpha value: ", SOS)
+bin_width = round((n_fft/2)/nbins)
+print("Bin width: ", str(bin_width))
+
+# System parameters
+# NOTE: comment out which is not being used!
+# Right radar angle correction
+rhs_road_width = 1.5
+angOffsetMinRangeRhs = 100 
+# Left radar angle adjustment and correction
+lhs_road_width = 3.3
+angOffsetMinRangeLhs = 7.1 
+
+angOffset = 25*np.pi/180
+
+# frequency axes
+# positive axis contains 0 Hz
+fpos = np.linspace(0, round(fs/2)-1, round(n_fft/2))
+# negative axis flipped about y axis
+fneg = np.linspace(round(fs/n_fft), round(fs/2), round(n_fft/2))
+
+# For plots
+rngAxPos = c*fpos/(2*slope)
+rngAxNeg = c*fneg/(2*slope)
 
 # ======================= CAMERAS ================================
 cap1 = cv2.VideoCapture(0)
@@ -199,11 +207,6 @@ cap1.set(4, 240)
 
 cap2.set(3, 320)
 cap2.set(4, 240)
-
-# sleep(0.5)
-
-# ret,frame1 = cap1.read()
-# ret,frame2 = cap2.read()
 
 fourcc  = cv2.VideoWriter_fourcc(*'X264')
 lhs_vid = cv2.VideoWriter('2thd_lhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
@@ -260,7 +263,6 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, \
 		if (return_code != 0):
 			closeProgram()
 
-		# remember to add the sp_array_corr[i] output to the proc lib
 		_,_,_,_,_,_,_,_,rg_array[i], sp_array[i], sf_array[i]  = \
 			py_trig_dsp(raw_results[0], raw_results[1], twin, n_fft, \
 	       		half_train, half_guard, nbins, bin_width,\
@@ -318,24 +320,22 @@ lhs_frange = "2thd_lhs_range_results_"+now+".txt"
 lhs_fspeed = "2thd_lhs_speed_results_"+now+".txt"
 lhs_fsafety = "2thd_lhs_safety_results_"+now+".txt"
 # lhs_fcorr = "2thd_lhs_spcorr_results_"+now+".txt"
-
 rhs_frange = "2thd_rhs_range_results_"+now+".txt"
 rhs_fspeed = "2thd_rhs_speed_results_"+now+".txt"
 rhs_fsafety = "2thd_rhs_safety_results_"+now+".txt"
 # rhs_fcorr = "2thd_rhs_spcorr_results_"+now+".txt"
 
+print("System running...")
+
 try:
-	
 	t0 = time()
 	t1 = 0
-
 	urad1 = threading.Thread(target=proc_rad_vid, \
 		args=[ser1, lhs_fspeed , lhs_frange, lhs_fsafety, duration, \
 	 	cap2, lhs_vid, "rtp_lhs", angOffsetMinRangeLhs, angOffset, lhs_road_width])
 	urad2 = threading.Thread(target=proc_rad_vid, \
 		args=[ser2, rhs_fspeed , rhs_frange, rhs_fsafety, duration, \
 		cap1, rhs_vid, "rtp_rhs", angOffsetMinRangeRhs, 0, rhs_road_width])
-
 	t0_proc = time()
 	print("==============================================")
 	# Start separate threads for each sensor
@@ -345,10 +345,8 @@ try:
 	# wait for all threads to finish
 	urad1.join()
 	urad2.join()
-
 	t1_proc = time()-t0_proc
 	t1 = time() - t0
-		
 	print("Results capture complete.")
 	print("==============================================")
 	uRAD_USB_SDK11.turnOFF(ser1)
