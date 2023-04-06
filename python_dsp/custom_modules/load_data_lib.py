@@ -3,7 +3,7 @@
 # Allows for chaning file and subset length in one place and viewing the results using different scripts
 
 from pathlib import Path
-import numpy as np
+# import numpy as np
 def load_data():
     
 
@@ -39,17 +39,17 @@ def load_data():
     # =============================================================================================
     # 3 March 2023
     # =============================================================================================
-    file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_57_07.txt")
-    file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_52_01.txt")
+    file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_57_07.txt")
+    # file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_52_01.txt")
 
-    file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\test_radar\rhs_iq_17_01_40.txt")
+    # file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\test_radar\rhs_iq_17_01_40.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_57_07.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_57_07.txt")
 
     # =============================================================================================
     # 30 March 2023
     # =============================================================================================
-    file_path = Path(r"C:\Users\pregg\Desktop\controlled_test_30_03_2023\lhs_iq_12_18_52.txt")
+    # file_path = Path(r"C:\Users\pregg\Desktop\controlled_test_30_03_2023\lhs_iq_12_18_52.txt")
     # file_path = Path(r"C:\Users\pregg\Desktop\controlled_test_30_03_2023\lhs_iq_12_23_14.txt")
 
 
@@ -64,7 +64,7 @@ def load_data():
 
 
     # Controlled test : 23 March 2023
-    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_45_23.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_45_23.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_47_44.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_23_03_2023\rhs_iq_12_52_43.txt")
 
@@ -114,7 +114,7 @@ def load_data():
     # Controlled tests 23 March 2023
     # ------------------------------
     # 45 km/h
-    subset=range(490,1050) 
+    # subset=range(490,1050) 
     # 60 km/h
     # subset=range(1520,1890)
     # 70 km/h
@@ -131,7 +131,7 @@ def load_data():
     # subset=range(1100,1360)
     # 60 km/h
     # subset=range(950,1200)
-    # subset=range(0,2700)
+    subset=range(0,2700)
     
 
     # 20km/h subset
@@ -143,7 +143,10 @@ def load_data():
     # sys.path.append('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby')
     with open(file_path, "r") as raw_IQ:
             # split into sweeps
-            sweeps = raw_IQ.read().split("\n")
+            # sweeps = raw_IQ.read().split("\n")
+            sweeps = raw_IQ.read()
+            sweeps = sweeps.split("\n")
+
 
     # print(np.shape(sweeps))
     # subset = range(0, np.shape(sweeps)[0]-2)
