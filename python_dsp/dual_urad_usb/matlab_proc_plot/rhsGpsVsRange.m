@@ -9,7 +9,7 @@ addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
 
 
 gps_data = readtable('20230323-121458 - 45.txt','Delimiter' ,',');
-% gps_data = readtable('20230323-121730 - 60.txt','Delimiter' ,',');
+gps_data = readtable('20230323-121730 - 60.txt','Delimiter' ,',');
 % gps_data = readtable('20230323-122237 - 70_2.txt','Delimiter' ,',');
 % gps_data = readtable('20230323-122005 - 70.txt','Delimiter' ,',');
 
@@ -18,7 +18,7 @@ gps_data = readtable('20230323-121458 - 45.txt','Delimiter' ,',');
 addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
     'RCWS_DATA\controlled_test_23_03_2023\offlineProc\']);
 rgMeasTbl = readtable('rhs_range_results_ct45.txt','Delimiter' ,' ');
-% rgMeasTbl = readtable('rhs_range_results_ct60.txt','Delimiter' ,' ');
+rgMeasTbl = readtable('rhs_range_results_ct60.txt','Delimiter' ,' ');
 % rgMeasTbl = readtable('rhs_range_results_ct70.txt','Delimiter' ,' ');
 rgMtx = table2array(rgMeasTbl);
 
@@ -42,9 +42,9 @@ subset_start = 490;
 subset_end = 1050;
 
 % 60 km/h
-% subset_length= 2753;
-% subset_start = 1520;
-% subset_end = 1890;
+subset_length= 2753;
+subset_start = 1520;
+subset_end = 1890;
 
 % 70-2 km/h
 % subset_length= 2752;
@@ -58,24 +58,24 @@ hms_clean = gps_data.dateTime - gps_data.dateTime(1);
 t_ax_gps = seconds(hms_clean);
 
 % % 60 km/h
-% t_min_rdr = round(min(t_ax_rdr));
-% t_max_rdr = round(max(t_ax_rdr));
-% tIdxStart = find(t_ax_gps==t_min_rdr);
-% tIdxEnd = find(t_ax_gps==t_max_rdr);
-% t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
-
-% 70-2 km/h
-t_min_rdr = round(min(t_ax_rdr))-1;
-t_max_rdr = round(max(t_ax_rdr))-1;
+t_min_rdr = round(min(t_ax_rdr));
+t_max_rdr = round(max(t_ax_rdr));
 tIdxStart = find(t_ax_gps==t_min_rdr);
 tIdxEnd = find(t_ax_gps==t_max_rdr);
 t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
 
+% 70-2 km/h
+% t_min_rdr = round(min(t_ax_rdr))-1;
+% t_max_rdr = round(max(t_ax_rdr))-1;
+% tIdxStart = find(t_ax_gps==t_min_rdr);
+% tIdxEnd = find(t_ax_gps==t_max_rdr);
+% t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
+
 
 % 45 km/h
-tIdxStart = find(t_ax_gps==20);
-tIdxEnd = find(t_ax_gps==26);
-t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
+% tIdxStart = find(t_ax_gps==20);
+% tIdxEnd = find(t_ax_gps==26);
+% t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
 
 
 % for i = 1:29
@@ -110,10 +110,10 @@ t_ax  = gps_data.dateTime.Second- gps_data.dateTime.Second(1);
 rgMtx(rgMtx==0)=nan;
 
 % 70-2 km/h
-t_offset = abs(min(t_ax_rdr)-min(t_ax_gps))+0.1;
+% t_offset = abs(min(t_ax_rdr)-min(t_ax_gps))+0.1;
 
 % 60 km/h
-% t_offset = abs(min(t_ax_rdr)-min(t_ax_gps))-0.85;
+t_offset = abs(min(t_ax_rdr)-min(t_ax_gps))-0.85;
 
 % 45 km/h
 % t_offset = -abs(min(t_ax_rdr)-min(t_ax_gps))-0.425;
