@@ -151,7 +151,7 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
 					# NOTE: div by 4: first division by 2 is for beat freq, 
 					# second is for dop to vel - reducing the number of divisions
 
-					fd = (-fbu[bin] + fbd[bin])*calib/4 
+					half_fd = (-fbu[bin] + fbd[bin])*calib/4 
 					
 					# NOTE: fmin = 400 Hz corresponds to 9 km/h
 					# fmin = 667 Hz corresponds to 15 km/h
@@ -160,36 +160,38 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
 					# these are divided by two due to the optimisation above
 					# fmin = 21 km/h corresponds to 933 Hz -> use 467 below
 					# fmin = 1333.33 Hz for vmin = 30 km/h -> use 667 Hz below 
-					if (1563>fd>667): 
-						# fd_array[bin] = fd/2
+					if (1563>half_fd>667): 
+						# fd_array[bin] = half_fd/2
 						
 						# if less than max expected and filter clutter doppler
-						# if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
-						# convert Doppler to speed. fd is twice the Doppler therefore
+						# if ((abs(half_fd/2) < fd_max) and (half_fd/2 > 400)):
+						# convert Doppler to speed. half_fd is twice the Doppler therefore
 						# divide by 2
-						# sp_array[bin] = fd*lmda/2
+						# sp_array[bin] = half_fd*lmda/2
 						# Note that fbd is now positive
 						rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)*calib
 
 						# to account for angle offset on left radar. 
 						# for right radar, set angOffsetMinRange = 100
 						if rg_array[bin] > angOffsetMinRange:
-							sp_array[bin] = fd*lmda/(np.cos(angOffset - np.arcsin(road_width/rg_array[bin])))
+							sp_array[bin] = half_fd*lmda/(np.cos(angOffset - np.arcsin(road_width/rg_array[bin])))
 						
 						# Else ignore/dont correct for left and calculate as normal for right
 						else:
-							sp_array[bin] = fd*lmda/(np.cos(np.arcsin(road_width/rg_array[bin])))
+							# sp_array[bin] = half_fd*lmda/(np.cos(np.arcsin(road_width/rg_array[bin])))
+							# disable for rhs
+							sp_array[bin] = half_fd*lmda
 						
-						# debug high speed getting through
-						# if sp_array[bin]*3.6 > 70:
-						# 	print("Speed violation when fd = ", str(fd))
+						# debug high speed getting through - due to rhs ang correction
+						# if sp_array[bin]*3.6 > 70.4:
+						# 	print("Speed violation when half_fd = ", str(half_fd), ", range: ", str(rg_array[bin]), ", speed: ", sp_array[bin])
 
 						# ************* Angle correction *******************
 						# Theta in radians
 						# theta = np.arcsin(road_width/rg_array[bin])*correction_factor
 
-						# # real_v = fd*lmda/(8*np.cos(theta))
-						# sp_array[bin] = fd*lmda/(2*np.cos(theta))
+						# # real_v = half_fd*lmda/(8*np.cos(theta))
+						# sp_array[bin] = half_fd*lmda/(2*np.cos(theta))
 					
 	# print(Pfa)
 	# ********************* Safety Algorithm ***********************************
@@ -345,26 +347,26 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
 			
 # 				# if both not DC
 # 				if (fbu[bin] < fbd[bin]):
-# 					fd = (-fbu[bin] + fbd[bin])*calib/4 # divide by 4 instead of 2 to eliminate further divisions
-# 					# fd_array[bin] = fd/2
+# 					half_fd = (-fbu[bin] + fbd[bin])*calib/4 # divide by 4 instead of 2 to eliminate further divisions
+# 					# fd_array[bin] = half_fd/2
 					
 # 					# if less than max expected and filter clutter doppler
-# 					# if ((abs(fd/2) < fd_max) and (fd/2 > 400)):
-# 					# if (fdMin < fd < fdMax):
-# 					if (fdMin < fd): # NOTE: max limited by scan width
-# 						# convert Doppler to speed. fd is twice the Doppler therefore
+# 					# if ((abs(half_fd/2) < fd_max) and (half_fd/2 > 400)):
+# 					# if (fdMin < half_fd < fdMax):
+# 					if (fdMin < half_fd): # NOTE: max limited by scan width
+# 						# convert Doppler to speed. half_fd is twice the Doppler therefore
 # 						# divide by 2
-# 						# sp_array[bin] = fd*lmda
+# 						# sp_array[bin] = half_fd*lmda
 # 						# Note that fbd is now positive
 # 						rg_array[bin] = c*(fbu[bin] + fbd[bin])/(4*slope)*calib
 
 # 						# to account for angle offset on left radar. for right radar, set angOffsetMinRange = 100
 # 						if rg_array[bin] > angOffsetMinRange:
-# 							sp_array[bin] = fd*lmda/(np.cos(angOffset - np.arcsin(road_width/rg_array[bin])))
+# 							sp_array[bin] = half_fd*lmda/(np.cos(angOffset - np.arcsin(road_width/rg_array[bin])))
 						
 # 						# Else ignore/dont correct for left and calculate as normal for right
 # 						else:
-# 							sp_array[bin] = fd*lmda/(np.cos(np.arcsin(road_width/rg_array[bin])))
+# 							sp_array[bin] = half_fd*lmda/(np.cos(np.arcsin(road_width/rg_array[bin])))
 	
 
 
@@ -372,7 +374,7 @@ def py_trig_dsp(i_data, q_data, windowCoeffs, n_fft, half_train, half_guard, \
 # 						# Theta in radians
 # 						# theta = np.arcsin(road_width/rg_array[bin])*correction_factor
 
-# 						# real_v = fd*lmda/(8*np.cos(theta))
+# 						# real_v = half_fd*lmda/(8*np.cos(theta))
 						
 						
 # 	# print(Pfa)

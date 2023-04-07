@@ -34,7 +34,7 @@ numVoltageLevels = max_voltage/ADC_intervals
 # Processing parameters
 half_train = 16
 half_guard = 14
-Pfa = 3e-3
+Pfa = 12e-3
 nbins = 16
 scan_width = 32
 calib = 0.9837
@@ -49,15 +49,16 @@ print("Bin width: ", str(bin_width))
 # System parameters
 # NOTE: comment out which is not being used!
 # Right radar angle correction
-
-road_width = 1.5
-angOffsetMinRange = 100 
+full_road_width = 7 # Dreyersdal road
+# full_road_width = 9 # main road
+# road_width = full_road_width/4
+# angOffsetMinRange = 100 
 # Left radar angle adjustment and correction
-road_width = 3.3
+road_width = (3*full_road_width)/4
 angOffsetMinRange = 7.1 
 
 angOffset = 25*np.pi/180
-
+print("Range offset from boresight (lane width): ", str(road_width))
 
 # frequency axes
 # positive axis contains 0 Hz
@@ -124,9 +125,16 @@ for sweep in subset:
 # print(sfVector)
 print("Saving data...")
 spMtx = spMtx*3.6 # km/h
-safety_fname = "rhs_safety_results_ct45.txt"
-rng_fname = "rhs_range_results_ct45.txt"
-spd_fname = "rhs_speed_results_ct45.txt"
+
+# Right side file names
+# safety_fname = "rhs_safety_results_ct70.txt"
+# rng_fname = "rhs_range_results_ct70.txt"
+# spd_fname = "rhs_speed_results_ct70.txt"
+
+# Left side file names
+safety_fname = "lhs_safety_results_ct70.txt"
+rng_fname = "lhs_range_results_ct70.txt"
+spd_fname = "lhs_speed_results_ct70.txt"
 
 
 
