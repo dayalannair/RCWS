@@ -10,7 +10,7 @@ addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
 
 gps_data = readtable('20230323-121458 - 45.txt','Delimiter' ,',');
 gps_data = readtable('20230323-121730 - 60.txt','Delimiter' ,',');
-% gps_data = readtable('20230323-122237 - 70_2.txt','Delimiter' ,',');
+gps_data = readtable('20230323-122237 - 70_2.txt','Delimiter' ,',');
 % gps_data = readtable('20230323-122005 - 70.txt','Delimiter' ,',');
 
 
@@ -20,19 +20,28 @@ addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
     'RCWS_DATA\controlled_test_23_03_2023\offlineProc\']);
 spMeasTbl = readtable('rhs_speed_results_ct45.txt','Delimiter' ,' ');
 spMeasTbl = readtable('rhs_speed_results_ct60.txt','Delimiter' ,' ');
-% spMeasTbl = readtable('rhs_speed_results_ct70.txt','Delimiter' ,' ');
+spMeasTbl = readtable('rhs_speed_results_ct70.txt','Delimiter' ,' ');
 spMtx = table2array(spMeasTbl);
 
 rgMeasTbl = readtable('rhs_range_results_ct45.txt','Delimiter' ,' ');
 rgMeasTbl = readtable('rhs_range_results_ct60.txt','Delimiter' ,' ');
-% rgMeasTbl = readtable('rhs_range_results_ct70.txt','Delimiter' ,' ');
+rgMeasTbl = readtable('rhs_range_results_ct70.txt','Delimiter' ,' ');
 rgMtx = table2array(rgMeasTbl);
 
 toaTbl = readtable('rhs_safety_results_ct45.txt','Delimiter' ,' ');
 toaTbl = readtable('rhs_safety_results_ct60.txt','Delimiter' ,' ');
+toaTbl = readtable('rhs_safety_results_ct70.txt','Delimiter' ,' ');
 toaMtx = table2array(toaTbl);
 %%
 
+% 60 km/h
+subset_length= 2753;
+subset_start = 1520;
+subset_end = 1890;
+% 70-2 km/h
+subset_length= 2752;
+subset_start = 1700;
+subset_end = 2060;
 t_ax_rdr = linspace(0,30,subset_length);
 t_ax_rdr = t_ax_rdr(subset_start+1:subset_end);
 hms_clean = gps_data.dateTime - gps_data.dateTime(1);
@@ -44,6 +53,8 @@ tIdxEnd = 26;
 % 60
 tIdxStart = 21;
 tIdxEnd = 25;
+tIdxStart = 16;
+tIdxEnd = 20;
 
 t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
 gpsSpd = gps_data.speed_m_s_;
@@ -67,7 +78,7 @@ toaMtx(toaMtx==0)=nan;
 t_offset = -0.425;
 
 % 60 km/h
-% t_offset = -0.85;
+t_offset = -0.85;
 
 %%
 close all 
