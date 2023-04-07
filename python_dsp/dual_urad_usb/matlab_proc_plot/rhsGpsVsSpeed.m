@@ -78,13 +78,9 @@ tIdxStart = find(t_ax_gps==10);
 tIdxEnd = find(t_ax_gps==17);
 t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd)-5.5;
 
-
-
+gpsSpdFull = gpsSpd;
 gpsSpd = gpsSpd(tIdxStart:tIdxEnd);
-
-
-
-
+err = gps_data.accuracy_m_(tIdxStart:tIdxEnd);
 
 % t_ax_gps = 
 %% Plot
@@ -99,7 +95,7 @@ figure
 hold on
 % % scatter(,gpsSpd)
 numAx = linspace(1,370,370);
-plot(t_ax_gps, gpsSpd, LineWidth=1.5)
+errorbar(t_ax_gps, gpsSpd, err,LineWidth=1.1)
 % plot(t_ax_rdr,spMtxVector)
 scatter(t_ax_rdr, mean(spMtx,2, "omitnan").', 200, Marker=".")
 % surf(spMtx)
