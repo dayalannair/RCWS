@@ -85,25 +85,11 @@ ylabel('Speed (km/h)', FontSize=13)
 xlabel('Time (s)', FontSize=13)
 
 %%
-% close all
-% figure
-% plot(gps_data30.speed_m_s_*3.6)
-% ylabel('Speed (km/h)')
-%%
-% close all
-% figure
-% plot(gps_data50.speed_m_s_*3.6)
-% ylabel('Speed (km/h)')
-% 
-% %%
-% close all
-% figure
-% plot(gps_data40.speed_m_s_*3.6)
-% ylabel('Speed (km/h)')
-% 
-% %%
-% close all
-% figure
-% plot(gps_dataTest1.speed_m_s_*3.6)
-% ylabel('Speed (km/h)')
-
+close all
+figure
+hold on
+x = [1,2,3,4,5];
+y = [2,4,5,6,8];
+plot(x, 'Color','r',LineWidth=2 ,DisplayName="GPS measurement")
+scatter(x, y, 5, "blue",'filled', DisplayName="Radar measurement")
+legend('FontSize',13)
