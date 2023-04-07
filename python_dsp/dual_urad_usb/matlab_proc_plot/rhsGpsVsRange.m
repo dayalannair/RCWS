@@ -10,7 +10,7 @@ addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
 
 gps_data = readtable('20230323-121458 - 45.txt','Delimiter' ,',');
 gps_data = readtable('20230323-121730 - 60.txt','Delimiter' ,',');
-% gps_data = readtable('20230323-122237 - 70_2.txt','Delimiter' ,',');
+gps_data = readtable('20230323-122237 - 70_2.txt','Delimiter' ,',');
 % gps_data = readtable('20230323-122005 - 70.txt','Delimiter' ,',');
 
 
@@ -19,20 +19,9 @@ addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
     'RCWS_DATA\controlled_test_23_03_2023\offlineProc\']);
 rgMeasTbl = readtable('rhs_range_results_ct45.txt','Delimiter' ,' ');
 rgMeasTbl = readtable('rhs_range_results_ct60.txt','Delimiter' ,' ');
-% rgMeasTbl = readtable('rhs_range_results_ct70.txt','Delimiter' ,' ');
+rgMeasTbl = readtable('rhs_range_results_ct70.txt','Delimiter' ,' ');
 rgMtx = table2array(rgMeasTbl);
 
-% Radar position
-lon = 18.2728;
-lat = -34.0315;
-calib = 111.139;
-lat_rng = (lat - gps_data.latitude);
-lng_rng = (gps_data.longitude - lon);
-lat2 = gps_data.latitude*calib;
-lonCalib = 240075 * cos( lat2 ) / 360;
-lon2 = gps_data.longitude.*lonCalib;
-rng2 = sqrt(lat2.^2 + lon2.^2);
-rng = sqrt(lat_rng.^2 + lng_rng.^2)*calib;
 
 %% Organise data
 
@@ -47,9 +36,9 @@ subset_start = 1520;
 subset_end = 1890;
 
 % 70-2 km/h
-% subset_length= 2752;
-% subset_start = 1700;
-% subset_end = 2060;
+subset_length= 2752;
+subset_start = 1700;
+subset_end = 2060;
 
 gpsSpd = gps_data.speed_m_s_*3.6;
 t_ax_rdr = linspace(0,30,subset_length);
@@ -58,18 +47,18 @@ hms_clean = gps_data.dateTime - gps_data.dateTime(1);
 t_ax_gps = seconds(hms_clean);
 
 % % 60 km/h
-t_min_rdr = round(min(t_ax_rdr));
-t_max_rdr = round(max(t_ax_rdr));
-tIdxStart = find(t_ax_gps==t_min_rdr);
-tIdxEnd = find(t_ax_gps==t_max_rdr);
-t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
-
-% 70-2 km/h
-% t_min_rdr = round(min(t_ax_rdr))-1;
-% t_max_rdr = round(max(t_ax_rdr))-1;
+% t_min_rdr = round(min(t_ax_rdr));
+% t_max_rdr = round(max(t_ax_rdr));
 % tIdxStart = find(t_ax_gps==t_min_rdr);
 % tIdxEnd = find(t_ax_gps==t_max_rdr);
 % t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
+
+% 70-2 km/h
+t_min_rdr = round(min(t_ax_rdr))-1;
+t_max_rdr = round(max(t_ax_rdr))-1;
+tIdxStart = find(t_ax_gps==t_min_rdr);
+tIdxEnd = find(t_ax_gps==t_max_rdr);
+t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
 
 
 % 45 km/h
@@ -83,9 +72,6 @@ t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
 % end
 
 %% Coords
-origin = [lat,lon,50];
-origin = [-34.0528450000000	18.4564700000000,50];
-origin = [-34.05418024521243, 18.457971132886712,50];
 % RHS start point from GPS measurement
 origin = [-34.05417909,18.45800825,50];
 [xEast,yNorth,zUp] = latlon2local(gps_data.latitude,gps_data.longitude,50,origin);
@@ -110,10 +96,10 @@ t_ax  = gps_data.dateTime.Second- gps_data.dateTime.Second(1);
 rgMtx(rgMtx==0)=nan;
 
 % 70-2 km/h
-% t_offset = abs(min(t_ax_rdr)-min(t_ax_gps))+0.1;
+t_offset = abs(min(t_ax_rdr)-min(t_ax_gps))+0.1;
 
 % 60 km/h
-t_offset = abs(min(t_ax_rdr)-min(t_ax_gps))-0.85;
+% t_offset = abs(min(t_ax_rdr)-min(t_ax_gps))-0.85;
 
 % 45 km/h
 % t_offset = -abs(min(t_ax_rdr)-min(t_ax_gps))-0.425;
