@@ -77,12 +77,13 @@ ylabel('Speed (km/h)', FontSize=13)
 xlabel('Time (s)', FontSize=13)
 
 %%
-% close all
-% figure
-% hold on
-% x = [1,2,3,4,5];
-% y = [2,4,5,6,8];
-% z = [0.3, 0.4 0.7 0.8 0.1];
-% errorbar(x,z,'Color','r',LineWidth=1.1 ,DisplayName="GPS measurement")
-% plot(x,'-o','Color','b','LineWidth',0.6, DisplayName="Radar measurement")
-% legend('FontSize',13)
+close all
+figure
+hold on
+x = [1,2,3,4,5];
+y = [2,4,5,6,8];
+z = [0.3, 0.4 0.7 0.8 0.1];
+errorbar(x,z,'Color','r',LineWidth=1.1 ,DisplayName="GPS measurement")
+plot(x,'-o','Color','b','LineWidth',0.6,'MarkerFaceColor','b' , DisplayName="Radar measurement")
+% scatter(x,y,5,'b','filled' ,DisplayName="Radar measurement")
+legend('FontSize',13)
