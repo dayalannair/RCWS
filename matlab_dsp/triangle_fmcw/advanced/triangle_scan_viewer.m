@@ -15,7 +15,7 @@ addpath(['../../../../../OneDrive - ' ...
 Ns = 200;
 % Taylor Window
 nbar = 3;
-sll = -100;
+sll = -40;
 win = taylorwin(Ns, nbar, sll);
 win = rectwin(Ns);
 % win = hamming(Ns);
@@ -23,14 +23,10 @@ win = rectwin(Ns);
     import_data(subset, win.');
 n_sweeps = size(iq_u,1);
 %%
-
-% iq_u = iq_u.*win.';
-% iq_d = iq_d.*win.';
-
 % FFT
-n_fft = 512;
-FFT_U = fft(iq_u*Ns,n_fft,2);
-FFT_D = fft(iq_d*Ns,n_fft,2);
+n_fft = 1024;
+FFT_U = fft(iq_u,n_fft,2)/Ns;
+FFT_D = fft(iq_d,n_fft,2)/Ns;
 
 % FFT_U = fft(iq_u,n_fft,2);
 % FFT_D = fft(iq_d,n_fft,2);
@@ -39,31 +35,17 @@ FFT_D = fft(iq_d*Ns,n_fft,2);
 FFT_U = FFT_U(:, 1:n_fft/2);
 FFT_D = FFT_D(:, n_fft/2+1:end);
 
-% Null feedthrough
-% nul_width_factor = 0.04;
-% num_nul = round((n_fft/2)*nul_width_factor);
-% FFT_U(:, 1:num_nul) = 0;
-% FFT_D(:, end-num_nul+1:end) = 0;
-
-% FFT_U = FFT_U - mean(FFT_U);
-% FFT_D = FFT_D - mean(FFT_D);
-% CFAR
-guard = 2*n_fft/Ns;
-guard = floor(guard/2)*2; % make even
-% too many training cells results in too many detections
-train = round(20*n_fft/Ns);
-train = floor(train/2)*2;
 train = 16;
 guard = 14;
 % false alarm rate - sets sensitivity
-F = 1e-5; 
+F = 1e-9; 
 CFAR_OBJ = phased.CFARDetector('NumTrainingCells',train, ...
     'NumGuardCells',guard, ...
     'ThresholdFactor', 'Auto', ...
     'ProbabilityFalseAlarm', F, ...
-    'Method', 'OS', ...
-    'ThresholdOutputPort', true, ...
-    'Rank',train-5);
+    'Method', 'CA', ...
+    'ThresholdOutputPort', true);%, ...
+%     'Rank',train-5);
 
 % flip
 FFT_D = flip(FFT_D,2);
@@ -96,7 +78,7 @@ n_min = 42;
 % Divide into range bins of width 64
 nbins = 16;
 % bin_width = (n_fft/2)/nbins;
-bin_width = 16;
+bin_width = 32;
 fbu = zeros(n_sweeps,nbins);
 fbd = zeros(n_sweeps,nbins);
 
@@ -111,26 +93,26 @@ osd_pk_clean = zeros(n_sweeps,n_fft/2);
 % Make slightly larger to allow for holding previous
 % >16 will always be 0 and not influence results
 % previous_det = zeros(nbins+2, 1);
-scan_width = 16;
+scan_width = 32;
 f_bin_edges_idx = size(f_pos(),2)/nbins;
 %
-index_end = 0;
-beat_index = 0;
+index_end = 1;
+beat_index = 1;
 close all
-fig1 = figure('WindowState','maximized');
+fig1 = figure('WindowState','maximized');set(gcf,'color','w');
 ax_dims = [0 round(max(f_pos)) -60 20];
 ax_dims = [0 round(max(f_pos)) -85 10];
 ax_dims = [0 round(max(f_pos)) 0 100];
 
-ax_dims = [0 round(max(rngAx)) 0 100];
-
+ax_dims = [0 round(max(rngAx)) -100 0];
+FFT_U(:, 1) = FFT_U(:, 2);
 % ax_dims = [0 round(max(f_pos)) -45 50];
 for i = 1:n_sweeps
    for bin = 0:(nbins-1)
         bin_slice_d = os_pkd(i,bin*bin_width+1:(bin+1)*bin_width);
         [magd, idx_d] = max(bin_slice_d);
 
-        if magd ~= 0
+        if (magd ~= 0) && (idx_d>1)
             beat_index = bin*bin_width + idx_d;
             fbd(i,bin+1) = f_pos(beat_index);
            if (beat_index > bin_width)
@@ -145,31 +127,34 @@ for i = 1:n_sweeps
    end
     tiledlayout(2,1)
     nexttile
-    plot(rngAx, absmagdb(FFT_D(i,:)))
-    title("DOWN chirp flipped negative half average nulling")
+    p1 = plot(rngAx, absmagdb(FFT_D(i,:)), DisplayName="Spectrum");
+%     title("DOWN chirp flipped negative half average nulling")
     axis(ax_dims)
     hold on
-    plot(rngAx, mag2db(sqrt(os_thd(:,i))))
-    hold on
-    stem(rngAx, mag2db(os_pkd(i,:)))
-    hold on
-    xline([beat_index index_end])
-%     xline(lines)
+    p2 = plot(rngAx, mag2db(sqrt(os_thd(:,i))), DisplayName="CFAR threshold");
+    p3 = stem(rngAx, mag2db(os_pkd(i,:)), DisplayName="Detection");
+    xline([rngAx(beat_index) rngAx(index_end)])
+    xlabel("Range (m)", 'FontSize',10)
+    ylabel ("Amplitude (dB)", 'FontSize',10)
+    legend([p1, p2, p3], 'FontSize',10)
     hold off
 
     nexttile
-    plot(rngAx, absmagdb(FFT_U(i,:)))
-    title("UP chirp positive half average nulling")
+    
+    q1 = plot(rngAx, absmagdb(FFT_U(i,:)), DisplayName="Spectrum");
+%     title("UP chirp positive half average nulling")
     axis(ax_dims)
     hold on
-    plot(rngAx, mag2db(sqrt(os_thu(:,i))))
-    hold on
-    stem(rngAx, mag2db(os_pku(i,:)))
-    hold on
-%     xline(lines)
-    xline([beat_index index_end])
+    q2 = plot(rngAx, mag2db(sqrt(os_thu(:,i))), DisplayName="CFAR threshold");
+    q3 = stem(rngAx, mag2db(os_pku(i,:)), DisplayName="Detection");
+    xline([rngAx(beat_index) rngAx(index_end)])
+    xlabel("Range (m)", 'FontSize',10)
+    ylabel ("Amplitude (dB)", 'FontSize',10)
+    legend([q1, q2, q3], 'FontSize',10)
     hold off
     drawnow;
+
+
 
     % Linear scale
 

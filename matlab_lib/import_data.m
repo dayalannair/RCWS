@@ -29,7 +29,7 @@ import_data(sweeps, windowCoeffs)
 % iq_tbl=readtable('IQ_tri_30kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_40kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_50kmh.txt','Delimiter' ,' ');
-% iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
+iq_tbl=readtable('IQ_tri_60kmh.txt','Delimiter' ,' ');
 % iq_tbl=readtable('IQ_tri_70kmh.txt','Delimiter' ,' ');
 
 % calibration
@@ -43,13 +43,13 @@ import_data(sweeps, windowCoeffs)
     % CONTROLLED TEST 23 MARCH 2023
 
 %     45 km/h
-    iq_tbl=readtable('rhs_iq_12_43_55','Delimiter' ,' ');
+%     iq_tbl=readtable('rhs_iq_12_43_55','Delimiter' ,' ');
 
 %     60 km/h
-    iq_tbl=readtable('rhs_iq_12_47_44','Delimiter' ,' ');
+%     iq_tbl=readtable('rhs_iq_12_47_44','Delimiter' ,' ');
 
-%     75 km/h
-    iq_tbl=readtable('rhs_iq_12_52_43','Delimiter' ,' ');
+%     70 km/h
+%     iq_tbl=readtable('rhs_iq_12_52_43','Delimiter' ,' ');
     timeStamps = 0; % when not used
     i_up = table2array(iq_tbl(sweeps,1:200));
     i_dn = table2array(iq_tbl(sweeps,201:400));
