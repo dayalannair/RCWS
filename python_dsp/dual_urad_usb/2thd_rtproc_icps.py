@@ -282,7 +282,7 @@ def proc_rad_vid(port, fspeed, frange, fsafety, duration, \
 
 		# Time stamp for rdr + vid frame
 		timeStamp = time()	
-		timeStampList.append(timeStamp)
+		# timeStampList.append(timeStamp)
 		t1 = timeStamp - t0
 
 	# print("Video capture complete.  Data captured.")
