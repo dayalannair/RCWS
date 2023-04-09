@@ -34,7 +34,7 @@ numVoltageLevels = max_voltage/ADC_intervals
 # Processing parameters
 half_train = 16
 half_guard = 14
-Pfa = 12e-3
+Pfa = 4e-3
 nbins = 16
 scan_width = 32
 calib = 0.9837

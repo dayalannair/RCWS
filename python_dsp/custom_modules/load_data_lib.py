@@ -10,7 +10,7 @@ def load_data():
     # =============================================================================================
     # 3 March 2023
     # =============================================================================================
-    file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_57_07.txt")
+    # file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_57_07.txt")
     # file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_52_01.txt")
 
     # file_path = Path(r"C:\Users\pregg\OneDrive - University of Cape Town\RCWS_DATA\test_radar\rhs_iq_17_01_40.txt")
@@ -45,6 +45,13 @@ def load_data():
     file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_03_04_2023\lhs_iq_12_29_45.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_03_04_2023\lhs_iq_12_32_47.txt")
 
+
+    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_57_07.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_57_07.txt")
+
+    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_52_43.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_52_43.txt")
+
     # ------------------------------
     # Controlled tests 23 March 2023
     # ------------------------------
@@ -67,8 +74,9 @@ def load_data():
     # 60 km/h
     # subset=range(950,1200)
 
+    # Uncontrolled Tests
     # 30-second burst captures (roughly 2740 to 2753)
-    # subset=range(0,2700)
+    subset=range(0,2700)
     
 
     # sys.path.append('../../../../../OneDrive - University of Cape Town/RCWS_DATA/car_driveby')
