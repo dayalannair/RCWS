@@ -42,11 +42,11 @@ def load_data():
     # Controlled test : 03 April 2023
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_03_04_2023\lhs_iq_12_25_03.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_03_04_2023\lhs_iq_12_27_14.txt")
-    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_03_04_2023\lhs_iq_12_29_45.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_03_04_2023\lhs_iq_12_29_45.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\controlled_test_03_04_2023\lhs_iq_12_32_47.txt")
 
 
-    file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_57_07.txt")
+    # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_57_07.txt")
     # file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_57_07.txt")
 
     file_path = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\lhs_iq_12_52_43.txt")
