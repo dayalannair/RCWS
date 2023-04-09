@@ -3,7 +3,7 @@
 
 import sys
 sys.path.append('../custom_modules')
-
+import os
 import uRAD_USB_SDK11
 import serial
 from time import time, sleep, strftime,localtime
@@ -165,7 +165,7 @@ numVoltageLevels = max_voltage/ADC_intervals
 # Processing parameters
 half_train = 16
 half_guard = 14
-Pfa = 3e-3
+Pfa = 4e-3
 nbins = 16
 scan_width = 32
 calib = 0.9837
@@ -180,10 +180,11 @@ print("Bin width: ", str(bin_width))
 # System parameters
 # NOTE: comment out which is not being used!
 # Right radar angle correction
-rhs_road_width = 1.5
+road_width = 9
+rhs_road_width = round(road_width/4)
 angOffsetMinRangeRhs = 100 
 # Left radar angle adjustment and correction
-lhs_road_width = 3.3
+lhs_road_width = round(3*road_width/4)
 angOffsetMinRangeLhs = 7.1 
 
 angOffset = 25*np.pi/180
