@@ -9,17 +9,20 @@ sys.path.append('../custom_modules')
 from load_data_lib import load_proc_data
 import matplotlib.pyplot as plt
 import numpy as np
-lhsSpd, rhsSpd, subset = load_proc_data()
+lhsSpd, rhsSpd, lhsRng, rhsRng, lhsSft, rhsSft, len_subset = load_proc_data()
 timeStamps = np.linspace(0,30,2749)
 
-len_subset = len(subset)
+print("Length: ", str(len_subset))
 spMtxLhs = np.zeros([len_subset, 16])
 
-for i in range(len_subset):
+for i in range(len_subset-10):
+	# print(lhsSpd[i])
+	# print()
+	# if(str(lhsSpd[i]) != ''):
 	spMtxLhs[i,:] = np.array(lhsSpd[i].split(" "))
 
 timeStampsTrimmed = timeStamps[0:len_subset]
-plt.imshow(spMtxLhs,cmap='terrain_r', origin='upper', vmin=0, vmax=70, aspect='auto', \
+plt.imshow(spMtxLhs*3.6,cmap='terrain_r', origin='upper', vmin=0, vmax=70, aspect='auto', \
 		     interpolation='none', extent=[0, 62.5, np.max(timeStampsTrimmed), 0]) #, extent=[0, 62.5, 0, len_subset]
 # line3, = ax[1].plot(timeStampsTrimmed , sfVector)
 # thismanager = get_current_fig_manager()

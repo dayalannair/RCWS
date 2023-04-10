@@ -274,7 +274,7 @@ def load_proc_data():
     # file_path_rhs = Path(r"rhs_speed_results.txt")
 
     # subset = range(0, 4000)
-    subset = range(0, 350)
+    # subset = range(0, 350)
     # 50 kmh subset - same
     # 40 kmh subset
     # subset = range(700,1100)
@@ -309,17 +309,40 @@ def load_proc_data():
     # file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\rt_proc_data\2thd_rhs_speed_results_12_59_14.txt")
     
     
-    
+    # 5 April 2023 - final test
+
+    file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_05_04_2023\dummy\2thd_lhs_speed_results_19_26_16.txt")
+    file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_05_04_2023\dummy\2thd_rhs_speed_results_19_26_16.txt")
 
 
     with open(file_path_lhs, "r") as raw_IQ_lhs:
-        lhs = raw_IQ_lhs.read().split("\n")
+        lhsSpd = raw_IQ_lhs.read().split("\n")
 
     with open(file_path_rhs, "r") as raw_IQ_rhs:
-        rhs = raw_IQ_rhs.read().split("\n")
+        rhsSpd = raw_IQ_rhs.read().split("\n")
 
-    # rhs = []
-    return lhs, rhs, subset
+    file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_05_04_2023\dummy\2thd_lhs_range_results_19_26_16.txt")
+    file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_05_04_2023\dummy\2thd_rhs_range_results_19_26_16.txt")
+
+
+    with open(file_path_lhs, "r") as raw_IQ_lhs:
+        lhsRng = raw_IQ_lhs.read().split("\n")
+
+    with open(file_path_rhs, "r") as raw_IQ_rhs:
+        rhsRng = raw_IQ_rhs.read().split("\n")
+
+    file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_05_04_2023\dummy\2thd_lhs_safety_results_19_26_16.txt")
+    file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_05_04_2023\dummy\2thd_rhs_safety_results_19_26_16.txt")
+
+
+    with open(file_path_lhs, "r") as raw_IQ_lhs:
+        lhsSft = raw_IQ_lhs.read().split("\n")
+
+    with open(file_path_rhs, "r") as raw_IQ_rhs:
+        rhsSft = raw_IQ_rhs.read().split("\n")
+
+    len_subset = len(rhsSft)
+    return lhsSpd, rhsSpd, lhsRng, rhsRng, lhsSft, rhsSft, len_subset
 
 
 def load_video():
