@@ -22,6 +22,7 @@ try:
 	BW = int(sys.argv[2])
 	Ns = int(sys.argv[3])
 	duration = int(sys.argv[4])
+	Pfa = float(sys.argv[5])
 	t = localtime()
 	now = strftime("%H_%M_%S", t)  
 	fs = 200000
@@ -46,7 +47,10 @@ try:
 except: 
 	print("Invalid mode")
 	exit()
-
+ns = 200 # bypass user input
+SOS = ns*(Pfa**(-1/ns)-1)
+print("Pfa: ", str(Pfa))
+print("CFAR alpha value: ", SOS)
 # input parameters
 # BW and Ns input as arguments
 f0 = 5						# starting at 24.005 GHz
@@ -165,15 +169,11 @@ numVoltageLevels = max_voltage/ADC_intervals
 # Processing parameters
 half_train = 16
 half_guard = 14
-Pfa = 4e-3
+
 nbins = 16
 scan_width = 32
 calib = 0.9837
-ns = 200
 win = signal.windows.taylor(ns, nbar=3, sll=40, norm=False)
-SOS = ns*(Pfa**(-1/ns)-1)
-print("Pfa: ", str(Pfa))
-print("CFAR alpha value: ", SOS)
 bin_width = round((n_fft/2)/nbins)
 print("Bin width: ", str(bin_width))
 

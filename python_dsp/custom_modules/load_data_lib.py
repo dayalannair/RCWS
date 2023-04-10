@@ -299,14 +299,14 @@ def load_proc_data():
     file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\rt_proc_data\2thd_rhs_speed_results_12_54_30.txt")
     # file_path = Path(r"C:\Users\Dayalan Nair\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\iq_data\rhs_iq_12_57_07.txt")
 
-    file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\rt_proc_data\2thd_lhs_speed_results_12_59_14.txt")
-    file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\rt_proc_data\2thd_rhs_speed_results_12_59_14.txt")
+    # file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\rt_proc_data\2thd_lhs_speed_results_12_59_14.txt")
+    # file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\rt_proc_data\2thd_rhs_speed_results_12_59_14.txt")
     
-    file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\rt_proc_data\2thd_lhs_speed_results_12_58_38.txt")
-    file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\rt_proc_data\2thd_rhs_speed_results_12_58_38.txt")
+    # file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\rt_proc_data\2thd_lhs_speed_results_12_58_38.txt")
+    # file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\rt_proc_data\2thd_rhs_speed_results_12_58_38.txt")
 
-    file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\rt_proc_data\2thd_lhs_speed_results_12_59_14.txt")
-    file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\rt_proc_data\2thd_rhs_speed_results_12_59_14.txt")
+    # file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\rt_proc_data\2thd_lhs_speed_results_12_59_14.txt")
+    # file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_03_03_2023\rt_proc_data\2thd_rhs_speed_results_12_59_14.txt")
     
     
     
