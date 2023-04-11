@@ -210,8 +210,8 @@ cap2.set(3, 320)
 cap2.set(4, 240)
 
 fourcc  = cv2.VideoWriter_fourcc(*'X264')
-lhs_vid = cv2.VideoWriter('2thd_lhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
-rhs_vid = cv2.VideoWriter('2thd_rhs_vid_'+now+'_rtproc.avi',fourcc, 20.0, (320,240))
+lhs_vid = cv2.VideoWriter('2thd_lhs_vid_'+now+'_rtproc.avi',fourcc, 30.0, (320,240))
+rhs_vid = cv2.VideoWriter('2thd_rhs_vid_'+now+'_rtproc.avi',fourcc, 30.0, (320,240))
 
 # Burst captures expected to be around 30 seconds long
 n_rows = 3000

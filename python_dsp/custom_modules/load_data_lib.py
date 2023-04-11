@@ -310,9 +310,12 @@ def load_proc_data():
     
     
     # 5 April 2023 - final test
-
-    file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_05_04_2023\dummy\2thd_lhs_speed_results_19_26_16.txt")
-    file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_05_04_2023\dummy\2thd_rhs_speed_results_19_26_16.txt")
+    # _12_09_39
+    # _12_13_03
+    # _12_13_42
+    # _12_14_57
+    file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_11_04_2023\2thd_lhs_speed_results_12_09_39.txt")
+    file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_11_04_2023\2thd_rhs_speed_results_12_09_39.txt")
 
 
     with open(file_path_lhs, "r") as raw_IQ_lhs:
@@ -321,8 +324,8 @@ def load_proc_data():
     with open(file_path_rhs, "r") as raw_IQ_rhs:
         rhsSpd = raw_IQ_rhs.read().split("\n")
 
-    file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_05_04_2023\dummy\2thd_lhs_range_results_19_26_16.txt")
-    file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_05_04_2023\dummy\2thd_rhs_range_results_19_26_16.txt")
+    file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_11_04_2023\2thd_lhs_range_results_12_09_39.txt")
+    file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_11_04_2023\2thd_rhs_range_results_12_09_39.txt")
 
 
     with open(file_path_lhs, "r") as raw_IQ_lhs:
@@ -331,8 +334,8 @@ def load_proc_data():
     with open(file_path_rhs, "r") as raw_IQ_rhs:
         rhsRng = raw_IQ_rhs.read().split("\n")
 
-    file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_05_04_2023\dummy\2thd_lhs_safety_results_19_26_16.txt")
-    file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_05_04_2023\dummy\2thd_rhs_safety_results_19_26_16.txt")
+    file_path_lhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_11_04_2023\2thd_lhs_safety_results_12_09_39.txt")
+    file_path_rhs = Path(r"C:\Users\naird\OneDrive - University of Cape Town\RCWS_DATA\road_data_11_04_2023\2thd_rhs_safety_results_12_09_39.txt")
 
 
     with open(file_path_lhs, "r") as raw_IQ_lhs:
