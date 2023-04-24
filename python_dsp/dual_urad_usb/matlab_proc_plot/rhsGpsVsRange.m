@@ -101,7 +101,17 @@ rgMtx(rgMtx==0)=nan;
 t_offset = -1;
 % 45 km/h
 % t_offset = -abs(min(t_ax_rdr)-min(t_ax_gps))-0.425;
+a = round(mean(rgMtx, "all", 'omitnan'), 2) ;
+b = round(median(rgMtx, "all", 'omitnan'),2);
+c = round(mode(rgMtx,"all"),2);
+d = round(std(rgMtx(:), 'omitnan'),2);
+statVector = [a;b;c;d]
 
+a = round(mean(rng, "all", 'omitnan'), 2) ;
+b = round(median(rng, "all", 'omitnan'),2);
+c = round(mode(rng,"all"),2);
+d = round(std(rng(:), 'omitnan'),2);
+statVector = [a;b;c;d]
 %% Plot
 close all
 figure

@@ -9,7 +9,7 @@ addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
 
 
 gps_data = readtable('20230323-121458 - 45.txt','Delimiter' ,',');
-gps_data = readtable('20230323-121730 - 60.txt','Delimiter' ,',');
+% gps_data = readtable('20230323-121730 - 60.txt','Delimiter' ,',');
 % gps_data = readtable('20230323-122237 - 70_2.txt','Delimiter' ,',');
 % gps_data = readtable('20230323-122005 - 70.txt','Delimiter' ,',');
 
@@ -18,7 +18,7 @@ gps_data = readtable('20230323-121730 - 60.txt','Delimiter' ,',');
 addpath(['..\..\..\..\..\OneDrive - University of Cape Town\' ...
     'RCWS_DATA\controlled_test_23_03_2023\offlineProc\']);
 spMeasTbl = readtable('rhs_speed_results_ct45.txt','Delimiter' ,' ');
-spMeasTbl = readtable('rhs_speed_results_ct60.txt','Delimiter' ,' ');
+% spMeasTbl = readtable('rhs_speed_results_ct60.txt','Delimiter' ,' ');
 % spMeasTbl = readtable('rhs_speed_results_ct70.txt','Delimiter' ,' ');
 spMtx = table2array(spMeasTbl);
 
@@ -41,9 +41,9 @@ subset_start = 1520;
 subset_end = 1890;
 
 % 45 km/h
-% subset_length= 2744;
-% subset_start = 490;
-% subset_end = 1050;
+subset_length= 2744;
+subset_start = 490;
+subset_end = 1050;
 
 gpsSpd = gps_data.speed_m_s_*3.6;
 t_ax_rdr = linspace(0,30,subset_length);
@@ -52,16 +52,16 @@ hms_clean = gps_data.dateTime - gps_data.dateTime(1);
 t_ax_gps = seconds(hms_clean);
 
 % 70-2 km/h
-% tIdxStart = 16;
-% tIdxEnd = 20;
+tIdxStart = 16;
+tIdxEnd = 20;
 
 % % 60 km/h
 tIdxStart = 21;
 tIdxEnd = 26;
 t_offset = -1;
 % 45 km/h
-% tIdxStart = 20;
-% tIdxEnd = 26;
+tIdxStart = 20;
+tIdxEnd = 26;
 
 t_ax_gps = t_ax_gps(tIdxStart:tIdxEnd);
 
@@ -74,13 +74,28 @@ err = gps_data.accuracy_m_(tIdxStart:tIdxEnd);
 % t_ax_gps = 
 %% Plot
 spMtx(spMtx==0)=nan;
-% spMtx(spMtx<30)=nan;
+spMtx(spMtx<35)=nan;
 % spMtx(spMtx>50)=nan;
 % spMtx(spMtx<50)=nan;
-% spMtx(spMtx>60)=nan;
+spMtx(spMtx>60)=nan;
 spMtxVector = max(spMtx,[], 2);
 colours = winter(16);
-%%
+
+%% Statistics
+a = round(mean(spMtx, "all", 'omitnan'), 2) ;
+b = round(median(spMtx, "all", 'omitnan'),2);
+c = round(mode(spMtx,"all"),2);
+d = round(std(spMtx(:), 'omitnan'),2);
+statVector = [a;b;c;d]
+
+% a = round(mean(gpsSpd, "all", 'omitnan'), 2) ;
+% b = round(median(gpsSpd, "all", 'omitnan'),2);
+% c = round(mode(gpsSpd,"all"),2);
+% d = round(std(gpsSpd(:), 'omitnan'),2);
+% statVector = [a;b;c;d]
+
+
+%% Plots
 close all
 figure
 hold on
